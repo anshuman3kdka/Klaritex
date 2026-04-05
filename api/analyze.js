@@ -16,6 +16,18 @@ function extractJsonBlock(text) {
   return JSON.parse(cleaned);
 }
 
+
+function validateResultShape(result) {
+  const analysis = result?.statement_analysis;
+  const ambiguity = analysis?.ambiguity_score_data;
+  const hasScore = typeof ambiguity?.ambiguity_score === "number";
+  const hasTier = typeof ambiguity?.tier === "string";
+  const hasLiteral = typeof analysis?.literal_translation === "string";
+  const hasWorstLines = Array.isArray(analysis?.risk_profile?.worst_lines);
+
+  return Boolean(hasScore && hasTier && hasLiteral && hasWorstLines);
+}
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -113,6 +125,13 @@ export default async function handler(req, res) {
     }
 
     const result = extractJsonBlock(modelText);
+
+    if (!validateResultShape(result)) {
+      return res.status(502).json({
+        error: "Gemini returned JSON in an unexpected shape. Expected statement_analysis.ambiguity_score_data.ambiguity_score (number), statement_analysis.ambiguity_score_data.tier (string), statement_analysis.literal_translation (string), and statement_analysis.risk_profile.worst_lines (array).",
+      });
+    }
+
     const html = buildResultHtml(result);
 
     return res.status(200).json({ html, result });
