@@ -41,7 +41,7 @@ export function getGeminiModel(mode: AnalysisMode) {
   const genAI = new GoogleGenerativeAI(apiKey);
 
   return genAI.getGenerativeModel({
-    model: mode === "deep" ? "gemini-1.5-pro" : "gemini-1.5-flash"
+    model: mode === "deep" ? "gemini-3-flash-preview" : "gemini-3.1-flash-lite-preview"
   });
 }
 

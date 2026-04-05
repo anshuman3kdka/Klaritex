@@ -298,7 +298,7 @@ export function parseGeminiResponse(raw: string): AnalysisResult {
 
 ## Mode Difference: Quick vs Deep
 
-| Property | Quick (`gemini-1.5-flash`) | Deep (`gemini-1.5-pro`) |
+| Property | Quick (`gemini-3.1-flash-lite-preview`) | Deep (`gemini-3-flash-preview`) |
 |---|---|---|
 | Speed | ~2–4 seconds | ~6–15 seconds |
 | Depth of `notes` per element | Shorter | More detailed |

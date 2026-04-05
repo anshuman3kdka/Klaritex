@@ -151,13 +151,13 @@ const genAI = new GoogleGenerativeAI(process.env.KLARITEX!);
 
 export function getGeminiModel(mode: "quick" | "deep") {
   return genAI.getGenerativeModel({
-    model: mode === "deep" ? "gemini-1.5-pro" : "gemini-1.5-flash",
+    model: mode === "deep" ? "gemini-3-flash-preview" : "gemini-3.1-flash-lite-preview",
   });
 }
 ```
 
-**Quick Thinking** → `gemini-1.5-flash` (faster, lighter)  
-**Deep Thinking** → `gemini-1.5-pro` (slower, more rigorous)
+**Quick Thinking** → `gemini-3.1-flash-lite-preview` (faster, lighter)  
+**Deep Thinking** → `gemini-3-flash-preview` (slower, more rigorous)
 
 ---
 
