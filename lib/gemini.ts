@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { SYSTEM_PROMPT } from "@/lib/prompts";
 import type { AnalysisMode } from "@/lib/types";
 
-const GEMINI_API_KEY_ENV_NAMES = ["KLARITEX", "GEMINI_API_KEY"] as const;
+const GEMINI_API_KEY_ENV_NAMES = ["Klaritex", "KLARITEX", "GEMINI_API_KEY"] as const;
 
 export function sanitizeInput(text: string): string {
   return text
