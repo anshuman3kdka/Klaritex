@@ -347,7 +347,7 @@ analyzeBtn.addEventListener("click", async () => {
   hideVisualSummary();
 
   try {
-    setStatus("Analyzing with AI…", "loading");
+    setStatus("Analyzing…", "loading");
     const response = await fetch("/api/analyze", {
       method: "POST",
       headers: {

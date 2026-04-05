@@ -71,12 +71,7 @@ function buildResultHtml(result) {
 function getModelName() {
   const rawEnvModel = process.env.GEMINI_MODEL;
   const trimmedEnvModel = typeof rawEnvModel === "string" ? rawEnvModel.trim() : "";
-  const modelName = trimmedEnvModel || DEFAULT_MODEL_NAME;
-
-  return {
-    modelName,
-    source: trimmedEnvModel ? "GEMINI_MODEL" : "default",
-  };
+  return trimmedEnvModel || DEFAULT_MODEL_NAME;
 }
 
 function isValidModelName(modelName) {
@@ -94,11 +89,11 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server is missing env var: Klaritex" });
   }
 
-  const { modelName, source } = getModelName();
+  const modelName = getModelName();
 
   if (!isValidModelName(modelName)) {
     return res.status(500).json({
-      error: `Invalid Gemini model name \"${modelName}\" (source: ${source}). Set GEMINI_MODEL to a valid model id.`,
+      error: "We hit a configuration issue while processing your request.",
     });
   }
 
@@ -139,23 +134,23 @@ export default async function handler(req, res) {
     const payload = await response.json();
 
     if (!response.ok) {
-      const message = payload?.error?.message || "Gemini request failed.";
+      const message = payload?.error?.message || "Request failed.";
       return res.status(response.status).json({
-        error: `Gemini request failed for model \"${modelName}\": ${message}`,
+        error: `We are experiencing heavy demand right now. Please try again. (${message})`,
       });
     }
 
     const modelText = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!modelText) {
-      return res.status(502).json({ error: `Gemini returned no text output for model \"${modelName}\".` });
+      return res.status(502).json({ error: "We couldn’t finish your analysis right now. Please try again." });
     }
 
     const result = extractJsonBlock(modelText);
 
     if (!validateResultShape(result)) {
       return res.status(502).json({
-        error: "Gemini returned JSON in an unexpected shape. Expected statement_analysis.ambiguity_score_data.ambiguity_score (number), statement_analysis.ambiguity_score_data.tier (string), statement_analysis.literal_translation (string), and statement_analysis.risk_profile.worst_lines (array).",
+        error: "We received an unexpected response format while preparing your analysis.",
       });
     }
 
@@ -164,7 +159,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ html, result });
   } catch (error) {
     return res.status(500).json({
-      error: `Server error while using Gemini model \"${modelName}\": ${error.message || "Unknown server error."}`,
+      error: `We ran into a server issue. ${error.message || "Please try again in a moment."}`,
     });
   }
 }
