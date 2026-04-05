@@ -34,6 +34,43 @@ body {
   color: var(--color-text);
 }
 
+/* Typography utility classes */
+.text-display {
+  font-family: var(--font-heading);
+  font-size: var(--text-display);
+  line-height: var(--leading-display);
+}
+
+.text-h1 {
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  line-height: var(--leading-h1);
+}
+
+.text-h2 {
+  font-family: var(--font-heading);
+  font-size: var(--text-h2);
+  line-height: var(--leading-h2);
+}
+
+.text-h3 {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  line-height: var(--leading-h3);
+}
+
+.text-body {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.text-small {
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
 .dashboard {
   max-width: 900px;
   margin: 0 auto;
@@ -44,7 +81,9 @@ body {
 
 .dashboard__header h1 {
   margin: 0 0 8px;
-  font-size: 2rem;
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  line-height: var(--leading-h1);
 }
 
 .dashboard__header p {
@@ -61,6 +100,9 @@ body {
 
 label {
   display: inline-block;
+  font-family: var(--font-heading);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
   font-weight: 600;
   margin-bottom: 8px;
 }
@@ -115,6 +157,9 @@ label {
 
 .result-card h2 {
   margin-top: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h2);
+  line-height: var(--leading-h2);
 }
 
 .status {
@@ -132,5 +177,6 @@ label {
 
 .result-html p,
 .result-html li {
-  line-height: 1.5;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
 }
