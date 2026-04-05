@@ -9,6 +9,7 @@ const statusEl = document.getElementById("status");
 const resultHtmlEl = document.getElementById("result-html");
 const scoreBadgeEl = document.getElementById("score-badge");
 const visualSummaryEl = document.getElementById("visual-summary");
+const commitmentBreakdownEl = document.getElementById("commitment-breakdown");
 const copyResultBtn = document.getElementById("copy-result-btn");
 const downloadResultBtn = document.getElementById("download-result-btn");
 const exampleChips = document.querySelectorAll(".example-chip");
@@ -156,6 +157,340 @@ function hideScoreBadge() {
 function hideVisualSummary() {
   visualSummaryEl.hidden = true;
   visualSummaryEl.innerHTML = "";
+}
+
+function hideCommitmentBreakdown() {
+  commitmentBreakdownEl.hidden = true;
+  commitmentBreakdownEl.innerHTML = "";
+}
+
+function normalizeWhitespace(text) {
+  return String(text || "").replace(/\s+/g, " ").trim();
+}
+
+function buildSnippet(text, fallback = "Not found in statement.") {
+  const normalized = normalizeWhitespace(text);
+  return normalized || fallback;
+}
+
+function getStatusTone(status) {
+  if (status === "clear") {
+    return "locked";
+  }
+
+  if (status === "broad") {
+    return "unclear";
+  }
+
+  return "missing";
+}
+
+function getStatusLabel(status) {
+  if (status === "clear") {
+    return "LOCKED IN";
+  }
+
+  if (status === "broad") {
+    return "UNCLEAR";
+  }
+
+  return "MISSING";
+}
+
+function scoreStatus(status, weights) {
+  if (status === "clear") {
+    return 0;
+  }
+
+  if (status === "broad") {
+    return weights * 0.5;
+  }
+
+  return weights;
+}
+
+function evaluateWho(statement) {
+  const trimmed = normalizeWhitespace(statement);
+  const whoMatch = trimmed.match(/^([^,.;!?]+?)\s+(?:will|shall|must|can|could|should|plans?\s+to|plan\s+to|aims?\s+to|aim\s+to)\b/i);
+  const snippet = buildSnippet(whoMatch?.[1]);
+
+  if (!whoMatch) {
+    return {
+      id: "who",
+      title: "Who is doing it?",
+      helper: "The specific person or group doing the work.",
+      snippet,
+      status: "missing",
+    };
+  }
+
+  const normalizedWho = whoMatch[1].trim().toLowerCase();
+  const broadWhoPattern = /^(we|they|people|everyone|administration|leadership|team|committee|government|officials?)$/i;
+
+  return {
+    id: "who",
+    title: "Who is doing it?",
+    helper: "The specific person or group doing the work.",
+    snippet,
+    status: broadWhoPattern.test(normalizedWho) ? "broad" : "clear",
+  };
+}
+
+function evaluateAction(statement) {
+  const actionMatch = normalizeWhitespace(statement).match(
+    /\b(?:will|shall|must|can|could|should|plans?\s+to|plan\s+to|aims?\s+to|aim\s+to)\s+([a-z][a-z\s-]{1,60})/i,
+  );
+  const actionSnippet = buildSnippet(actionMatch?.[1]?.split(/\b(?:for|to|on|in|by|with|because)\b/i)[0]);
+  const symbolicAction = /\b(fight|support|encourage|prioritize|strive|work toward|promote|believe|seek)\b/i;
+  const clearAction = /\b(install|ban|sign|publish|launch|build|deliver|hire|reduce|increase|implement|audit|close|open)\b/i;
+
+  let status = "missing";
+
+  if (actionMatch) {
+    if (clearAction.test(actionSnippet)) {
+      status = "clear";
+    } else if (symbolicAction.test(actionSnippet)) {
+      status = "missing";
+    } else {
+      status = "broad";
+    }
+  }
+
+  return {
+    id: "action",
+    title: "What happens?",
+    helper: "The real-world event that actually happens.",
+    snippet: actionSnippet,
+    status,
+  };
+}
+
+function evaluateObject(statement) {
+  const objectMatch = normalizeWhitespace(statement).match(/\b(?:for|on|in|across|within|toward|against)\s+([^,.!?;]+?)(?:\s+\bby\b|\s+\bbecause\b|$)/i);
+  const snippet = buildSnippet(objectMatch?.[1]);
+
+  return {
+    id: "object",
+    title: "Who is affected?",
+    helper: "The person or thing receiving the action.",
+    snippet,
+    status: objectMatch ? "clear" : "missing",
+  };
+}
+
+function evaluateMeasure(statement) {
+  const normalized = normalizeWhitespace(statement);
+  const measureClearPattern = /\b(\d+(\.\d+)?\s*%|\d+(\.\d+)?\s*(days?|weeks?|months?|years?)|\bby\s+\d+|\bat\s+least\s+\d+)\b/i;
+  const measureBroadPattern = /\b(meaningful(ly)?|significant(ly)?|better|improve|stronger|more|less)\b/i;
+
+  let status = "missing";
+  let snippet = "No measurement phrase found.";
+
+  const byClause = normalized.match(/\b(?:by|at least|up to|no more than)\s+([^,.!?;]+)/i);
+  if (byClause) {
+    snippet = buildSnippet(byClause[0]);
+  }
+
+  if (measureClearPattern.test(normalized)) {
+    status = "clear";
+  } else if (measureBroadPattern.test(normalized)) {
+    status = "broad";
+    const broadHit = normalized.match(measureBroadPattern);
+    snippet = buildSnippet(broadHit?.[0], snippet);
+  }
+
+  return {
+    id: "measure",
+    title: "How do we know?",
+    helper: "The proof we use to know if it happened.",
+    snippet,
+    status,
+  };
+}
+
+function evaluateTimeline(statement) {
+  const normalized = normalizeWhitespace(statement);
+  const clearPattern =
+    /\b(by|before|on|starting|from)\s+((jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+\d{1,2}(,\s*\d{4})?|\d{4}|q[1-4]|[a-z]+\s+\d{4}|\d+\s+(days?|weeks?|months?|years?))/i;
+  const broadPattern = /\b(soon|coming months?|near future|as soon as possible|eventually|in time)\b/i;
+
+  const clearHit = normalized.match(clearPattern);
+  if (clearHit) {
+    return {
+      id: "timeline",
+      title: "When?",
+      helper: "The specific time or deadline.",
+      snippet: buildSnippet(clearHit[0]),
+      status: "clear",
+    };
+  }
+
+  const broadHit = normalized.match(broadPattern);
+  if (broadHit) {
+    return {
+      id: "timeline",
+      title: "When?",
+      helper: "The specific time or deadline.",
+      snippet: buildSnippet(broadHit[0]),
+      status: "broad",
+    };
+  }
+
+  return {
+    id: "timeline",
+    title: "When?",
+    helper: "The specific time or deadline.",
+    snippet: "No timeline found.",
+    status: "missing",
+  };
+}
+
+function evaluatePremise(statement) {
+  const normalized = normalizeWhitespace(statement);
+  const premiseMatch = normalized.match(/\b(because|due to|to comply with|as required by|following|based on)\s+([^,.!?;]+)/i);
+
+  if (!premiseMatch) {
+    return {
+      id: "premise",
+      title: "Why?",
+      helper: "The facts or rules this is based on.",
+      snippet: "No reason provided.",
+      status: "missing",
+    };
+  }
+
+  const snippet = buildSnippet(premiseMatch[0]);
+  const clearPattern = /\b(law|act|code|data|report|audit|court|regulation|statute|\d+%|\d{4})\b/i;
+  const symbolicPattern = /\b(believe|hope|future|right thing|values?|vision)\b/i;
+
+  let status = "broad";
+  if (clearPattern.test(premiseMatch[0])) {
+    status = "clear";
+  } else if (symbolicPattern.test(premiseMatch[0])) {
+    status = "missing";
+  }
+
+  return {
+    id: "premise",
+    title: "Why?",
+    helper: "The facts or rules this is based on.",
+    snippet,
+    status,
+  };
+}
+
+function calibratePartsToModelScore(parts, modelScore) {
+  if (!Number.isFinite(modelScore)) {
+    return parts;
+  }
+
+  const calibrated = parts.map((part) => ({ ...part }));
+  const byPriority = ["premise", "measure", "timeline", "who", "action", "object"];
+
+  const countByStatus = (status) => calibrated.filter((part) => part.status === status).length;
+  const firstByPriority = (allowedStatuses) =>
+    byPriority
+      .map((id) => calibrated.findIndex((part) => part.id === id && allowedStatuses.includes(part.status)))
+      .find((index) => index >= 0);
+
+  if (modelScore <= 1.2) {
+    calibrated.forEach((part) => {
+      if (part.status !== "clear") {
+        part.status = "clear";
+      }
+    });
+    return calibrated;
+  }
+
+  if (modelScore <= 2.5) {
+    while (countByStatus("missing") > 1) {
+      const index = firstByPriority(["missing"]);
+      if (index < 0) {
+        break;
+      }
+      calibrated[index].status = "broad";
+    }
+
+    while (countByStatus("broad") > 2) {
+      const index = firstByPriority(["broad"]);
+      if (index < 0) {
+        break;
+      }
+      calibrated[index].status = "clear";
+    }
+  }
+
+  if (modelScore >= 6.1) {
+    while (countByStatus("missing") + countByStatus("broad") < 3) {
+      const index = firstByPriority(["clear"]);
+      if (index < 0) {
+        break;
+      }
+      calibrated[index].status = calibrated[index].id === "premise" || calibrated[index].id === "measure" ? "missing" : "broad";
+    }
+  }
+
+  return calibrated;
+}
+
+function analyzeCommitmentBreakdown(statement, modelScore) {
+  const parts = [
+    evaluateWho(statement),
+    evaluateAction(statement),
+    evaluateObject(statement),
+    evaluateMeasure(statement),
+    evaluateTimeline(statement),
+    evaluatePremise(statement),
+  ];
+  const calibratedParts = calibratePartsToModelScore(parts, modelScore);
+
+  const weightsById = {
+    who: 3,
+    action: 2,
+    object: 1,
+    measure: 2,
+    timeline: 1.5,
+    premise: 2.5,
+  };
+
+  const rawPenalty = calibratedParts.reduce((sum, part) => sum + scoreStatus(part.status, weightsById[part.id] || 1), 0);
+  const score = Math.min(10, Math.max(0, (rawPenalty / 12) * 10));
+  return { parts: calibratedParts, score };
+}
+
+function renderCommitmentBreakdown(statement, modelScore) {
+  if (!commitmentBreakdownEl) {
+    return;
+  }
+
+  const analysis = analyzeCommitmentBreakdown(statement, modelScore);
+  const displayScore = Number.isFinite(modelScore) ? modelScore : analysis.score;
+  const rowsHtml = analysis.parts
+    .map((part) => {
+      const tone = getStatusTone(part.status);
+      const label = getStatusLabel(part.status);
+      return `
+        <article class="commitment-row commitment-row--${tone}">
+          <div class="commitment-row__head">
+            <h3>${escapeHtml(part.title)}</h3>
+            <span class="commitment-pill commitment-pill--${tone}">${escapeHtml(label)}</span>
+          </div>
+          <p class="commitment-row__helper">${escapeHtml(part.helper)}</p>
+          <p class="commitment-row__value">${escapeHtml(part.snippet)}</p>
+        </article>
+      `;
+    })
+    .join("");
+
+  commitmentBreakdownEl.innerHTML = `
+    <header class="commitment-breakdown__header">
+      <h2>6-Part Commitment Breakdown</h2>
+      <p class="commitment-breakdown__subtitle">Structural elements of the main claim</p>
+      <p class="commitment-breakdown__score">Skeleton score: <strong>${displayScore.toFixed(1)} / 10</strong></p>
+    </header>
+    <div class="commitment-breakdown__rows">${rowsHtml}</div>
+  `;
+  commitmentBreakdownEl.hidden = false;
 }
 
 function renderStatusCard(tierData) {
@@ -350,6 +685,7 @@ analyzeBtn.addEventListener("click", async () => {
   resultHtmlEl.innerHTML = "";
   hideScoreBadge();
   hideVisualSummary();
+  hideCommitmentBreakdown();
 
   try {
     setStatus("Analyzing…", "loading");
@@ -370,6 +706,7 @@ analyzeBtn.addEventListener("click", async () => {
     setStatus("Formatting your report…", "loading");
     resultHtmlEl.innerHTML = payload.html || "<p>No HTML returned from the server.</p>";
     renderVisualSummary(payload);
+    renderCommitmentBreakdown(userText, extractScore(payload));
     addHeadingMarkers(resultHtmlEl);
     renderScoreBadge(extractScore(payload));
     setResultActionsEnabled(Boolean(getResultPlainText()));
@@ -378,6 +715,7 @@ analyzeBtn.addEventListener("click", async () => {
     setStatus(`Error: ${error.message}`, "error");
     hideScoreBadge();
     hideVisualSummary();
+    hideCommitmentBreakdown();
     setResultActionsEnabled(false);
   } finally {
     setLoading(false);
@@ -389,3 +727,4 @@ setTheme(getSavedTheme());
 updateCount();
 setResultActionsEnabled(false);
 hideVisualSummary();
+hideCommitmentBreakdown();
