@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const MODEL_NAME = "gemini-3-flash-preview";
+const DEFAULT_MODEL_NAME = "gemini-3-flash-preview";
 const SYSTEM_INSTRUCTION_PATH = path.join(process.cwd(), "lib", "KlaritexEngine.prompt.txt");
 
 const SYSTEM_INSTRUCTION = fs.readFileSync(SYSTEM_INSTRUCTION_PATH, "utf8");
@@ -56,6 +56,21 @@ function buildResultHtml(result) {
   `;
 }
 
+function getModelName() {
+  const rawEnvModel = process.env.GEMINI_MODEL;
+  const trimmedEnvModel = typeof rawEnvModel === "string" ? rawEnvModel.trim() : "";
+  const modelName = trimmedEnvModel || DEFAULT_MODEL_NAME;
+
+  return {
+    modelName,
+    source: trimmedEnvModel ? "GEMINI_MODEL" : "default",
+  };
+}
+
+function isValidModelName(modelName) {
+  return typeof modelName === "string" && /^[a-zA-Z0-9._-]+$/.test(modelName);
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -67,6 +82,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server is missing env var: Klaritex" });
   }
 
+  const { modelName, source } = getModelName();
+
+  if (!isValidModelName(modelName)) {
+    return res.status(500).json({
+      error: `Invalid Gemini model name \"${modelName}\" (source: ${source}). Set GEMINI_MODEL to a valid model id.`,
+    });
+  }
+
   const userText = req.body?.text?.trim();
 
   if (!userText) {
@@ -74,7 +97,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
     const body = {
       systemInstruction: {
@@ -103,13 +126,15 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const message = payload?.error?.message || "Gemini request failed.";
-      return res.status(response.status).json({ error: message });
+      return res.status(response.status).json({
+        error: `Gemini request failed for model \"${modelName}\": ${message}`,
+      });
     }
 
     const modelText = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!modelText) {
-      return res.status(502).json({ error: "Gemini returned no text output." });
+      return res.status(502).json({ error: `Gemini returned no text output for model \"${modelName}\".` });
     }
 
     const result = extractJsonBlock(modelText);
@@ -117,6 +142,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ html, result });
   } catch (error) {
-    return res.status(500).json({ error: error.message || "Unknown server error." });
+    return res.status(500).json({
+      error: `Server error while using Gemini model \"${modelName}\": ${error.message || "Unknown server error."}`,
+    });
   }
 }
