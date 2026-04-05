@@ -275,6 +275,31 @@ label {
 
 .status {
   color: var(--color-muted);
+  transition: color 180ms ease;
+}
+
+.status--loading {
+  color: color-mix(in srgb, var(--color-primary) 78%, #ffffff 22%);
+  animation: statusPulse 1.4s ease-in-out infinite;
+}
+
+.status--success {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.status--error {
+  color: var(--color-error);
+}
+
+@keyframes statusPulse {
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 
