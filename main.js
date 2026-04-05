@@ -1,3 +1,5 @@
+import { classifyRiskTier } from "./lib/tierThresholds.js";
+
 const MAX_CHARS = 10000;
 
 const inputText = document.getElementById("input-text");
@@ -83,18 +85,6 @@ function setResultActionsEnabled(isEnabled) {
   downloadResultBtn.disabled = !isEnabled;
 }
 
-function getScoreBand(scoreValue) {
-  if (scoreValue <= 3.3) {
-    return "low";
-  }
-
-  if (scoreValue <= 6.6) {
-    return "medium";
-  }
-
-  return "high";
-}
-
 function parseScoreFromHtml(htmlText) {
   if (!htmlText) {
     return null;
@@ -147,13 +137,12 @@ function extractAnalysisData(payload) {
 
   const scoreValue = Number(analysis?.ambiguity_score_data?.ambiguity_score);
   const safeScore = Number.isFinite(scoreValue) ? Math.max(0, Math.min(10, scoreValue)) : null;
-
-  const tier = typeof analysis?.ambiguity_score_data?.tier === "string" ? analysis.ambiguity_score_data.tier : "Unknown";
+  const tierData = classifyRiskTier(safeScore);
   const worstLines = Array.isArray(analysis?.risk_profile?.worst_lines) ? analysis.risk_profile.worst_lines : [];
 
   return {
     score: safeScore,
-    tier,
+    tierData,
     worstLines,
   };
 }
@@ -169,6 +158,26 @@ function hideVisualSummary() {
   visualSummaryEl.innerHTML = "";
 }
 
+function renderStatusCard(tierData) {
+  if (!tierData) {
+    return `
+      <article class="status-card status-card--unknown">
+        <h3>Risk Tier</h3>
+        <p class="status-card__name">Unknown</p>
+        <p class="status-card__description">We could not classify risk for this score.</p>
+      </article>
+    `;
+  }
+
+  return `
+    <article class="status-card status-card--${tierData.tone}">
+      <h3>Risk Tier</h3>
+      <p class="status-card__name">${escapeHtml(tierData.icon)} ${escapeHtml(tierData.name)}</p>
+      <p class="status-card__description">${escapeHtml(tierData.description)}</p>
+    </article>
+  `;
+}
+
 function renderVisualSummary(payload) {
   const data = extractAnalysisData(payload);
 
@@ -177,7 +186,7 @@ function renderVisualSummary(payload) {
     return;
   }
 
-  const scoreBand = getScoreBand(data.score);
+  const scoreBand = data.tierData?.tone || "medium";
   const percentage = Math.round((data.score / 10) * 100);
   const worstLines = data.worstLines.slice(0, 3);
   const highestRank = Math.max(1, worstLines.length);
@@ -210,11 +219,7 @@ function renderVisualSummary(payload) {
         <p>${percentage}% ambiguous</p>
       </article>
 
-      <article class="visual-summary__card visual-summary__card--tier">
-        <h3>Risk Tier</h3>
-        <p class="visual-summary__tier">${escapeHtml(data.tier)}</p>
-        <p class="visual-summary__hint">Lower score = clearer language. Higher score = more room for interpretation.</p>
-      </article>
+      ${renderStatusCard(data.tierData)}
     </section>
 
     <section class="visual-summary__card visual-summary__card--bars">
@@ -265,7 +270,7 @@ function renderScoreBadge(scoreValue) {
     return;
   }
 
-  const scoreBand = getScoreBand(scoreValue);
+  const scoreBand = classifyRiskTier(scoreValue)?.tone || "medium";
   scoreBadgeEl.hidden = false;
   scoreBadgeEl.textContent = scoreValue.toFixed(1);
   scoreBadgeEl.classList.remove("score-badge--low", "score-badge--medium", "score-badge--high");
