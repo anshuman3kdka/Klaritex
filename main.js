@@ -6,6 +6,7 @@ const analyzeBtn = document.getElementById("analyze-btn");
 const statusEl = document.getElementById("status");
 const resultHtmlEl = document.getElementById("result-html");
 const scoreBadgeEl = document.getElementById("score-badge");
+const visualSummaryEl = document.getElementById("visual-summary");
 const copyResultBtn = document.getElementById("copy-result-btn");
 const downloadResultBtn = document.getElementById("download-result-btn");
 const exampleChips = document.querySelectorAll(".example-chip");
@@ -128,10 +129,101 @@ function extractScore(payload) {
   return parseScoreFromHtml(payload?.html);
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function extractAnalysisData(payload) {
+  const analysis = payload?.result?.statement_analysis;
+
+  if (!analysis || typeof analysis !== "object") {
+    return null;
+  }
+
+  const scoreValue = Number(analysis?.ambiguity_score_data?.ambiguity_score);
+  const safeScore = Number.isFinite(scoreValue) ? Math.max(0, Math.min(10, scoreValue)) : null;
+
+  const tier = typeof analysis?.ambiguity_score_data?.tier === "string" ? analysis.ambiguity_score_data.tier : "Unknown";
+  const worstLines = Array.isArray(analysis?.risk_profile?.worst_lines) ? analysis.risk_profile.worst_lines : [];
+
+  return {
+    score: safeScore,
+    tier,
+    worstLines,
+  };
+}
+
 function hideScoreBadge() {
   scoreBadgeEl.hidden = true;
   scoreBadgeEl.textContent = "";
   scoreBadgeEl.classList.remove("score-badge--low", "score-badge--medium", "score-badge--high");
+}
+
+function hideVisualSummary() {
+  visualSummaryEl.hidden = true;
+  visualSummaryEl.innerHTML = "";
+}
+
+function renderVisualSummary(payload) {
+  const data = extractAnalysisData(payload);
+
+  if (!data || !Number.isFinite(data.score)) {
+    hideVisualSummary();
+    return;
+  }
+
+  const scoreBand = getScoreBand(data.score);
+  const percentage = Math.round((data.score / 10) * 100);
+  const worstLines = data.worstLines.slice(0, 3);
+  const highestRank = Math.max(1, worstLines.length);
+
+  const barsHtml = worstLines.length
+    ? worstLines
+        .map((line, index) => {
+          const rankValue = highestRank - index;
+          const rankPercent = Math.max(20, Math.round((rankValue / highestRank) * 100));
+          const safeText = escapeHtml(String(line?.text || "(No line text)"));
+          return `
+            <li class="visual-summary__bar-item">
+              <p class="visual-summary__bar-label">${safeText}</p>
+              <div class="visual-summary__bar-track" role="img" aria-label="Ranked risk bar at ${rankPercent}% intensity">
+                <div class="visual-summary__bar-fill" style="width:${rankPercent}%"></div>
+              </div>
+            </li>
+          `;
+        })
+        .join("")
+    : '<p class="visual-summary__empty">No high-risk lines found in this response.</p>';
+
+  visualSummaryEl.innerHTML = `
+    <section class="visual-summary__top-row">
+      <article class="visual-summary__card visual-summary__card--meter visual-summary__card--${scoreBand}">
+        <h3>Ambiguity Meter</h3>
+        <div class="visual-summary__meter" style="--meter-fill:${percentage}%" role="img" aria-label="Ambiguity score ${data.score.toFixed(1)} out of 10">
+          <span>${data.score.toFixed(1)}</span>
+        </div>
+        <p>${percentage}% ambiguous</p>
+      </article>
+
+      <article class="visual-summary__card visual-summary__card--tier">
+        <h3>Risk Tier</h3>
+        <p class="visual-summary__tier">${escapeHtml(data.tier)}</p>
+        <p class="visual-summary__hint">Lower score = clearer language. Higher score = more room for interpretation.</p>
+      </article>
+    </section>
+
+    <section class="visual-summary__card visual-summary__card--bars">
+      <h3>Top Risk Lines (Chart)</h3>
+      <ul class="visual-summary__bars">${barsHtml}</ul>
+    </section>
+  `;
+
+  visualSummaryEl.hidden = false;
 }
 
 function addHeadingMarkers(rootEl) {
@@ -252,6 +344,7 @@ analyzeBtn.addEventListener("click", async () => {
   setStatus("Validating input…", "loading");
   resultHtmlEl.innerHTML = "";
   hideScoreBadge();
+  hideVisualSummary();
 
   try {
     setStatus("Analyzing with AI…", "loading");
@@ -271,6 +364,7 @@ analyzeBtn.addEventListener("click", async () => {
 
     setStatus("Formatting your report…", "loading");
     resultHtmlEl.innerHTML = payload.html || "<p>No HTML returned from the server.</p>";
+    renderVisualSummary(payload);
     addHeadingMarkers(resultHtmlEl);
     renderScoreBadge(extractScore(payload));
     setResultActionsEnabled(Boolean(getResultPlainText()));
@@ -278,6 +372,7 @@ analyzeBtn.addEventListener("click", async () => {
   } catch (error) {
     setStatus(`Error: ${error.message}`, "error");
     hideScoreBadge();
+    hideVisualSummary();
     setResultActionsEnabled(false);
   } finally {
     setLoading(false);
@@ -288,3 +383,4 @@ inputText.addEventListener("input", updateCount);
 setTheme(getSavedTheme());
 updateCount();
 setResultActionsEnabled(false);
+hideVisualSummary();
