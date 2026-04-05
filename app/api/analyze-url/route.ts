@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { extractUrlText, UrlExtractionError } from "@/lib/extractUrl";
-import { analyzeText, sanitizeInput } from "@/lib/gemini";
+import { analyzeText, isGeminiUnavailableErrorMessage, sanitizeInput } from "@/lib/gemini";
 import { parseGeminiResponse } from "@/lib/parseResponse";
 import type { AnalysisMode } from "@/lib/types";
 
@@ -66,12 +66,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Analysis parsing failed." }, { status: 500 });
     }
 
-    if (
-      message.includes("KLARITEX") ||
-      message.toLowerCase().includes("unavailable") ||
-      message.toLowerCase().includes("quota") ||
-      message.toLowerCase().includes("429")
-    ) {
+    if (isGeminiUnavailableErrorMessage(message)) {
+      if (message.toLowerCase().includes("missing gemini api key")) {
+        return NextResponse.json(
+          { error: "Gemini API key is not configured on the server." },
+          { status: 503 }
+        );
+      }
+
       return NextResponse.json({ error: "Gemini API unavailable." }, { status: 503 });
     }
 

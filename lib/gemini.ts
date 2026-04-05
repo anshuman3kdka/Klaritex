@@ -3,6 +3,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { SYSTEM_PROMPT } from "@/lib/prompts";
 import type { AnalysisMode } from "@/lib/types";
 
+const GEMINI_API_KEY_ENV_NAMES = ["KLARITEX", "GEMINI_API_KEY"] as const;
+
 export function sanitizeInput(text: string): string {
   return text
     .replace(/\0/g, "")
@@ -11,13 +13,31 @@ export function sanitizeInput(text: string): string {
     .slice(0, 10000);
 }
 
-export function getGeminiModel(mode: AnalysisMode) {
-  const apiKey = process.env.KLARITEX;
+function getConfiguredGeminiApiKey(): string {
+  for (const envName of GEMINI_API_KEY_ENV_NAMES) {
+    const value = process.env[envName]?.trim();
 
-  if (!apiKey) {
-    throw new Error("Missing KLARITEX environment variable.");
+    if (value) {
+      return value;
+    }
   }
 
+  throw new Error("Missing Gemini API key. Configure KLARITEX (or GEMINI_API_KEY) on the server.");
+}
+
+export function isGeminiUnavailableErrorMessage(message: string): boolean {
+  const lowerMessage = message.toLowerCase();
+
+  return (
+    lowerMessage.includes("missing gemini api key") ||
+    lowerMessage.includes("unavailable") ||
+    lowerMessage.includes("quota") ||
+    lowerMessage.includes("429")
+  );
+}
+
+export function getGeminiModel(mode: AnalysisMode) {
+  const apiKey = getConfiguredGeminiApiKey();
   const genAI = new GoogleGenerativeAI(apiKey);
 
   return genAI.getGenerativeModel({
