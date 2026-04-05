@@ -474,17 +474,49 @@ label {
   font-weight: 700;
 }
 
-.visual-summary__tier {
+.status-card {
+  border-radius: 14px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  background: color-mix(in srgb, var(--color-bg-elevated) 84%, transparent);
+}
+
+.status-card h3 {
+  margin: 0 0 10px;
+  color: var(--color-heading-accent);
+  font-size: 0.95rem;
+}
+
+.status-card__name {
   margin: 0 0 8px;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
 }
 
-.visual-summary__hint {
+.status-card__description {
   margin: 0;
   color: var(--color-muted);
   font-size: 0.92rem;
   line-height: 1.5;
+}
+
+.status-card--low {
+  border-color: color-mix(in srgb, var(--color-success) 55%, var(--color-border));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-success) 82%, transparent);
+}
+
+.status-card--medium {
+  border-color: color-mix(in srgb, var(--color-warning) 58%, var(--color-border));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-warning) 84%, transparent);
+}
+
+.status-card--high {
+  border-color: color-mix(in srgb, var(--color-error) 58%, var(--color-border));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-error) 84%, transparent);
+}
+
+.status-card--unknown {
+  border-style: dashed;
 }
 
 .visual-summary__bars {

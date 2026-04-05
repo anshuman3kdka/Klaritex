@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { classifyRiskTier } from "../lib/tierThresholds.js";
 
 const DEFAULT_MODEL_NAME = "gemini-3-flash-preview";
 const SYSTEM_INSTRUCTION_PATH = path.join(process.cwd(), "lib", "KlaritexEngine.prompt.txt");
@@ -21,11 +22,10 @@ function validateResultShape(result) {
   const analysis = result?.statement_analysis;
   const ambiguity = analysis?.ambiguity_score_data;
   const hasScore = typeof ambiguity?.ambiguity_score === "number";
-  const hasTier = typeof ambiguity?.tier === "string";
   const hasLiteral = typeof analysis?.literal_translation === "string";
   const hasWorstLines = Array.isArray(analysis?.risk_profile?.worst_lines);
 
-  return Boolean(hasScore && hasTier && hasLiteral && hasWorstLines);
+  return Boolean(hasScore && hasLiteral && hasWorstLines);
 }
 
 function escapeHtml(value) {
@@ -41,7 +41,9 @@ function buildResultHtml(result) {
   const analysis = result?.statement_analysis || {};
   const ambiguity = analysis?.ambiguity_score_data || {};
   const score = typeof ambiguity.ambiguity_score === "number" ? ambiguity.ambiguity_score.toFixed(1) : "--";
-  const tier = ambiguity.tier || "Unknown";
+  const computedTier = classifyRiskTier(Number(ambiguity.ambiguity_score));
+  const tier = computedTier?.name || "Unknown";
+  const tierDescription = computedTier?.description || "No tier description available.";
   const literal = analysis.literal_translation || "No literal translation returned.";
   const worstLines = Array.isArray(analysis?.risk_profile?.worst_lines) ? analysis.risk_profile.worst_lines : [];
 
@@ -55,7 +57,8 @@ function buildResultHtml(result) {
     <section>
       <h3>Ambiguity Score</h3>
       <p><strong>${score} / 10</strong></p>
-      <p>Tier: <strong>${escapeHtml(tier)}</strong></p>
+      <p>Risk Tier: <strong>${escapeHtml(tier)}</strong></p>
+      <p>${escapeHtml(tierDescription)}</p>
     </section>
     <section>
       <h3>Literal Reality</h3>
@@ -66,6 +69,28 @@ function buildResultHtml(result) {
       ${worstLinesHtml}
     </section>
   `;
+}
+
+function applyComputedTier(result) {
+  const scoreValue = Number(result?.statement_analysis?.ambiguity_score_data?.ambiguity_score);
+  const tier = classifyRiskTier(scoreValue);
+
+  if (!tier) {
+    return result;
+  }
+
+  if (!result.statement_analysis) {
+    result.statement_analysis = {};
+  }
+
+  if (!result.statement_analysis.ambiguity_score_data) {
+    result.statement_analysis.ambiguity_score_data = {};
+  }
+
+  result.statement_analysis.ambiguity_score_data.tier = tier.name;
+  result.statement_analysis.ambiguity_score_data.tier_description = tier.description;
+
+  return result;
 }
 
 function getModelName() {
@@ -146,7 +171,7 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: "We couldn’t finish your analysis right now. Please try again." });
     }
 
-    const result = extractJsonBlock(modelText);
+    const result = applyComputedTier(extractJsonBlock(modelText));
 
     if (!validateResultShape(result)) {
       return res.status(502).json({
