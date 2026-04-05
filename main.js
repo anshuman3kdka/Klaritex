@@ -379,7 +379,61 @@ function evaluatePremise(statement) {
   };
 }
 
-function analyzeCommitmentBreakdown(statement) {
+function calibratePartsToModelScore(parts, modelScore) {
+  if (!Number.isFinite(modelScore)) {
+    return parts;
+  }
+
+  const calibrated = parts.map((part) => ({ ...part }));
+  const byPriority = ["premise", "measure", "timeline", "who", "action", "object"];
+
+  const countByStatus = (status) => calibrated.filter((part) => part.status === status).length;
+  const firstByPriority = (allowedStatuses) =>
+    byPriority
+      .map((id) => calibrated.findIndex((part) => part.id === id && allowedStatuses.includes(part.status)))
+      .find((index) => index >= 0);
+
+  if (modelScore <= 1.2) {
+    calibrated.forEach((part) => {
+      if (part.status !== "clear") {
+        part.status = "clear";
+      }
+    });
+    return calibrated;
+  }
+
+  if (modelScore <= 2.5) {
+    while (countByStatus("missing") > 1) {
+      const index = firstByPriority(["missing"]);
+      if (index < 0) {
+        break;
+      }
+      calibrated[index].status = "broad";
+    }
+
+    while (countByStatus("broad") > 2) {
+      const index = firstByPriority(["broad"]);
+      if (index < 0) {
+        break;
+      }
+      calibrated[index].status = "clear";
+    }
+  }
+
+  if (modelScore >= 6.1) {
+    while (countByStatus("missing") + countByStatus("broad") < 3) {
+      const index = firstByPriority(["clear"]);
+      if (index < 0) {
+        break;
+      }
+      calibrated[index].status = calibrated[index].id === "premise" || calibrated[index].id === "measure" ? "missing" : "broad";
+    }
+  }
+
+  return calibrated;
+}
+
+function analyzeCommitmentBreakdown(statement, modelScore) {
   const parts = [
     evaluateWho(statement),
     evaluateAction(statement),
@@ -388,6 +442,7 @@ function analyzeCommitmentBreakdown(statement) {
     evaluateTimeline(statement),
     evaluatePremise(statement),
   ];
+  const calibratedParts = calibratePartsToModelScore(parts, modelScore);
 
   const weightsById = {
     who: 3,
@@ -398,17 +453,18 @@ function analyzeCommitmentBreakdown(statement) {
     premise: 2.5,
   };
 
-  const rawPenalty = parts.reduce((sum, part) => sum + scoreStatus(part.status, weightsById[part.id] || 1), 0);
+  const rawPenalty = calibratedParts.reduce((sum, part) => sum + scoreStatus(part.status, weightsById[part.id] || 1), 0);
   const score = Math.min(10, Math.max(0, (rawPenalty / 12) * 10));
-  return { parts, score };
+  return { parts: calibratedParts, score };
 }
 
-function renderCommitmentBreakdown(statement) {
+function renderCommitmentBreakdown(statement, modelScore) {
   if (!commitmentBreakdownEl) {
     return;
   }
 
-  const analysis = analyzeCommitmentBreakdown(statement);
+  const analysis = analyzeCommitmentBreakdown(statement, modelScore);
+  const displayScore = Number.isFinite(modelScore) ? modelScore : analysis.score;
   const rowsHtml = analysis.parts
     .map((part) => {
       const tone = getStatusTone(part.status);
@@ -430,7 +486,7 @@ function renderCommitmentBreakdown(statement) {
     <header class="commitment-breakdown__header">
       <h2>6-Part Commitment Breakdown</h2>
       <p class="commitment-breakdown__subtitle">Structural elements of the main claim</p>
-      <p class="commitment-breakdown__score">Skeleton score: <strong>${analysis.score.toFixed(1)} / 10</strong></p>
+      <p class="commitment-breakdown__score">Skeleton score: <strong>${displayScore.toFixed(1)} / 10</strong></p>
     </header>
     <div class="commitment-breakdown__rows">${rowsHtml}</div>
   `;
@@ -650,7 +706,7 @@ analyzeBtn.addEventListener("click", async () => {
     setStatus("Formatting your report…", "loading");
     resultHtmlEl.innerHTML = payload.html || "<p>No HTML returned from the server.</p>";
     renderVisualSummary(payload);
-    renderCommitmentBreakdown(userText);
+    renderCommitmentBreakdown(userText, extractScore(payload));
     addHeadingMarkers(resultHtmlEl);
     renderScoreBadge(extractScore(payload));
     setResultActionsEnabled(Boolean(getResultPlainText()));
