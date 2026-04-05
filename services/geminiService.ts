@@ -1,5 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { SYSTEM_PROMPT } from "../systemPrompt.js";
 
 const apiKey = process.env.Klaritex;
 
@@ -9,11 +10,16 @@ if (!apiKey) {
   );
 }
 
+const systemInstruction = fs.readFileSync(
+  path.join(process.cwd(), "lib", "KlaritexEngine.prompt.txt"),
+  "utf8"
+);
+
 const genAI = new GoogleGenerativeAI(apiKey);
 
 const model = genAI.getGenerativeModel({
   model: "gemini-3-flash-preview",
-  systemInstruction: SYSTEM_PROMPT,
+  systemInstruction,
   generationConfig: {
     responseMimeType: "application/json",
   },
