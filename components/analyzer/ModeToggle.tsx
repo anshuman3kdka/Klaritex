@@ -40,7 +40,7 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
               aria-pressed={isActive}
               disabled={disabled}
               onClick={() => onChange(option.value)}
-              className={`rounded-lg border p-3 text-left transition ${
+              className={`rounded-lg border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                 isActive
                   ? "border-indigo-600 bg-indigo-50 ring-1 ring-indigo-200"
                   : "border-slate-300 bg-white hover:border-slate-400"

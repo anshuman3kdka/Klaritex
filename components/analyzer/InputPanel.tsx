@@ -91,8 +91,9 @@ export function InputPanel() {
             <button
               key={tab.value}
               type="button"
+              aria-pressed={isActive}
               onClick={() => handleTabSwitch(tab.value)}
-              className={`rounded-lg border px-4 py-3 text-left transition ${
+              className={`rounded-lg border px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                 isActive
                   ? "border-indigo-600 bg-indigo-50 ring-1 ring-indigo-200"
                   : "border-slate-300 bg-white hover:border-slate-400"
@@ -147,7 +148,7 @@ export function InputPanel() {
           type="button"
           onClick={handleAnalyze}
           disabled={!canAnalyze}
-          className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-3 font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-3 font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-400"
         >
           {isAnalyzing ? (
             <>
