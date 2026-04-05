@@ -20,13 +20,28 @@
           and get an ambiguity score out of 10.
         </p>
         <div class="example-chips" aria-label="Example text options">
-          <button class="example-chip" type="button" data-example-key="contract-sentence">
+          <button
+            class="example-chip"
+            type="button"
+            data-example-key="contract-sentence"
+            aria-label="Use contract sentence example"
+          >
             Contract sentence
           </button>
-          <button class="example-chip" type="button" data-example-key="policy-statement">
+          <button
+            class="example-chip"
+            type="button"
+            data-example-key="policy-statement"
+            aria-label="Use policy statement example"
+          >
             Policy statement
           </button>
-          <button class="example-chip" type="button" data-example-key="customer-support-message">
+          <button
+            class="example-chip"
+            type="button"
+            data-example-key="customer-support-message"
+            aria-label="Use customer support message example"
+          >
             Customer support message
           </button>
         </div>
@@ -43,7 +58,14 @@
           ></textarea>
           <div class="input-actions">
             <span id="char-count">0 / 10000 characters</span>
-            <button id="analyze-btn" class="button" type="button">Analyze Ambiguity</button>
+            <button
+              id="analyze-btn"
+              class="button"
+              type="button"
+              aria-label="Analyze text for ambiguity"
+            >
+              Analyze Ambiguity
+            </button>
           </div>
         </section>
 
@@ -51,13 +73,20 @@
           <div class="result-header">
             <h2>Result</h2>
             <div class="result-actions" aria-label="Result actions">
-              <button id="copy-result-btn" class="button button--secondary" type="button" disabled>
+              <button
+                id="copy-result-btn"
+                class="button button--secondary"
+                type="button"
+                aria-label="Copy analysis result"
+                disabled
+              >
                 Copy
               </button>
               <button
                 id="download-result-btn"
                 class="button button--secondary"
                 type="button"
+                aria-label="Download analysis result as text file"
                 disabled
               >
                 Download .txt
