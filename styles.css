@@ -189,15 +189,24 @@ label {
 .textarea {
   min-height: 220px;
   resize: vertical;
+  padding-bottom: 88px;
 }
 
-.meta-row {
+.input-actions {
+  position: sticky;
+  bottom: 0;
   margin-top: 10px;
+  margin-left: -16px;
+  margin-right: -16px;
+  margin-bottom: -16px;
+  padding: 12px 16px 16px;
   display: flex;
   justify-content: space-between;
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 88%, var(--color-bg));
 }
 
 #char-count {
