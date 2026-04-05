@@ -22,10 +22,9 @@ function validateResultShape(result) {
   const analysis = result?.statement_analysis;
   const ambiguity = analysis?.ambiguity_score_data;
   const hasScore = typeof ambiguity?.ambiguity_score === "number";
-  const hasLiteral = typeof analysis?.literal_translation === "string";
   const hasWorstLines = Array.isArray(analysis?.risk_profile?.worst_lines);
 
-  return Boolean(hasScore && hasLiteral && hasWorstLines);
+  return Boolean(hasScore && hasWorstLines);
 }
 
 function escapeHtml(value) {
@@ -44,7 +43,7 @@ function buildResultHtml(result) {
   const computedTier = classifyRiskTier(Number(ambiguity.ambiguity_score));
   const tier = computedTier?.name || "Unknown";
   const tierDescription = computedTier?.description || "No tier description available.";
-  const literal = analysis.literal_translation || "No literal translation returned.";
+  const diagnosticSummary = analysis.diagnostic_summary || analysis.literal_translation || "No summary returned.";
   const worstLines = Array.isArray(analysis?.risk_profile?.worst_lines) ? analysis.risk_profile.worst_lines : [];
 
   const worstLinesHtml = worstLines.length
@@ -61,8 +60,9 @@ function buildResultHtml(result) {
       <p>${escapeHtml(tierDescription)}</p>
     </section>
     <section>
-      <h3>Literal Reality</h3>
-      <p>${escapeHtml(literal)}</p>
+      <h3>Diagnostic Summary</h3>
+      <p>${escapeHtml(diagnosticSummary)}</p>
+      <p><em>Klaritex exposes clarity failures. It does not rewrite or improve statements.</em></p>
     </section>
     <section>
       <h3>Most Vague Lines</h3>

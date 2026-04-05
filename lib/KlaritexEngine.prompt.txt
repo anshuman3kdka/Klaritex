@@ -26,7 +26,7 @@ JSON OUTPUT CONTRACT (strict):
       "ambiguity_score": <number>,
       "tier": "<string>"
     },
-    "literal_translation": "<string>",
+    "diagnostic_summary": "<string>",
     "risk_profile": {
       "worst_lines": [
         { "text": "<string>", "flaw": "<string>" }
@@ -46,7 +46,7 @@ Expected JSON example:
       "ambiguity_score": 7.3,
       "tier": "Tier 3 — High Ambiguity"
     },
-    "literal_translation": "This statement does not commit a named actor to a binary, measurable action on a fixed timeline.",
+    "diagnostic_summary": "The statement lacks a named accountable actor, a binary action, a metric, and a fixed timeline.",
     "risk_profile": {
       "worst_lines": [
         {
@@ -68,6 +68,7 @@ SCORING WEIGHTS:
 — Timeline (When): Max 1.5 pts | Broad = 0.75 pts | Missing = 1.5 pts
 — Premise (Why): Max 2.5 pts | Broad = 1.25 pts | Missing = 2.5 pts
 BEHAVIOURAL CONSTRAINTS:
+— Do not rewrite, improve, or suggest revised wording.
 — Do not infer unstated information. Score only what is present in the text.
 — Do not factor in political affiliation, tone, or intent.
 — Do not add commentary, opinion, or recommendations outside the output format.

@@ -19,12 +19,12 @@ const THEME_STORAGE_KEY = "klaritex-theme";
 const DEFAULT_THEME = "dark";
 
 const exampleTextByKey = {
-  "contract-sentence":
-    "If either party does not provide written notice of termination at least 30 days before the renewal date, this agreement will automatically renew for an additional 12-month term.",
-  "policy-statement":
-    "Employees may work remotely up to three days per week with manager approval, provided core collaboration hours from 10:00 AM to 3:00 PM local time are maintained.",
-  "customer-support-message":
-    "Thanks for contacting support. We received your request and will send an update within 24 hours; if your issue is urgent, please reply with your order number and the word PRIORITY.",
+  "policy-pledge":
+    "The Department of Housing will publish monthly shelter occupancy data by July 31, 2026, because Federal Statute 22 requires quarterly reporting.",
+  "symbolic-claim":
+    "We will fight for a better future for every family.",
+  "mixed-commitment":
+    "Our administration will review transport safety standards and share progress updates soon.",
 };
 
 function setTheme(themeName) {
@@ -59,7 +59,7 @@ function updateCount() {
 
 function setLoading(isLoading) {
   analyzeBtn.disabled = isLoading;
-  analyzeBtn.textContent = isLoading ? "Analyzing..." : "Analyze Ambiguity";
+  analyzeBtn.textContent = isLoading ? "Analyzing..." : "Run Clarity Audit";
 }
 
 function setStatus(message, tone = "default") {
@@ -485,7 +485,7 @@ function renderCommitmentBreakdown(statement, modelScore) {
   commitmentBreakdownEl.innerHTML = `
     <header class="commitment-breakdown__header">
       <h2>6-Part Commitment Breakdown</h2>
-      <p class="commitment-breakdown__subtitle">Structural elements of the main claim</p>
+      <p class="commitment-breakdown__subtitle">Where this statement is structurally clear vs ambiguous</p>
       <p class="commitment-breakdown__score">Skeleton score: <strong>${displayScore.toFixed(1)} / 10</strong></p>
     </header>
     <div class="commitment-breakdown__rows">${rowsHtml}</div>
@@ -497,7 +497,7 @@ function renderStatusCard(tierData) {
   if (!tierData) {
     return `
       <article class="status-card status-card--unknown">
-        <h3>Risk Tier</h3>
+        <h3>Ambiguity Tier</h3>
         <p class="status-card__name">Unknown</p>
         <p class="status-card__description">We could not classify risk for this score.</p>
       </article>
@@ -506,7 +506,7 @@ function renderStatusCard(tierData) {
 
   return `
     <article class="status-card status-card--${tierData.tone}">
-      <h3>Risk Tier</h3>
+      <h3>Ambiguity Tier</h3>
       <p class="status-card__name">${escapeHtml(tierData.icon)} ${escapeHtml(tierData.name)}</p>
       <p class="status-card__description">${escapeHtml(tierData.description)}</p>
     </article>
@@ -573,8 +573,8 @@ function addHeadingMarkers(rootEl) {
 
   const headingMarkerByTitle = {
     "ambiguity score": "◆",
-    why: "•",
-    suggestions: "→",
+    "diagnostic summary": "•",
+    "most vague lines": "•",
   };
 
   const headings = rootEl.querySelectorAll("h3");
