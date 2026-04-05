@@ -1,1 +1,239 @@
-/* Intentionally left blank for the single empty webpage. */
+:root {
+  --bg: #030b2c;
+  --card: #0d1b43;
+  --card-soft: #13254f;
+  --text: #ecf1ff;
+  --muted: #8ea0c8;
+  --clear: #18c999;
+  --broad: #f8b22f;
+  --missing: #ff4d78;
+  --border: #244074;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: radial-gradient(circle at top, #08154b 0%, var(--bg) 50%);
+  color: var(--text);
+}
+
+.app-shell {
+  width: min(1000px, 100% - 2rem);
+  margin: 2rem auto 3rem;
+}
+
+.app-header {
+  margin-bottom: 1rem;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+#dashboard-root {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--card-soft), var(--card));
+  padding: 1.25rem;
+}
+
+.verdict-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.score-block {
+  text-align: right;
+}
+
+.score-value {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.score-value span {
+  font-size: 1.1rem;
+  color: var(--muted);
+  margin-left: 0.25rem;
+}
+
+.score-label {
+  margin-top: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.anchors-grid {
+  margin-top: 0.9rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.anchor-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #0c1d45;
+  padding: 0.9rem;
+  border-left-width: 6px;
+}
+
+.status-clear {
+  border-left-color: var(--clear);
+}
+
+.status-broad {
+  border-left-color: var(--broad);
+}
+
+.status-missing {
+  border-left-color: var(--missing);
+}
+
+.anchor-top-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin-top: 0.15rem;
+}
+
+.pill {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid transparent;
+}
+
+.status-clear .pill {
+  color: #0ee0ad;
+  background: rgba(24, 201, 153, 0.12);
+  border-color: rgba(24, 201, 153, 0.25);
+}
+
+.status-broad .pill {
+  color: #ffd276;
+  background: rgba(248, 178, 47, 0.12);
+  border-color: rgba(248, 178, 47, 0.25);
+}
+
+.status-missing .pill {
+  color: #ff7f9f;
+  background: rgba(255, 77, 120, 0.12);
+  border-color: rgba(255, 77, 120, 0.25);
+}
+
+.anchor-content {
+  margin-top: 0.65rem;
+  font-size: 1.05rem;
+}
+
+.anchor-reasoning {
+  margin-top: 0.5rem;
+  color: #adc1ea;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.high-signal-box p:last-child {
+  margin-top: 0.8rem;
+  border-left: 4px solid #14cab5;
+  padding: 0.9rem 1rem;
+  border-radius: 0 10px 10px 0;
+  background: #082d4b;
+  line-height: 1.6;
+}
+
+.trap-list {
+  margin-top: 0.85rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.trap-row {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.8rem;
+  background: #0b1a40;
+}
+
+.trap-count {
+  color: #9cb0d8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.6rem;
+}
+
+.split-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.8rem;
+}
+
+.split-grid > div {
+  border-radius: 10px;
+  padding: 0.8rem;
+  background: #102350;
+}
+
+.split-grid h4 {
+  margin-bottom: 0.4rem;
+}
+
+.subline {
+  margin-top: 0.55rem;
+  color: #a9bbe2;
+  font-size: 0.86rem;
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    width: calc(100% - 1rem);
+    margin-top: 1rem;
+  }
+
+  .verdict-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .score-block {
+    text-align: left;
+  }
+}
