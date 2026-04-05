@@ -25,6 +25,30 @@
   --focus-ring-offset-color: #080808;
 }
 
+[data-theme="light"] {
+  color-scheme: light;
+
+  --color-bg: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-text: #1f2328;
+  --color-muted: #4b5563;
+
+  --color-primary: #b88e2f;
+  --color-success: #1f9d4c;
+  --color-warning: #b7791f;
+  --color-error: #d14343;
+
+  --color-border: #d0d7de;
+  --color-bg-elevated: #f3f4f6;
+  --color-primary-hover: #a27b25;
+  --color-on-primary: #ffffff;
+  --color-heading-accent: #7a5f22;
+  --color-bg-gradient-top: #e9edf2;
+
+  --focus-ring-color: #111827;
+  --focus-ring-offset-color: #f7f8fa;
+}
+
 * {
   box-sizing: border-box;
 }

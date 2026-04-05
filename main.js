@@ -9,6 +9,10 @@ const scoreBadgeEl = document.getElementById("score-badge");
 const copyResultBtn = document.getElementById("copy-result-btn");
 const downloadResultBtn = document.getElementById("download-result-btn");
 const exampleChips = document.querySelectorAll(".example-chip");
+const themeToggleBtn = document.getElementById("theme-toggle");
+
+const THEME_STORAGE_KEY = "klaritex-theme";
+const DEFAULT_THEME = "dark";
 
 const exampleTextByKey = {
   "contract-sentence":
@@ -18,6 +22,32 @@ const exampleTextByKey = {
   "customer-support-message":
     "Thanks for contacting support. We received your request and will send an update within 24 hours; if your issue is urgent, please reply with your order number and the word PRIORITY.",
 };
+
+function setTheme(themeName) {
+  const resolvedTheme = themeName === "light" ? "light" : DEFAULT_THEME;
+  document.documentElement.dataset.theme = resolvedTheme;
+
+  if (!themeToggleBtn) {
+    return;
+  }
+
+  const isLight = resolvedTheme === "light";
+  themeToggleBtn.textContent = isLight ? "Dark theme" : "Light theme";
+  themeToggleBtn.setAttribute("aria-label", isLight ? "Switch to dark theme" : "Switch to light theme");
+  themeToggleBtn.setAttribute("aria-pressed", String(isLight));
+}
+
+function getSavedTheme() {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  return savedTheme === "light" || savedTheme === "dark" ? savedTheme : DEFAULT_THEME;
+}
+
+function handleThemeToggle() {
+  const currentTheme = document.documentElement.dataset.theme || DEFAULT_THEME;
+  const nextTheme = currentTheme === "light" ? "dark" : "light";
+  setTheme(nextTheme);
+  localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+}
 
 function updateCount() {
   charCount.textContent = `${inputText.value.length} / ${MAX_CHARS} characters`;
@@ -207,6 +237,7 @@ exampleChips.forEach((chip) => {
 
 copyResultBtn.addEventListener("click", copyResultText);
 downloadResultBtn.addEventListener("click", downloadResultText);
+themeToggleBtn?.addEventListener("click", handleThemeToggle);
 
 analyzeBtn.addEventListener("click", async () => {
   const userText = inputText.value.trim();
@@ -254,5 +285,6 @@ analyzeBtn.addEventListener("click", async () => {
 });
 
 inputText.addEventListener("input", updateCount);
+setTheme(getSavedTheme());
 updateCount();
 setResultActionsEnabled(false);
