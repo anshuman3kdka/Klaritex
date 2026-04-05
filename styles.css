@@ -103,6 +103,12 @@ body {
   gap: 16px;
 }
 
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
 .dashboard__header h1 {
   margin: 0 0 8px;
   font-family: var(--font-heading);
@@ -203,6 +209,22 @@ label {
 .result-html li {
   font-size: var(--text-body);
   line-height: var(--leading-body);
+}
+
+@media (min-width: 1024px) {
+  .dashboard {
+    max-width: 1200px;
+  }
+
+  .workspace-grid {
+    grid-template-columns: 1.2fr 1fr;
+    align-items: stretch;
+  }
+
+  .workspace-grid > .card {
+    height: min(70vh, 760px);
+    overflow: auto;
+  }
 }
 
 @media (max-width: 640px) {

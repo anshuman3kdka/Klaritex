@@ -21,25 +21,27 @@
         </p>
       </header>
 
-      <section class="card">
-        <label for="input-text">Text to Analyze</label>
-        <textarea
-          id="input-text"
-          class="textarea"
-          maxlength="10000"
-          placeholder="Enter your text here..."
-        ></textarea>
-        <div class="meta-row">
-          <span id="char-count">0 / 10000 characters</span>
-          <button id="analyze-btn" class="button" type="button">Analyze Ambiguity</button>
-        </div>
-      </section>
+      <div class="workspace-grid">
+        <section class="card">
+          <label for="input-text">Text to Analyze</label>
+          <textarea
+            id="input-text"
+            class="textarea"
+            maxlength="10000"
+            placeholder="Enter your text here..."
+          ></textarea>
+          <div class="meta-row">
+            <span id="char-count">0 / 10000 characters</span>
+            <button id="analyze-btn" class="button" type="button">Analyze Ambiguity</button>
+          </div>
+        </section>
 
-      <section class="card result-card" aria-live="polite">
-        <h2>Result</h2>
-        <p id="status" class="status">Enter text and click Analyze.</p>
-        <div id="result-html" class="result-html"></div>
-      </section>
+        <section class="card result-card" aria-live="polite">
+          <h2>Result</h2>
+          <p id="status" class="status">Enter text and click Analyze.</p>
+          <div id="result-html" class="result-html"></div>
+        </section>
+      </div>
     </main>
 
     <script type="module" src="./main.js"></script>
