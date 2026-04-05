@@ -274,18 +274,30 @@ label {
 }
 
 .result-html section + section {
-  margin-top: 16px;
+  margin-top: 26px;
 }
 
 .result-html h3 {
-  margin: 0 0 8px;
-  color: var(--color-heading-accent);
+  margin: 0 0 12px;
+  color: #f3d998;
+  letter-spacing: 0.01em;
+}
+
+.result-html h3 .heading-marker {
+  margin-right: 8px;
+  opacity: 0.9;
 }
 
 .result-html p,
 .result-html li {
   font-size: var(--text-body);
-  line-height: var(--leading-body);
+  line-height: 1.75;
+}
+
+.result-html ul,
+.result-html ol {
+  margin: 10px 0 0;
+  padding-left: 1.4em;
 }
 
 @media (min-width: 1024px) {
