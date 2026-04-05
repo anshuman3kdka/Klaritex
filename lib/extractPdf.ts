@@ -1,1 +1,8 @@
-// Placeholder for PDF text extraction.
+import pdfParse from "pdf-parse";
+
+export async function extractPdfText(fileBuffer: Buffer): Promise<string> {
+  const result = await pdfParse(fileBuffer);
+  const extracted = (result.text ?? "").trim();
+
+  return extracted.slice(0, 10000);
+}
