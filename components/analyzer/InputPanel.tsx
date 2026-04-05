@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { ModeToggle } from "@/components/analyzer/ModeToggle";
+import { ResultsPanel } from "@/components/results/ResultsPanel";
 import type { AnalysisMode, AnalysisResult, InputMode } from "@/lib/types";
 
 const MAX_TEXT_LENGTH = 10_000;
@@ -161,6 +162,8 @@ export function InputPanel() {
 
       {analysisStateMessage && <p className="mt-4 text-sm text-slate-600">{analysisStateMessage}</p>}
       {errorMessage && <p className="mt-2 text-sm text-red-600">{errorMessage}</p>}
+
+      {lastResult && <ResultsPanel result={lastResult} />}
     </section>
   );
 }
