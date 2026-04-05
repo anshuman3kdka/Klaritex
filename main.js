@@ -78,6 +78,39 @@ function hideScoreBadge() {
   scoreBadgeEl.classList.remove("score-badge--low", "score-badge--medium", "score-badge--high");
 }
 
+function addHeadingMarkers(rootEl) {
+  if (!rootEl) {
+    return;
+  }
+
+  const headingMarkerByTitle = {
+    "ambiguity score": "◆",
+    why: "•",
+    suggestions: "→",
+  };
+
+  const headings = rootEl.querySelectorAll("h3");
+
+  headings.forEach((heading) => {
+    if (heading.querySelector(".heading-marker")) {
+      return;
+    }
+
+    const normalizedHeading = heading.textContent?.trim().toLowerCase();
+    const markerText = headingMarkerByTitle[normalizedHeading];
+
+    if (!markerText) {
+      return;
+    }
+
+    const markerEl = document.createElement("span");
+    markerEl.className = "heading-marker";
+    markerEl.textContent = markerText;
+    markerEl.setAttribute("aria-hidden", "true");
+    heading.prepend(markerEl);
+  });
+}
+
 function renderScoreBadge(scoreValue) {
   if (!Number.isFinite(scoreValue)) {
     hideScoreBadge();
@@ -136,6 +169,7 @@ analyzeBtn.addEventListener("click", async () => {
 
     statusEl.textContent = "Analysis complete.";
     resultHtmlEl.innerHTML = payload.html || "<p>No HTML returned from the server.</p>";
+    addHeadingMarkers(resultHtmlEl);
     renderScoreBadge(extractScore(payload));
   } catch (error) {
     statusEl.textContent = `Error: ${error.message}`;
