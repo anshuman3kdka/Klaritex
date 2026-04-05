@@ -22,7 +22,7 @@ function getConfiguredGeminiApiKey(): string {
     }
   }
 
-  throw new Error("Missing Gemini API key. Configure Klaritex (or KLARITEX / GEMINI_API_KEY) on the server.");
+  throw new Error("Missing Gemini API key. Configure KLARITEX (or GEMINI_API_KEY) on the server.");
 }
 
 export function isGeminiUnavailableErrorMessage(message: string): boolean {
