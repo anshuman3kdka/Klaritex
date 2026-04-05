@@ -428,6 +428,103 @@ label {
   display: none;
 }
 
+.commitment-breakdown {
+  margin-bottom: 18px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-bg-elevated) 75%, transparent);
+  overflow: hidden;
+}
+
+.commitment-breakdown[hidden] {
+  display: none;
+}
+
+.commitment-breakdown__header {
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  display: grid;
+  gap: 4px;
+}
+
+.commitment-breakdown__header h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.02rem;
+}
+
+.commitment-breakdown__subtitle,
+.commitment-breakdown__score {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.commitment-breakdown__score strong {
+  color: var(--color-text);
+}
+
+.commitment-breakdown__rows {
+  display: grid;
+}
+
+.commitment-row {
+  padding: 12px 14px;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 58%, transparent);
+}
+
+.commitment-row__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.commitment-row h3 {
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+.commitment-row__helper {
+  margin: 6px 0 0;
+  color: var(--color-muted);
+  font-size: 0.88rem;
+}
+
+.commitment-row__value {
+  margin: 3px 0 0;
+  font-size: 1rem;
+}
+
+.commitment-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+.commitment-pill--locked {
+  color: var(--color-success);
+  border: 1px solid color-mix(in srgb, var(--color-success) 60%, transparent);
+  background: color-mix(in srgb, var(--color-success) 20%, transparent);
+}
+
+.commitment-pill--unclear {
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 60%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
+}
+
+.commitment-pill--missing {
+  color: var(--color-error);
+  border: 1px solid color-mix(in srgb, var(--color-error) 60%, transparent);
+  background: color-mix(in srgb, var(--color-error) 20%, transparent);
+}
+
 .visual-summary__top-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
