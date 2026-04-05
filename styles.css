@@ -1,1 +1,245 @@
-/* Intentionally left blank for the single empty webpage. */
+:root {
+  color-scheme: dark;
+  --bg: #030c2e;
+  --panel: #0f1e45;
+  --panel-muted: #152a58;
+  --text: #e8eefc;
+  --muted: #8f9dbf;
+  --accent: #f7c744;
+  --green: #16c79a;
+  --yellow: #f4b12d;
+  --red: #ff4f78;
+  --border: rgba(159, 181, 227, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Inter", "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(circle at top, #061747 0%, var(--bg) 45%);
+  color: var(--text);
+}
+
+.app-shell {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.page-header {
+  margin-bottom: 1rem;
+}
+
+.eyebrow {
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0;
+}
+
+h1 {
+  margin: 0.5rem 0;
+}
+
+.subtitle {
+  margin-top: 0;
+  color: var(--muted);
+}
+
+.dashboard {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--panel-muted), var(--panel));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.2rem;
+}
+
+.verdict-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.verdict-card h2,
+.section-title {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.tier {
+  margin: 0.5rem 0 0;
+  font-weight: 700;
+  font-size: clamp(1.3rem, 4vw, 2rem);
+  color: var(--accent);
+}
+
+.score-pill {
+  text-align: right;
+}
+
+.score-pill strong {
+  font-size: clamp(1.6rem, 4.5vw, 3rem);
+  display: block;
+}
+
+.score-pill span {
+  text-transform: uppercase;
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.05rem;
+}
+
+.anchor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.anchor-item {
+  border: 1px solid var(--border);
+  border-left: 5px solid transparent;
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: rgba(7, 17, 44, 0.55);
+}
+
+.anchor-item .top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.anchor-label {
+  margin: 0;
+  font-weight: 700;
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.status-clear {
+  border-left-color: var(--green);
+}
+
+.status-clear .status-badge {
+  color: #062e24;
+  background: var(--green);
+}
+
+.status-broad {
+  border-left-color: var(--yellow);
+}
+
+.status-broad .status-badge {
+  color: #3a2500;
+  background: var(--yellow);
+}
+
+.status-missing {
+  border-left-color: var(--red);
+}
+
+.status-missing .status-badge {
+  color: #3c0918;
+  background: var(--red);
+}
+
+.anchor-content {
+  margin: 0.6rem 0 0.4rem;
+  font-size: 1.05rem;
+}
+
+.anchor-reason {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.high-signal {
+  border-left: 4px solid var(--green);
+  background: rgba(1, 52, 63, 0.4);
+  padding: 1rem;
+  border-radius: 10px;
+  margin-top: 0.8rem;
+  line-height: 1.5;
+}
+
+.trap-grid {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.trap-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.trap-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.trap-box {
+  padding: 0.9rem;
+}
+
+.trap-box h4 {
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.06rem;
+}
+
+.trap-box p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.trap {
+  background: rgba(255, 79, 120, 0.12);
+}
+
+.reality {
+  background: rgba(22, 199, 154, 0.12);
+}
+
+.flaw-line {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 650px) {
+  .verdict-card,
+  .trap-columns {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .score-pill {
+    text-align: left;
+  }
+}
