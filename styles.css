@@ -1,12 +1,24 @@
 :root {
   color-scheme: dark;
-  --bg: #080808;
-  --card: #1b1b1b;
-  --border: #4f4f4f;
-  --text: #f2f2f2;
-  --muted: #b2b2b2;
-  --accent: #c8a24a;
-  --accent-hover: #b08b34;
+
+  /* Semantic color tokens */
+  --color-bg: #080808;
+  --color-surface: #1b1b1b;
+  --color-text: #f2f2f2;
+  --color-muted: #c6c6c6;
+
+  --color-primary: #c8a24a;
+  --color-success: #34c759;
+  --color-warning: #ffb020;
+  --color-error: #ff5a5f;
+
+  /* Supporting tokens */
+  --color-border: #4f4f4f;
+  --color-bg-elevated: #101010;
+  --color-primary-hover: #b08b34;
+  --color-on-primary: #0b0b0b;
+  --color-heading-accent: #dcc07a;
+  --color-bg-gradient-top: #2a2a2a;
 }
 
 * {
@@ -18,8 +30,8 @@ body {
   margin: 0;
   min-height: 100%;
   font-family: Inter, Arial, sans-serif;
-  background: radial-gradient(circle at top, #2a2a2a 0, var(--bg) 55%);
-  color: var(--text);
+  background: radial-gradient(circle at top, var(--color-bg-gradient-top) 0, var(--color-bg) 55%);
+  color: var(--color-text);
 }
 
 .dashboard {
@@ -37,12 +49,12 @@ body {
 
 .dashboard__header p {
   margin: 0;
-  color: var(--muted);
+  color: var(--color-muted);
 }
 
 .card {
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
   padding: 16px;
 }
@@ -55,10 +67,10 @@ label {
 
 .textarea {
   width: 100%;
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #101010;
-  color: var(--text);
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
   padding: 12px;
   font: inherit;
 }
@@ -78,22 +90,22 @@ label {
 }
 
 #char-count {
-  color: var(--muted);
+  color: var(--color-muted);
   font-size: 0.95rem;
 }
 
 .button {
   border: 0;
   border-radius: 10px;
-  background: var(--accent);
-  color: #0b0b0b;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   font-weight: 600;
   padding: 10px 14px;
   cursor: pointer;
 }
 
 .button:hover {
-  background: var(--accent-hover);
+  background: var(--color-primary-hover);
 }
 
 .button:disabled {
@@ -106,7 +118,7 @@ label {
 }
 
 .status {
-  color: var(--muted);
+  color: var(--color-muted);
 }
 
 .result-html section + section {
@@ -115,7 +127,7 @@ label {
 
 .result-html h3 {
   margin: 0 0 8px;
-  color: #dcc07a;
+  color: var(--color-heading-accent);
 }
 
 .result-html p,
