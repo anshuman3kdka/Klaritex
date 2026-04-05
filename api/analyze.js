@@ -3,6 +3,7 @@ import path from "node:path";
 import { classifyRiskTier } from "../lib/tierThresholds.js";
 
 const DEFAULT_MODEL_NAME = "gemini-3-flash-preview";
+const FALLBACK_MODEL_NAME = "gemini-3.1-flash-lite-preview";
 const SYSTEM_INSTRUCTION_PATH = path.join(process.cwd(), "lib", "KlaritexEngine.prompt.txt");
 
 const SYSTEM_INSTRUCTION = fs.readFileSync(SYSTEM_INSTRUCTION_PATH, "utf8");
@@ -103,6 +104,53 @@ function isValidModelName(modelName) {
   return typeof modelName === "string" && /^[a-zA-Z0-9._-]+$/.test(modelName);
 }
 
+function isQuotaExceededError(statusCode, payload) {
+  const errorMessage = String(payload?.error?.message || "").toLowerCase();
+  const errorStatus = String(payload?.error?.status || "").toLowerCase();
+
+  if (statusCode === 429) {
+    return true;
+  }
+
+  return (
+    errorStatus.includes("resource_exhausted") ||
+    errorMessage.includes("quota") ||
+    errorMessage.includes("resource exhausted")
+  );
+}
+
+async function requestModel({ apiKey, modelName, userText }) {
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+  const body = {
+    systemInstruction: {
+      parts: [{ text: SYSTEM_INSTRUCTION }],
+    },
+    generationConfig: {
+      responseMimeType: "application/json",
+      temperature: 0,
+      topP: 0,
+    },
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: userText }],
+      },
+    ],
+  };
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const payload = await response.json();
+  return { response, payload, modelName };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -129,34 +177,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    let modelResult = await requestModel({ apiKey, modelName, userText });
+    const shouldFallback =
+      modelName !== FALLBACK_MODEL_NAME &&
+      !modelResult.response.ok &&
+      isQuotaExceededError(modelResult.response.status, modelResult.payload);
 
-    const body = {
-      systemInstruction: {
-        parts: [{ text: SYSTEM_INSTRUCTION }],
-      },
-      generationConfig: {
-        responseMimeType: "application/json",
-        temperature: 0,
-        topP: 0,
-      },
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: userText }],
-        },
-      ],
-    };
+    if (shouldFallback) {
+      modelResult = await requestModel({
+        apiKey,
+        modelName: FALLBACK_MODEL_NAME,
+        userText,
+      });
+    }
 
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-
-    const payload = await response.json();
+    const { response, payload } = modelResult;
 
     if (!response.ok) {
       const message = payload?.error?.message || "Request failed.";
