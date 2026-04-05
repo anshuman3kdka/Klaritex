@@ -117,6 +117,8 @@ export default async function handler(req, res) {
       },
       generationConfig: {
         responseMimeType: "application/json",
+        temperature: 0,
+        topP: 0,
       },
       contents: [
         {
