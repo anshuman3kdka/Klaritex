@@ -16,6 +16,23 @@ function extractJsonBlock(text) {
   return JSON.parse(cleaned);
 }
 
+function hasRequiredStatementAnalysisFields(result) {
+  if (!result || typeof result !== "object" || Array.isArray(result)) {
+    return false;
+  }
+
+  const statementAnalysis = result.statement_analysis;
+
+  if (!statementAnalysis || typeof statementAnalysis !== "object" || Array.isArray(statementAnalysis)) {
+    return false;
+  }
+
+  const ambiguityScore = statementAnalysis?.ambiguity_score_data?.ambiguity_score;
+  const tier = statementAnalysis?.ambiguity_score_data?.tier;
+
+  return typeof ambiguityScore === "number" && Number.isFinite(ambiguityScore) && Boolean(tier);
+}
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -113,6 +130,13 @@ export default async function handler(req, res) {
     }
 
     const result = extractJsonBlock(modelText);
+
+    if (!hasRequiredStatementAnalysisFields(result)) {
+      return res
+        .status(502)
+        .json({ error: "Model response format mismatch. Expected statement_analysis.* fields." });
+    }
+
     const html = buildResultHtml(result);
 
     return res.status(200).json({ html, result });
