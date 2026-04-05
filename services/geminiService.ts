@@ -22,6 +22,8 @@ const model = genAI.getGenerativeModel({
   systemInstruction,
   generationConfig: {
     responseMimeType: "application/json",
+    temperature: 0,
+    topP: 0,
   },
 });
 
