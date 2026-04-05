@@ -28,6 +28,25 @@ function setLoading(isLoading) {
   analyzeBtn.textContent = isLoading ? "Analyzing..." : "Analyze Ambiguity";
 }
 
+function setStatus(message, tone = "default") {
+  statusEl.textContent = message;
+  statusEl.classList.remove("status--loading", "status--success", "status--error");
+
+  if (tone === "loading") {
+    statusEl.classList.add("status--loading");
+    return;
+  }
+
+  if (tone === "success") {
+    statusEl.classList.add("status--success");
+    return;
+  }
+
+  if (tone === "error") {
+    statusEl.classList.add("status--error");
+  }
+}
+
 function setResultActionsEnabled(isEnabled) {
   copyResultBtn.disabled = !isEnabled;
   downloadResultBtn.disabled = !isEnabled;
@@ -139,15 +158,15 @@ async function copyResultText() {
   const textContent = getResultPlainText();
 
   if (!textContent) {
-    statusEl.textContent = "No result text available to copy yet.";
+    setStatus("No result text available to copy yet.");
     return;
   }
 
   try {
     await navigator.clipboard.writeText(textContent);
-    statusEl.textContent = "Result copied to clipboard.";
+    setStatus("Result copied to clipboard.", "success");
   } catch {
-    statusEl.textContent = "Copy failed. Your browser may block clipboard access.";
+    setStatus("Copy failed. Your browser may block clipboard access.", "error");
   }
 }
 
@@ -155,7 +174,7 @@ function downloadResultText() {
   const textContent = getResultPlainText();
 
   if (!textContent) {
-    statusEl.textContent = "No result text available to download yet.";
+    setStatus("No result text available to download yet.");
     return;
   }
 
@@ -168,7 +187,7 @@ function downloadResultText() {
   downloadLink.click();
   downloadLink.remove();
   URL.revokeObjectURL(downloadUrl);
-  statusEl.textContent = "Downloaded result as .txt.";
+  setStatus("Downloaded result as .txt.", "success");
 }
 
 exampleChips.forEach((chip) => {
@@ -193,17 +212,18 @@ analyzeBtn.addEventListener("click", async () => {
   const userText = inputText.value.trim();
 
   if (!userText) {
-    statusEl.textContent = "Please enter text to analyze.";
+    setStatus("Please enter text to analyze.", "error");
     return;
   }
 
   setLoading(true);
   setResultActionsEnabled(false);
-  statusEl.textContent = "Sending text to server...";
+  setStatus("Validating input…", "loading");
   resultHtmlEl.innerHTML = "";
   hideScoreBadge();
 
   try {
+    setStatus("Analyzing with AI…", "loading");
     const response = await fetch("/api/analyze", {
       method: "POST",
       headers: {
@@ -218,13 +238,14 @@ analyzeBtn.addEventListener("click", async () => {
       throw new Error(payload?.error || "Request failed.");
     }
 
-    statusEl.textContent = "Analysis complete.";
+    setStatus("Formatting your report…", "loading");
     resultHtmlEl.innerHTML = payload.html || "<p>No HTML returned from the server.</p>";
     addHeadingMarkers(resultHtmlEl);
     renderScoreBadge(extractScore(payload));
     setResultActionsEnabled(Boolean(getResultPlainText()));
+    setStatus("Analysis complete.", "success");
   } catch (error) {
-    statusEl.textContent = `Error: ${error.message}`;
+    setStatus(`Error: ${error.message}`, "error");
     hideScoreBadge();
     setResultActionsEnabled(false);
   } finally {
