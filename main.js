@@ -6,6 +6,8 @@ const analyzeBtn = document.getElementById("analyze-btn");
 const statusEl = document.getElementById("status");
 const resultHtmlEl = document.getElementById("result-html");
 const scoreBadgeEl = document.getElementById("score-badge");
+const copyResultBtn = document.getElementById("copy-result-btn");
+const downloadResultBtn = document.getElementById("download-result-btn");
 const exampleChips = document.querySelectorAll(".example-chip");
 
 const exampleTextByKey = {
@@ -24,6 +26,11 @@ function updateCount() {
 function setLoading(isLoading) {
   analyzeBtn.disabled = isLoading;
   analyzeBtn.textContent = isLoading ? "Analyzing..." : "Analyze Ambiguity";
+}
+
+function setResultActionsEnabled(isEnabled) {
+  copyResultBtn.disabled = !isEnabled;
+  downloadResultBtn.disabled = !isEnabled;
 }
 
 function getScoreBand(scoreValue) {
@@ -124,6 +131,46 @@ function renderScoreBadge(scoreValue) {
   scoreBadgeEl.classList.add(`score-badge--${scoreBand}`);
 }
 
+function getResultPlainText() {
+  return resultHtmlEl.textContent?.trim() || "";
+}
+
+async function copyResultText() {
+  const textContent = getResultPlainText();
+
+  if (!textContent) {
+    statusEl.textContent = "No result text available to copy yet.";
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(textContent);
+    statusEl.textContent = "Result copied to clipboard.";
+  } catch {
+    statusEl.textContent = "Copy failed. Your browser may block clipboard access.";
+  }
+}
+
+function downloadResultText() {
+  const textContent = getResultPlainText();
+
+  if (!textContent) {
+    statusEl.textContent = "No result text available to download yet.";
+    return;
+  }
+
+  const textBlob = new Blob([textContent], { type: "text/plain;charset=utf-8" });
+  const downloadUrl = URL.createObjectURL(textBlob);
+  const downloadLink = document.createElement("a");
+  downloadLink.href = downloadUrl;
+  downloadLink.download = "klaritex-result.txt";
+  document.body.append(downloadLink);
+  downloadLink.click();
+  downloadLink.remove();
+  URL.revokeObjectURL(downloadUrl);
+  statusEl.textContent = "Downloaded result as .txt.";
+}
+
 exampleChips.forEach((chip) => {
   chip.addEventListener("click", () => {
     const exampleKey = chip.dataset.exampleKey;
@@ -139,6 +186,9 @@ exampleChips.forEach((chip) => {
   });
 });
 
+copyResultBtn.addEventListener("click", copyResultText);
+downloadResultBtn.addEventListener("click", downloadResultText);
+
 analyzeBtn.addEventListener("click", async () => {
   const userText = inputText.value.trim();
 
@@ -148,6 +198,7 @@ analyzeBtn.addEventListener("click", async () => {
   }
 
   setLoading(true);
+  setResultActionsEnabled(false);
   statusEl.textContent = "Sending text to server...";
   resultHtmlEl.innerHTML = "";
   hideScoreBadge();
@@ -171,9 +222,11 @@ analyzeBtn.addEventListener("click", async () => {
     resultHtmlEl.innerHTML = payload.html || "<p>No HTML returned from the server.</p>";
     addHeadingMarkers(resultHtmlEl);
     renderScoreBadge(extractScore(payload));
+    setResultActionsEnabled(Boolean(getResultPlainText()));
   } catch (error) {
     statusEl.textContent = `Error: ${error.message}`;
     hideScoreBadge();
+    setResultActionsEnabled(false);
   } finally {
     setLoading(false);
   }
@@ -181,3 +234,4 @@ analyzeBtn.addEventListener("click", async () => {
 
 inputText.addEventListener("input", updateCount);
 updateCount();
+setResultActionsEnabled(false);
