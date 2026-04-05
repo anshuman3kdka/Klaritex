@@ -1,1 +1,271 @@
-/* Intentionally left blank for the single empty webpage. */
+:root {
+  --bg: #020b2d;
+  --panel: #10214c;
+  --panel-deep: #0b173b;
+  --line: rgba(169, 188, 229, 0.23);
+  --text: #e7efff;
+  --muted: #93a4ca;
+  --yellow: #f7c744;
+  --green: #1ed9ad;
+  --red: #ff5b86;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at top, #0a1b50 0%, var(--bg) 38%);
+}
+
+.page {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.page-header {
+  margin-bottom: 1rem;
+}
+
+.app-label {
+  margin: 0;
+  color: var(--muted);
+  letter-spacing: 0.2rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0.35rem 0 0;
+  font-size: clamp(1.4rem, 2.9vw, 2rem);
+}
+
+.dashboard-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.panel {
+  background: linear-gradient(180deg, var(--panel), var(--panel-deep));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 1rem;
+}
+
+.kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.verdict-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tier-text {
+  margin: 0.45rem 0 0;
+  color: var(--yellow);
+  font-size: clamp(1.35rem, 4vw, 2.2rem);
+}
+
+.score-block {
+  text-align: right;
+}
+
+.score-value {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(1.4rem, 4.5vw, 2.6rem);
+}
+
+.score-caption {
+  margin: 0.15rem 0 0;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.05rem;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.panel-subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.anchor-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.anchor-row {
+  border: 1px solid var(--line);
+  border-left: 4px solid transparent;
+  border-radius: 14px;
+  padding: 0.8rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.8rem;
+  align-items: start;
+  background: rgba(2, 9, 28, 0.33);
+}
+
+.anchor-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.anchor-content {
+  margin: 0.35rem 0 0;
+  font-size: 1.07rem;
+}
+
+.anchor-reason {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.status-chip {
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 0.3rem 0.6rem;
+}
+
+.status-clear {
+  border-left-color: var(--green);
+}
+
+.status-clear .status-chip {
+  background: var(--green);
+  color: #063126;
+}
+
+.status-broad {
+  border-left-color: var(--yellow);
+}
+
+.status-broad .status-chip {
+  background: var(--yellow);
+  color: #3a2a07;
+}
+
+.status-missing {
+  border-left-color: var(--red);
+}
+
+.status-missing .status-chip {
+  background: var(--red);
+  color: #440d1f;
+}
+
+.literal-box {
+  margin-top: 0.7rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border-left: 4px solid var(--green);
+  background: rgba(15, 129, 122, 0.16);
+  line-height: 1.55;
+  font-size: 1.02rem;
+}
+
+.trap-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.7rem;
+}
+
+.trap-row {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(2, 9, 28, 0.33);
+}
+
+.trap-side {
+  padding: 0.85rem;
+}
+
+.trap-side--left {
+  background: rgba(255, 91, 134, 0.12);
+}
+
+.trap-side--right {
+  background: rgba(30, 217, 173, 0.11);
+}
+
+.trap-title {
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  letter-spacing: 0.07rem;
+  color: var(--muted);
+}
+
+.trap-side p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.trap-flaw {
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.empty-note {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+}
+
+@media (min-width: 720px) {
+  .trap-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .trap-flaw {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 580px) {
+  .verdict-panel {
+    display: grid;
+  }
+
+  .score-block {
+    text-align: left;
+  }
+
+  .panel-head {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .anchor-row {
+    grid-template-columns: 1fr;
+  }
+}
