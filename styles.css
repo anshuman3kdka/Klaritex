@@ -1,12 +1,12 @@
 :root {
   color-scheme: dark;
-  --bg: #05070c;
-  --card: #111722;
-  --border: #223146;
-  --text: #e7edf7;
-  --muted: #9eb0c7;
-  --accent: #2f80ff;
-  --accent-hover: #1e66d5;
+  --bg: #080808;
+  --card: #1b1b1b;
+  --border: #4f4f4f;
+  --text: #f2f2f2;
+  --muted: #b2b2b2;
+  --accent: #c8a24a;
+  --accent-hover: #b08b34;
 }
 
 * {
@@ -18,7 +18,7 @@ body {
   margin: 0;
   min-height: 100%;
   font-family: Inter, Arial, sans-serif;
-  background: radial-gradient(circle at top, #0f1727 0, var(--bg) 55%);
+  background: radial-gradient(circle at top, #2a2a2a 0, var(--bg) 55%);
   color: var(--text);
 }
 
@@ -57,7 +57,7 @@ label {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #0a1019;
+  background: #101010;
   color: var(--text);
   padding: 12px;
   font: inherit;
@@ -86,7 +86,7 @@ label {
   border: 0;
   border-radius: 10px;
   background: var(--accent);
-  color: white;
+  color: #0b0b0b;
   font-weight: 600;
   padding: 10px 14px;
   cursor: pointer;
@@ -115,7 +115,7 @@ label {
 
 .result-html h3 {
   margin: 0 0 8px;
-  color: #b9cfff;
+  color: #dcc07a;
 }
 
 .result-html p,
