@@ -108,25 +108,25 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         }}
         className={`cursor-pointer rounded-lg border border-dashed p-6 text-sm transition ${
           disabled
-            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+            ? "cursor-not-allowed border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
             : isDragActive
-              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-              : "border-slate-300 bg-slate-50 text-slate-700 hover:border-slate-400"
+              ? "border-[var(--border-accent)] bg-[var(--bg-elevated)] text-[var(--text-gold)]"
+              : "border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:border-[var(--border-accent)]"
         }`}
         aria-label="Upload PDF"
       >
-        <p className="font-medium">Drag and drop a PDF here, or click to choose a file</p>
-        <p className="mt-1 text-xs text-slate-500">PDF only · Maximum 5MB</p>
+        <p className="font-ui font-medium">Drag and drop a PDF here, or click to choose a file</p>
+        <p className="font-ui mt-1 text-xs text-[var(--text-secondary)]">PDF only · Maximum 5MB</p>
 
         {value ? (
-          <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-3">
-            <p className="text-sm font-medium text-emerald-800">{value.name}</p>
-            <p className="text-xs text-emerald-700">Ready to analyze</p>
+          <div className="mt-4 rounded-md border border-[var(--clear-color)]/40 bg-[var(--clear-color)]/15 p-3">
+            <p className="font-ui text-sm font-medium text-[var(--clear-color)]">{value.name}</p>
+            <p className="font-ui text-xs text-[var(--clear-color)]">Ready to analyze</p>
           </div>
         ) : null}
       </div>
 
-      {activeErrorMessage ? <p className="mt-2 text-sm text-red-600">{activeErrorMessage}</p> : null}
+      {activeErrorMessage ? <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
     </div>
   );
 }

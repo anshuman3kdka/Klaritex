@@ -1,3 +1,155 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --bg-primary: #080d1a;
+  --bg-surface: #0f1829;
+  --bg-elevated: #162035;
+  --border: #1e2d4a;
+  --border-accent: #c9a84c;
+  --gold-primary: #c9a84c;
+  --gold-bright: #e8c96a;
+  --gold-muted: #8a7035;
+  --text-primary: #e8edf5;
+  --text-secondary: #8a9bb5;
+  --text-gold: #c9a84c;
+  --tier1-color: #2d7a4f;
+  --tier2-color: #b8860b;
+  --tier3-color: #9b2c2c;
+  --clear-color: #2d7a4f;
+  --broad-color: #b8860b;
+  --missing-color: #9b2c2c;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: "Inter", sans-serif;
+}
+
+.font-display {
+  font-family: "Playfair Display", serif;
+}
+
+.font-ui {
+  font-family: "Inter", sans-serif;
+}
+
+.font-mono-ui {
+  font-family: "DM Mono", monospace;
+}
+
+.k-header {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0b1223 0%, #09101f 100%);
+  border-bottom: 1px solid var(--border-accent);
+}
+
+.k-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.17;
+  background-image:
+    radial-gradient(circle at 20% 25%, rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    radial-gradient(circle at 75% 60%, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 5px 5px, 7px 7px;
+}
+
+.k-card {
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: var(--bg-surface);
+}
+
+.k-module-card {
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--border-accent);
+  border-radius: 0.9rem;
+  background: var(--bg-surface);
+}
+
+.k-module-label {
+  font-family: "DM Mono", monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.k-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  padding: 0.2rem 0.55rem;
+  font-family: "DM Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.k-status-clear {
+  color: var(--clear-color);
+  border-color: color-mix(in oklab, var(--clear-color) 55%, #000 45%);
+  background: color-mix(in oklab, var(--clear-color) 16%, transparent);
+}
+
+.k-status-broad {
+  color: var(--broad-color);
+  border-color: color-mix(in oklab, var(--broad-color) 58%, #000 42%);
+  background: color-mix(in oklab, var(--broad-color) 16%, transparent);
+}
+
+.k-status-missing {
+  color: var(--missing-color);
+  border-color: color-mix(in oklab, var(--missing-color) 58%, #000 42%);
+  background: color-mix(in oklab, var(--missing-color) 16%, transparent);
+}
+
+.k-status-testable {
+  color: #0d101a;
+  border-color: color-mix(in oklab, var(--gold-primary) 65%, #000 35%);
+  background: var(--gold-primary);
+}
+
+.k-status-contested {
+  color: var(--tier2-color);
+  border-color: color-mix(in oklab, var(--tier2-color) 58%, #000 42%);
+  background: color-mix(in oklab, var(--tier2-color) 16%, transparent);
+}
+
+.k-status-untestable {
+  color: #8a8f9c;
+  border-color: #3a4156;
+  background: rgba(138, 143, 156, 0.12);
+}
+
+.k-gold-loader {
+  height: 2px;
+  width: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+  background-size: 200% 100%;
+  animation: kPulseLine 1.35s ease-in-out infinite;
+}
+
+@keyframes kPulseLine {
+  0% {
+    background-position: 200% 0;
+    opacity: 0.45;
+  }
+  50% {
+    background-position: 120% 0;
+    opacity: 1;
+  }
+  100% {
+    background-position: 0% 0;
+    opacity: 0.45;
+  }
+}

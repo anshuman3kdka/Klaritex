@@ -8,9 +8,9 @@ interface ScoreSummaryBarProps {
 }
 
 const tierStyles: Record<AmbiguityTier, string> = {
-  1: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  2: "bg-amber-100 text-amber-800 border-amber-200",
-  3: "bg-rose-100 text-rose-800 border-rose-200"
+  1: "border-[color:var(--tier1-color)]/45 bg-[color:var(--tier1-color)]/15 text-[var(--tier1-color)]",
+  2: "border-[color:var(--tier2-color)]/45 bg-[color:var(--tier2-color)]/15 text-[var(--tier2-color)]",
+  3: "border-[color:var(--tier3-color)]/45 bg-[color:var(--tier3-color)]/15 text-[var(--tier3-color)]"
 };
 
 const tierLabel: Record<AmbiguityTier, string> = {
@@ -29,34 +29,36 @@ export function ScoreSummaryBar({ ambiguityScore, tier, tierOverride = false, ov
   const hasTier = typeof tier === "number";
 
   return (
-    <section className={`rounded-xl border bg-white p-5 shadow-sm ${tier === 3 ? "border-rose-300" : "border-slate-200"}`}>
-      <h2 className="text-base font-semibold text-slate-900">Score Summary</h2>
+    <section className={`k-module-card p-5 ${tier === 3 ? "border-[var(--tier3-color)]/55" : ""}`}>
+      <h2 className="k-module-label">Score Summary</h2>
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Ambiguity Score</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">{hasScore ? `${ambiguityScore.toFixed(1)} / 10` : "—"}</p>
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4">
+          <p className="k-module-label">Ambiguity Score</p>
+          <p className="font-mono-ui mt-1 text-4xl leading-none text-[var(--text-gold)] sm:text-5xl">
+            {hasScore ? ambiguityScore.toFixed(1) : "—"}
+          </p>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Tier Badge</p>
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4">
+          <p className="k-module-label">Tier Badge</p>
           {hasTier ? (
-            <span className={`mt-2 inline-flex rounded-full border px-3 py-1 text-sm font-semibold ${tierStyles[tier]}`}>
+            <span className={`k-badge mt-2 border px-3 py-1 text-xs ${tierStyles[tier]}`}>
               {tierLabel[tier]}
             </span>
           ) : (
-            <p className="mt-2 text-sm text-slate-600">—</p>
+            <p className="font-ui mt-2 text-sm text-[var(--text-secondary)]">—</p>
           )}
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Override Notice</p>
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4">
+          <p className="k-module-label">Override Notice</p>
           {tierOverride ? (
-            <p className="mt-2 text-sm font-medium text-amber-700">
+            <p className="font-ui mt-2 rounded-md border border-[var(--tier3-color)]/55 bg-[var(--tier3-color)]/12 p-2 text-sm font-medium text-[var(--tier3-color)]">
               {overrideRule ? overrideRuleLabel[overrideRule] : "Override applied"}
             </p>
           ) : (
-            <p className="mt-2 text-sm text-slate-600">No override applied</p>
+            <p className="font-ui mt-2 text-sm text-[var(--text-secondary)]">No override applied</p>
           )}
         </div>
       </div>

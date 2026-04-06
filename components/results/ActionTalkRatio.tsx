@@ -10,25 +10,25 @@ export function ActionTalkRatio({ actionRatio, talkRatio, ratioLabel }: ActionTa
   const safeTalk = hasRatios ? Math.min(100, Math.max(0, talkRatio)) : 0;
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="text-base font-semibold text-slate-900">Module 7 · Action vs Talk Ratio</h3>
+    <article className="k-module-card p-5">
+      <h3 className="k-module-label">Module 7 · Action vs Talk Ratio</h3>
 
       {!hasRatios ? (
-        <p className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">—</p>
+        <p className="font-ui mt-4 rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       ) : (
         <>
-          <p className="mt-4 text-sm font-semibold text-slate-900">
+          <p className="font-mono-ui mt-4 text-sm text-[var(--text-primary)]">
             {safeAction}% Action / {safeTalk}% Talk
           </p>
 
-          <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-200">
+          <div className="mt-3 h-3 overflow-hidden rounded-full bg-[var(--bg-primary)]">
             <div className="flex h-full w-full">
-              <div className="h-full bg-emerald-500" style={{ width: `${safeAction}%` }} />
-              <div className="h-full bg-rose-500" style={{ width: `${safeTalk}%` }} />
+              <div className="h-full bg-[var(--gold-primary)]" style={{ width: `${safeAction}%` }} />
+              <div className="h-full bg-[var(--tier3-color)]" style={{ width: `${safeTalk}%` }} />
             </div>
           </div>
 
-          <p className="mt-3 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
+          <p className="font-mono-ui mt-3 inline-flex rounded-sm border border-[var(--gold-muted)]/70 bg-[var(--gold-primary)]/14 px-3 py-1 text-xs uppercase tracking-[0.15em] text-[var(--text-gold)]">
             {ratioLabel || "—"}
           </p>
         </>

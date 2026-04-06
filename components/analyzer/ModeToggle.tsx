@@ -28,7 +28,7 @@ const MODE_OPTIONS: Array<{
 export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProps) {
   return (
     <div className="space-y-3">
-      <p className="text-sm font-medium text-slate-900">Processing Mode</p>
+      <p className="font-ui text-sm font-medium text-[var(--text-primary)]">Processing Mode</p>
       <div className="grid gap-2 sm:grid-cols-2">
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
@@ -42,12 +42,12 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
               onClick={() => onChange(option.value)}
               className={`rounded-lg border p-3 text-left transition ${
                 isActive
-                  ? "border-indigo-600 bg-indigo-50 ring-1 ring-indigo-200"
-                  : "border-slate-300 bg-white hover:border-slate-400"
+                  ? "border-[var(--border-accent)] border-l-4 bg-[var(--bg-elevated)]"
+                  : "border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)]"
               } ${disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
             >
-              <p className="font-medium text-slate-900">{option.label}</p>
-              <p className="mt-1 text-sm text-slate-600">{option.description}</p>
+              <p className="font-ui font-medium text-[var(--text-primary)]">{option.label}</p>
+              <p className="font-ui mt-1 text-sm text-[var(--text-secondary)]">{option.description}</p>
             </button>
           );
         })}
