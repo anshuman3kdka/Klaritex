@@ -14,7 +14,40 @@ function normalizeWhitespace(text: string): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
+function isSafeUrl(urlString: string): boolean {
+  try {
+    const parsed = new URL(urlString);
+
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return false;
+    }
+
+    const hostname = parsed.hostname;
+
+    // Prevent SSRF: block localhost, internal IP ranges
+    if (
+      hostname === "localhost" ||
+      hostname.match(/^127\.\d+\.\d+\.\d+$/) ||
+      hostname.match(/^10\.\d+\.\d+\.\d+$/) ||
+      hostname.match(/^192\.168\.\d+\.\d+$/) ||
+      hostname.match(/^172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+$/) ||
+      hostname.match(/^0\.\d+\.\d+\.\d+$/) ||
+      hostname.match(/^\[?::1\]?$/) ||
+      hostname.match(/^\[?::\]?$/)
+    ) {
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
+  if (!isSafeUrl(initialUrl)) {
+    throw new UrlExtractionError("Could not fetch content from URL.");
+  }
   let currentUrl = initialUrl;
 
   for (let hop = 0; hop <= MAX_REDIRECT_HOPS; hop += 1) {
@@ -37,7 +70,11 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
         throw new UrlExtractionError("Could not fetch content from URL.");
       }
 
-      currentUrl = new URL(location, currentUrl).toString();
+      const nextUrl = new URL(location, currentUrl).toString();
+      if (!isSafeUrl(nextUrl)) {
+        throw new UrlExtractionError("Could not fetch content from URL.");
+      }
+      currentUrl = nextUrl;
       continue;
     }
 
