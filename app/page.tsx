@@ -5,8 +5,26 @@ export default function HomePage() {
     <div className="min-h-screen bg-[var(--bg-primary)]">
       <header className="border-b border-[var(--border)] bg-[var(--bg-surface)]/70">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-3 items-center gap-4 px-4 py-5 sm:px-6">
-          <div className="h-8 rounded-md border border-dashed border-[var(--border)]/70" aria-hidden="true" />
-          <div className="h-8 rounded-md border border-dashed border-[var(--border)]/70" aria-hidden="true" />
+          <div>
+            <a
+              href="https://klaritex.anshuman3kdka.in"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Clarity Engine (opens in a new tab)"
+              className="font-ui text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:text-base"
+            >
+              Clarity Engine
+            </a>
+          </div>
+          <div>
+            <a
+              href="#"
+              aria-label="About (coming soon)"
+              className="font-ui text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:text-base"
+            >
+              About
+            </a>
+          </div>
           <div className="text-right">
             <span className="font-display text-2xl tracking-tight text-[var(--text-gold)] sm:text-3xl">Klaritex</span>
           </div>
@@ -24,15 +42,23 @@ export default function HomePage() {
       </main>
 
       <footer className="mt-12 border-t border-[var(--border)] bg-[var(--bg-surface)]/50">
-        <div className="mx-auto grid w-full max-w-6xl gap-4 px-4 py-8 sm:px-6 md:grid-cols-2">
-          <div className="min-h-16 rounded-md border border-dashed border-[var(--border)]/70 p-4 text-sm text-[var(--text-secondary)]">
-            Footer space for additional sections
-          </div>
-          <div className="flex items-end justify-start md:justify-end">
-            <p className="font-ui text-sm text-[var(--text-secondary)]">
-              © 2026 Anshuman3kdka · Built between lectures
-            </p>
-          </div>
+        <div className="mx-auto flex w-full max-w-6xl items-center gap-8 px-4 py-10 sm:px-6">
+          <a
+            href="mailto:thisisanshumanp@gmail.com"
+            aria-label="Contact via email (opens your email client)"
+            className="font-ui text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:text-base"
+          >
+            Contact
+          </a>
+          <a
+            href="https://github.com/anshuman3kdka/Klaritex"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub (opens in a new tab)"
+            className="font-ui text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:text-base"
+          >
+            GitHub
+          </a>
         </div>
       </footer>
     </div>
