@@ -20,7 +20,7 @@ interface ResultsPanelProps {
 }
 
 export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
-  const resultKey = useMemo(() => (result ? Date.now() : "empty"), [result]);
+  const resultKey = useMemo(() => (result ? "active" : "empty"), [result]);
 
   const animationStyle = (index: number) => ({
     animation: `slideUpFade 400ms cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms both`,
