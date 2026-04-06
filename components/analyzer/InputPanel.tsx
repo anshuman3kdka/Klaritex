@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 
 import { ModeToggle } from "@/components/analyzer/ModeToggle";
+import { PdfUpload } from "@/components/analyzer/PdfUpload";
+import { UrlInput, isValidHttpUrl } from "@/components/analyzer/UrlInput";
 import { ResultsPanel } from "@/components/results/ResultsPanel";
 import type { AnalysisMode, AnalysisResult, InputMode } from "@/lib/types";
 
@@ -15,16 +17,45 @@ const TABS: Array<{ value: InputMode; label: string; icon: string }> = [
   { value: "url", label: "Analyze URL", icon: "🔗" },
 ];
 
+function normalizeErrorMessage(message: string, mode: InputMode): string {
+  const lowercase = message.toLowerCase();
+
+  if (lowercase.includes("analysis parsing failed")) {
+    return "Something went wrong reading the analysis. Please retry.";
+  }
+
+  if (lowercase.includes("gemini") || lowercase.includes("analysis failed")) {
+    return "Analysis failed. Please try again in a moment.";
+  }
+
+  if (mode === "pdf" && lowercase.includes("pdf contains no extractable text")) {
+    return "This PDF doesn't contain readable text. Try a different file.";
+  }
+
+  if (mode === "url" && lowercase.includes("could not fetch content from")) {
+    return "Could not fetch content from this URL. Check the address and try again.";
+  }
+
+  return message;
+}
+
 export function InputPanel() {
   const [inputMode, setInputMode] = useState<InputMode>("text");
   const [processingMode, setProcessingMode] = useState<AnalysisMode>("quick");
   const [textInput, setTextInput] = useState("");
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [urlInput, setUrlInput] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [lastResult, setLastResult] = useState<AnalysisResult | null>(null);
 
   const isNearLimit = textInput.length >= WARNING_THRESHOLD;
-  const canAnalyze = inputMode === "text" && textInput.trim().length > 0 && !isAnalyzing;
+
+  const canAnalyze =
+    !isAnalyzing &&
+    ((inputMode === "text" && textInput.trim().length > 0) ||
+      (inputMode === "pdf" && pdfFile !== null) ||
+      (inputMode === "url" && urlInput.trim().length > 0));
 
   const analysisStateMessage = useMemo(() => {
     if (isAnalyzing) {
@@ -41,6 +72,8 @@ export function InputPanel() {
   function handleTabSwitch(nextMode: InputMode) {
     setInputMode(nextMode);
     setTextInput("");
+    setPdfFile(null);
+    setUrlInput("");
     setErrorMessage(null);
   }
 
@@ -49,32 +82,68 @@ export function InputPanel() {
       return;
     }
 
+    if (inputMode === "url" && !isValidHttpUrl(urlInput)) {
+      setErrorMessage("Please enter a valid URL starting with http:// or https://.");
+      setLastResult(null);
+      return;
+    }
+
     setIsAnalyzing(true);
     setErrorMessage(null);
 
     try {
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: textInput,
-          mode: processingMode,
-        }),
-      });
+      let response: Response;
+
+      if (inputMode === "text") {
+        response = await fetch("/api/analyze", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: textInput,
+            mode: processingMode,
+          }),
+        });
+      } else if (inputMode === "pdf") {
+        if (!pdfFile) {
+          setErrorMessage("PDF file is required.");
+          setLastResult(null);
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", pdfFile);
+        formData.append("mode", processingMode);
+
+        response = await fetch("/api/analyze-pdf", {
+          method: "POST",
+          body: formData,
+        });
+      } else {
+        response = await fetch("/api/analyze-url", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            url: urlInput.trim(),
+            mode: processingMode,
+          }),
+        });
+      }
 
       const payload = (await response.json()) as AnalysisResult | { error?: string };
 
       if (!response.ok) {
-        const message = "error" in payload && payload.error ? payload.error : "Analysis failed.";
-        throw new Error(message);
+        const apiMessage = "error" in payload && payload.error ? payload.error : "Analysis failed.";
+        throw new Error(normalizeErrorMessage(apiMessage, inputMode));
       }
 
       setLastResult(payload as AnalysisResult);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Analysis failed.";
-      setErrorMessage(message);
+      setErrorMessage(normalizeErrorMessage(message, inputMode));
       setLastResult(null);
     } finally {
       setIsAnalyzing(false);
@@ -104,7 +173,6 @@ export function InputPanel() {
                 </span>
                 {tab.label}
               </p>
-              {tab.value !== "text" && <p className="mt-1 text-xs text-slate-500">Coming soon</p>}
             </button>
           );
         })}
@@ -131,11 +199,31 @@ export function InputPanel() {
               {isNearLimit && " (approaching limit)"}
             </p>
           </>
-        ) : (
-          <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
-            This tab is visible for layout preview only. PDF and URL analysis will be added next.
-          </div>
-        )}
+        ) : null}
+
+        {inputMode === "pdf" ? (
+          <PdfUpload
+            value={pdfFile}
+            disabled={isAnalyzing}
+            errorMessage={errorMessage}
+            onFileChange={(file) => {
+              setPdfFile(file);
+              setErrorMessage(null);
+            }}
+          />
+        ) : null}
+
+        {inputMode === "url" ? (
+          <UrlInput
+            value={urlInput}
+            disabled={isAnalyzing}
+            errorMessage={errorMessage}
+            onChange={(value) => {
+              setUrlInput(value);
+              setErrorMessage(null);
+            }}
+          />
+        ) : null}
       </div>
 
       <div className="mt-6">
@@ -161,7 +249,7 @@ export function InputPanel() {
       </div>
 
       {analysisStateMessage && <p className="mt-4 text-sm text-slate-600">{analysisStateMessage}</p>}
-      {errorMessage && <p className="mt-2 text-sm text-red-600">{errorMessage}</p>}
+      {errorMessage && inputMode === "text" && <p className="mt-2 text-sm text-red-600">{errorMessage}</p>}
 
       {lastResult && <ResultsPanel result={lastResult} />}
     </section>
