@@ -11,16 +11,48 @@ interface ModeToggleProps {
 const MODE_OPTIONS: Array<{
   value: AnalysisMode;
   label: string;
+  icon: React.ReactNode;
   description: string;
 }> = [
   {
     value: "quick",
-    label: "⚡ Quick",
+    label: "Quick",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+      </svg>
+    ),
     description: "Faster analysis. Good for a first pass.",
   },
   {
     value: "deep",
-    label: "🔍 Deep",
+    label: "Deep",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+    ),
     description: "Thorough analysis. Recommended for serious evaluation.",
   },
 ];
@@ -46,7 +78,10 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
                   : "border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)]"
               } ${disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
             >
-              <p className="font-ui font-medium text-[var(--text-primary)]">{option.label}</p>
+              <p className="font-ui font-medium text-[var(--text-primary)] flex items-center gap-2">
+                {option.icon}
+                {option.label}
+              </p>
               <p className="font-ui mt-1 text-sm text-[var(--text-secondary)]">{option.description}</p>
             </button>
           );

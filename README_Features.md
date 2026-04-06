@@ -85,8 +85,8 @@ Two options displayed as a toggle or segmented control:
 
 | Mode | Label | Description shown to user |
 |---|---|---|
-| `quick` | ⚡ Quick | Faster analysis. Good for a first pass. |
-| `deep` | 🔍 Deep | Thorough analysis. Recommended for serious evaluation. |
+| `quick` | Quick | Faster analysis. Good for a first pass. |
+| `deep` | Deep | Thorough analysis. Recommended for serious evaluation. |
 
 Default: `quick`
 
