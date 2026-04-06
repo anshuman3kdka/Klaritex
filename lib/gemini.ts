@@ -61,7 +61,7 @@ export async function analyzeText(text: string, mode: AnalysisMode): Promise<str
     ],
     systemInstruction: SYSTEM_PROMPT,
     generationConfig: {
-      temperature: 0.1,
+      temperature: 0,
       maxOutputTokens: 2048
     }
   });
