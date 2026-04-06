@@ -9,14 +9,19 @@ export default function HomePage() {
             <a
               href="https://klaritex.anshuman3kdka.in"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
+              aria-label="Clarity Engine (opens in a new tab)"
               className="font-ui text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:text-base"
             >
               Clarity Engine
             </a>
           </div>
           <div>
-            <a className="font-ui text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:text-base" href="">
+            <a
+              href="#"
+              aria-label="About (coming soon)"
+              className="font-ui text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:text-base"
+            >
               About
             </a>
           </div>
@@ -40,6 +45,7 @@ export default function HomePage() {
         <div className="mx-auto flex w-full max-w-6xl items-center gap-8 px-4 py-10 sm:px-6">
           <a
             href="mailto:thisisanshumanp@gmail.com"
+            aria-label="Contact via email (opens your email client)"
             className="font-ui text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:text-base"
           >
             Contact
@@ -47,7 +53,8 @@ export default function HomePage() {
           <a
             href="https://github.com/anshuman3kdka/Klaritex"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
+            aria-label="GitHub (opens in a new tab)"
             className="font-ui text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:text-base"
           >
             GitHub
