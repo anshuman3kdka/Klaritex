@@ -26,26 +26,26 @@ export function CommitmentSummary({ commitmentSummary }: CommitmentSummaryProps)
   }
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article className="k-module-card p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-base font-semibold text-slate-900">Module 8 · Summary of Commitments</h3>
+        <h3 className="k-module-label">Module 8 · Summary of Commitments</h3>
 
         <button
           type="button"
           onClick={handleCopy}
           disabled={!summaryText}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="font-ui rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-1.5 text-sm font-medium text-[var(--text-primary)] transition hover:border-[var(--border-accent)] hover:text-[var(--text-gold)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
 
       {!hasSummary ? (
-        <p className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">—</p>
+        <p className="font-ui mt-4 rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       ) : summaryText ? (
-        <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-800">{summaryText}</p>
+        <p className="font-ui mt-4 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-primary)]">{summaryText}</p>
       ) : (
-        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+        <p className="font-ui mt-4 rounded-lg border border-[var(--broad-color)]/45 bg-[var(--broad-color)]/14 p-4 text-sm text-[var(--broad-color)]">
           No extractable commitments found. The text contains no verifiable accountability statements.
         </p>
       )}

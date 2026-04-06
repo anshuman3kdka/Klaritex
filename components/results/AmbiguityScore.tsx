@@ -6,36 +6,32 @@ interface AmbiguityScoreProps {
   tier?: AmbiguityTier;
 }
 
-function getScoreColor(score: number): string {
-  if (score <= 2.5) return "bg-emerald-500";
-  if (score <= 6.0) return "bg-amber-500";
-  return "bg-rose-500";
-}
-
 export function AmbiguityScore({ ambiguityScore, rawPenaltyScore, tier }: AmbiguityScoreProps) {
   const hasScore = typeof ambiguityScore === "number";
   const hasRawPenalty = typeof rawPenaltyScore === "number";
   const normalizedScore = hasScore ? Math.min(10, Math.max(0, ambiguityScore)) : 0;
-  const progressWidth = `${(normalizedScore / 10) * 100}%`;
-  const barColor = getScoreColor(normalizedScore);
+  const scorePercent = (normalizedScore / 10) * 100;
   const tierText = tier ? `Tier ${tier}` : "—";
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="text-base font-semibold text-slate-900">Module 1 · Ambiguity Score</h3>
+    <article className="k-module-card p-5">
+      <h3 className="k-module-label">Module 1 · Ambiguity Score</h3>
 
       {!hasScore ? (
-        <p className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">—</p>
+        <p className="font-ui mt-4 rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       ) : (
         <>
-          <p className="mt-4 text-3xl font-bold text-slate-900">{normalizedScore.toFixed(1)} / 10</p>
-          <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-200">
-            <div className={`h-full ${barColor}`} style={{ width: progressWidth }} />
+          <p className="font-mono-ui mt-4 text-5xl text-[var(--text-gold)] sm:text-6xl">{normalizedScore.toFixed(1)}</p>
+          <div className="mt-3 h-3 overflow-hidden rounded-full bg-[var(--bg-primary)]">
+            <div className="flex h-full w-full">
+              <div className="h-full bg-[var(--gold-primary)]" style={{ width: `${scorePercent}%` }} />
+              <div className="h-full bg-[var(--tier3-color)]/90" style={{ width: `${100 - scorePercent}%` }} />
+            </div>
           </div>
-          <p className="mt-3 text-sm text-slate-600">
+          <p className="font-mono-ui mt-3 text-xs text-[var(--text-secondary)]">
             Raw Penalty Score: {hasRawPenalty ? `${rawPenaltyScore.toFixed(1)} / 12.0` : "—"}
           </p>
-          <p className="mt-2 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
+          <p className="k-badge mt-2 border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)]">
             {tierText}
           </p>
         </>

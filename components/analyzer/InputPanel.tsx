@@ -154,8 +154,8 @@ export function InputPanel() {
 
   return (
     <>
-      <section className="mx-auto w-full max-w-3xl rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <section className="k-card mx-auto w-full max-w-3xl p-4 sm:p-6">
+        <div className="grid grid-cols-1 gap-2 border-b border-[var(--border)] pb-2 sm:grid-cols-3">
           {TABS.map((tab) => {
             const isActive = inputMode === tab.value;
 
@@ -164,13 +164,13 @@ export function InputPanel() {
                 key={tab.value}
                 type="button"
                 onClick={() => handleTabSwitch(tab.value)}
-                className={`rounded-lg border px-4 py-3 text-left transition ${
+                className={`font-ui rounded-none border-b-2 px-2 py-3 text-left transition ${
                   isActive
-                    ? "border-indigo-600 bg-indigo-50 ring-1 ring-indigo-200"
-                    : "border-slate-300 bg-white hover:border-slate-400"
+                    ? "border-[var(--border-accent)] text-[var(--text-gold)]"
+                    : "border-transparent text-[var(--text-secondary)] hover:border-[var(--gold-muted)] hover:text-[var(--text-primary)]"
                 }`}
               >
-                <p className="font-medium text-slate-900">
+                <p className="font-medium">
                   <span className="mr-2" aria-hidden>
                     {tab.icon}
                   </span>
@@ -184,7 +184,7 @@ export function InputPanel() {
         <div className="mt-5">
           {inputMode === "text" ? (
             <>
-              <label htmlFor="klaritex-text-input" className="mb-2 block text-sm font-medium text-slate-900">
+              <label htmlFor="klaritex-text-input" className="font-ui mb-2 block text-sm font-medium text-[var(--text-primary)]">
                 Text to analyze
               </label>
               <textarea
@@ -208,9 +208,9 @@ export function InputPanel() {
                 rows={10}
                 disabled={isAnalyzing}
                 placeholder="Paste a political statement, policy claim, corporate announcement, or any text you want analyzed..."
-                className="w-full rounded-lg border border-slate-300 p-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+                className="font-ui w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--gold-primary)] focus:ring-2 focus:ring-[var(--gold-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)]"
               />
-              <p className={`mt-2 text-sm ${isNearLimit ? "text-amber-600" : "text-slate-500"}`}>
+              <p className={`font-mono-ui mt-2 text-sm ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}>
                 {textInput.length.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()}
                 {isNearLimit && " (approaching limit)"}
               </p>
@@ -251,21 +251,15 @@ export function InputPanel() {
             type="button"
             onClick={handleAnalyze}
             disabled={!canAnalyze}
-            className="inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-5 py-3 font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-400 sm:w-auto"
+            className="font-ui inline-flex w-full items-center justify-center rounded-lg bg-[var(--gold-primary)] px-5 py-3 font-semibold text-[var(--bg-primary)] transition hover:bg-[var(--gold-bright)] hover:shadow-[0_0_18px_rgba(201,168,76,0.3)] disabled:cursor-not-allowed disabled:bg-[var(--gold-muted)]/70"
           >
-            {isAnalyzing ? (
-              <>
-                <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                Analyzing...
-              </>
-            ) : (
-              "Analyze"
-            )}
+            {isAnalyzing ? "Analyzing..." : "Analyze"}
           </button>
+          {isAnalyzing ? <div className="k-gold-loader mt-2" aria-hidden /> : null}
         </div>
 
-        {analysisStateMessage && <p className="mt-4 text-sm text-slate-600">{analysisStateMessage}</p>}
-        {errorMessage && inputMode === "text" && <p className="mt-2 text-sm text-red-600">{errorMessage}</p>}
+        {analysisStateMessage && <p className="font-ui mt-4 text-sm text-[var(--text-secondary)]">{analysisStateMessage}</p>}
+        {errorMessage && inputMode === "text" && <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{errorMessage}</p>}
       </section>
 
       <ResultsPanel result={lastResult} isLoading={isAnalyzing} />
