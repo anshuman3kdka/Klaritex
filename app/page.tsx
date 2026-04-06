@@ -8,9 +8,7 @@ export default function HomePage() {
           <div>
             <a
               href="https://klaritex.anshuman3kdka.in"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Clarity Engine (opens in a new tab)"
+              aria-label="Clarity Engine"
               className="font-ui text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:text-base"
             >
               Clarity Engine
