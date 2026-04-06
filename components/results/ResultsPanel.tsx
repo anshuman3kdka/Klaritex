@@ -11,6 +11,7 @@ import { ScoreSummaryBar } from "@/components/results/ScoreSummaryBar";
 import { UnanchoredClaims } from "@/components/results/UnanchoredClaims";
 import { VagueLines } from "@/components/results/VagueLines";
 import { VerifiableRequirements } from "@/components/results/VerifiableRequirements";
+import { useMemo } from "react";
 import type { AnalysisResult } from "@/lib/types";
 
 interface ResultsPanelProps {
@@ -19,44 +20,74 @@ interface ResultsPanelProps {
 }
 
 export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
+  const resultKey = useMemo(() => (result ? Date.now() : "empty"), [result]);
+
+  const animationStyle = (index: number) => ({
+    animation: `slideUpFade 400ms cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms both`,
+  });
+
   return (
     <>
       {isLoading ? <ResultsSkeleton /> : null}
 
       {result ? (
-        <section className="mx-auto mt-6 w-full max-w-3xl space-y-4">
-          <ScoreSummaryBar
-            ambiguityScore={result.ambiguityScore}
-            tier={result.tier}
-            tierOverride={result.tierOverride}
-            overrideRule={result.overrideRule}
-          />
+        <section key={resultKey} className="mx-auto mt-6 w-full max-w-3xl space-y-4">
+          <div style={animationStyle(0)}>
+            <ScoreSummaryBar
+              ambiguityScore={result.ambiguityScore}
+              tier={result.tier}
+              tierOverride={result.tierOverride}
+              overrideRule={result.overrideRule}
+            />
+          </div>
 
-          <AmbiguityScore
-            ambiguityScore={result.ambiguityScore}
-            rawPenaltyScore={result.rawPenaltyScore}
-            tier={result.tier}
-          />
+          <div style={animationStyle(1)}>
+            <AmbiguityScore
+              ambiguityScore={result.ambiguityScore}
+              rawPenaltyScore={result.rawPenaltyScore}
+              tier={result.tier}
+            />
+          </div>
 
-          <ClarityLevel clarityLevel={result.clarityLevel} />
+          <div style={animationStyle(2)}>
+            <ClarityLevel clarityLevel={result.clarityLevel} />
+          </div>
 
-          <ExposureCheck exposureCheck={result.exposureCheck} />
+          <div style={animationStyle(3)}>
+            <ExposureCheck exposureCheck={result.exposureCheck} />
+          </div>
 
-          <UnanchoredClaims unanchoredClaimsCount={result.unanchoredClaimsCount} />
+          <div style={animationStyle(4)}>
+            <UnanchoredClaims unanchoredClaimsCount={result.unanchoredClaimsCount} />
+          </div>
 
-          <VagueLines vagueLines={result.vagueLines} />
+          <div style={animationStyle(5)}>
+            <VagueLines vagueLines={result.vagueLines} />
+          </div>
 
-          <LowestAnchors lowestAnchors={result.lowestAnchors} />
+          <div style={animationStyle(6)}>
+            <LowestAnchors lowestAnchors={result.lowestAnchors} />
+          </div>
 
-          <ActionTalkRatio actionRatio={result.actionRatio} talkRatio={result.talkRatio} ratioLabel={result.ratioLabel} />
+          <div style={animationStyle(7)}>
+            <ActionTalkRatio actionRatio={result.actionRatio} talkRatio={result.talkRatio} ratioLabel={result.ratioLabel} />
+          </div>
 
-          <CommitmentSummary commitmentSummary={result.commitmentSummary} />
+          <div style={animationStyle(8)}>
+            <CommitmentSummary commitmentSummary={result.commitmentSummary} />
+          </div>
 
-          <AmbiguityExplanation ambiguityExplanation={result.ambiguityExplanation} />
+          <div style={animationStyle(9)}>
+            <AmbiguityExplanation ambiguityExplanation={result.ambiguityExplanation} />
+          </div>
 
-          <CommitmentBreakdown elements={result.elements} />
+          <div style={animationStyle(10)}>
+            <CommitmentBreakdown elements={result.elements} />
+          </div>
 
-          <VerifiableRequirements verifiableRequirements={result.verifiableRequirements} />
+          <div style={animationStyle(11)}>
+            <VerifiableRequirements verifiableRequirements={result.verifiableRequirements} />
+          </div>
         </section>
       ) : null}
     </>
