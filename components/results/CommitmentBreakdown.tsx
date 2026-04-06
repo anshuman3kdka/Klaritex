@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import type { CommitmentElement, ElementStatus } from "@/lib/types";
+import { CollapsibleCard } from "./CollapsibleCard";
 
 interface CommitmentBreakdownProps {
   elements?: CommitmentElement[];
@@ -96,10 +97,9 @@ export function CommitmentBreakdown({ elements }: CommitmentBreakdownProps) {
   );
 
   return (
-    <article className="k-module-card p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <h3 className="k-module-label">Module 10 · Commitment Breakdown</h3>
-
+    <CollapsibleCard
+      title="Module 10 · Commitment Breakdown"
+      headerAction={
         <div className="inline-flex border-b border-[var(--border)]">
           <button
             type="button"
@@ -126,9 +126,9 @@ export function CommitmentBreakdown({ elements }: CommitmentBreakdownProps) {
             Stress Test
           </button>
         </div>
-      </div>
-
-      <div className="mt-4 overflow-x-auto">
+      }
+    >
+      <div className="overflow-x-auto">
         <table className="min-w-full border-collapse text-sm">
           <thead>
             <tr className="font-mono-ui border-b border-[var(--border)] text-left text-xs uppercase tracking-wide text-[var(--text-secondary)]">
@@ -185,6 +185,6 @@ export function CommitmentBreakdown({ elements }: CommitmentBreakdownProps) {
       {viewMode === "stress" ? (
         <p className="font-display mt-4 text-sm italic text-[var(--text-gold)]">{getStressVerdict(stressTestableCount)}</p>
       ) : null}
-    </article>
+    </CollapsibleCard>
   );
 }

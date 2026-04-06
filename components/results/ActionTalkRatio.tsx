@@ -1,3 +1,5 @@
+import { CollapsibleCard } from "./CollapsibleCard";
+
 interface ActionTalkRatioProps {
   actionRatio?: number;
   talkRatio?: number;
@@ -10,14 +12,12 @@ export function ActionTalkRatio({ actionRatio, talkRatio, ratioLabel }: ActionTa
   const safeTalk = hasRatios ? Math.min(100, Math.max(0, talkRatio)) : 0;
 
   return (
-    <article className="k-module-card p-5">
-      <h3 className="k-module-label">Module 7 · Action vs Talk Ratio</h3>
-
+    <CollapsibleCard title="Module 7 · Action vs Talk Ratio">
       {!hasRatios ? (
-        <p className="font-ui mt-4 rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
+        <p className="font-ui rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       ) : (
         <>
-          <p className="font-mono-ui mt-4 text-sm text-[var(--text-primary)]">
+          <p className="font-mono-ui text-sm text-[var(--text-primary)]">
             {safeAction}% Action / {safeTalk}% Talk
           </p>
 
@@ -33,6 +33,6 @@ export function ActionTalkRatio({ actionRatio, talkRatio, ratioLabel }: ActionTa
           </p>
         </>
       )}
-    </article>
+    </CollapsibleCard>
   );
 }

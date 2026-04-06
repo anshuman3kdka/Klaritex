@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CollapsibleCard } from "./CollapsibleCard";
 
 interface CommitmentSummaryProps {
   commitmentSummary?: string;
@@ -26,10 +27,9 @@ export function CommitmentSummary({ commitmentSummary }: CommitmentSummaryProps)
   }
 
   return (
-    <article className="k-module-card p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="k-module-label">Module 8 · Summary of Commitments</h3>
-
+    <CollapsibleCard
+      title="Module 8 · Summary of Commitments"
+      headerAction={
         <button
           type="button"
           onClick={handleCopy}
@@ -38,17 +38,17 @@ export function CommitmentSummary({ commitmentSummary }: CommitmentSummaryProps)
         >
           {copied ? "Copied" : "Copy"}
         </button>
-      </div>
-
+      }
+    >
       {!hasSummary ? (
-        <p className="font-ui mt-4 rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
+        <p className="font-ui rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       ) : summaryText ? (
-        <p className="font-ui mt-4 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-primary)]">{summaryText}</p>
+        <p className="font-ui rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-primary)]">{summaryText}</p>
       ) : (
-        <p className="font-ui mt-4 rounded-lg border border-[var(--broad-color)]/45 bg-[var(--broad-color)]/14 p-4 text-sm text-[var(--broad-color)]">
+        <p className="font-ui rounded-lg border border-[var(--broad-color)]/45 bg-[var(--broad-color)]/14 p-4 text-sm text-[var(--broad-color)]">
           No extractable commitments found. The text contains no verifiable accountability statements.
         </p>
       )}
-    </article>
+    </CollapsibleCard>
   );
 }

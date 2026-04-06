@@ -1,4 +1,5 @@
 import type { CommitmentElement } from "@/lib/types";
+import { CollapsibleCard } from "./CollapsibleCard";
 
 interface ExposureCheckProps {
   elements: CommitmentElement[];
@@ -18,9 +19,8 @@ export function ExposureCheck({ elements }: ExposureCheckProps) {
   const total = items.length || 1;
 
   return (
-    <article className="k-module-card p-5">
-      <h3 className="k-module-label">Module 3 · Exposure Check</h3>
-      <p className="font-ui mt-2 text-sm text-[var(--text-secondary)]">
+    <CollapsibleCard title="Module 3 · Exposure Check">
+      <p className="font-ui text-sm text-[var(--text-secondary)]">
         This module lists what is clearly committed versus what stays unclear or missing.
       </p>
 
@@ -60,6 +60,6 @@ export function ExposureCheck({ elements }: ExposureCheckProps) {
           </div>
         </div>
       ) : null}
-    </article>
+    </CollapsibleCard>
   );
 }
