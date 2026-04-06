@@ -1,4 +1,5 @@
 import type { AmbiguityTier } from "@/lib/types";
+import { CollapsibleCard } from "./CollapsibleCard";
 
 interface ScoreSummaryBarProps {
   ambiguityScore?: number;
@@ -29,10 +30,8 @@ export function ScoreSummaryBar({ ambiguityScore, tier, tierOverride = false, ov
   const hasTier = typeof tier === "number";
 
   return (
-    <section className={`k-module-card p-5 ${tier === 3 ? "border-[var(--tier3-color)]/55" : ""}`}>
-      <h2 className="k-module-label">Score Summary</h2>
-
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <CollapsibleCard title="Score Summary" className={tier === 3 ? "border-[var(--tier3-color)]/55" : ""}>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4">
           <p className="k-module-label">Ambiguity Score</p>
           <p className="font-mono-ui mt-1 text-4xl leading-none text-[var(--text-gold)] sm:text-5xl">
@@ -62,6 +61,6 @@ export function ScoreSummaryBar({ ambiguityScore, tier, tierOverride = false, ov
           )}
         </div>
       </div>
-    </section>
+    </CollapsibleCard>
   );
 }
