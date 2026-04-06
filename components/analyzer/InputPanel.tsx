@@ -216,16 +216,18 @@ export function InputPanel() {
   return (
     <>
       <section className="k-card mx-auto w-full max-w-3xl p-4 sm:p-6">
-        <div className="grid grid-cols-1 gap-2 border-b border-[var(--border)] pb-2 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2 border-b border-[var(--border)] pb-2 sm:grid-cols-3" role="tablist">
           {TABS.map((tab) => {
             const isActive = inputMode === tab.value;
 
             return (
               <button
                 key={tab.value}
+                role="tab"
+                aria-selected={isActive}
                 type="button"
                 onClick={() => handleTabSwitch(tab.value)}
-                className={`font-ui rounded-none border-b-2 px-2 py-3 text-left transition ${
+                className={`font-ui rounded-none border-b-2 px-2 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
                   isActive
                     ? "border-[var(--border-accent)] text-[var(--text-gold)]"
                     : "border-transparent text-[var(--text-secondary)] hover:border-[var(--gold-muted)] hover:text-[var(--text-primary)]"
@@ -312,7 +314,7 @@ export function InputPanel() {
             type="button"
             onClick={handleAnalyze}
             disabled={!canAnalyze}
-            className="font-ui inline-flex w-full items-center justify-center rounded-lg bg-[var(--gold-primary)] px-5 py-3 font-semibold text-[var(--bg-primary)] transition hover:bg-[var(--gold-bright)] hover:shadow-[0_0_18px_rgba(201,168,76,0.3)] disabled:cursor-not-allowed disabled:bg-[var(--gold-muted)]/70"
+            className="font-ui inline-flex w-full items-center justify-center rounded-lg bg-[var(--gold-primary)] px-5 py-3 font-semibold text-[var(--bg-primary)] transition hover:bg-[var(--gold-bright)] hover:shadow-[0_0_18px_rgba(201,168,76,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 disabled:cursor-not-allowed disabled:bg-[var(--gold-muted)]/70"
           >
             {isAnalyzing ? "Analyzing..." : "Analyze"}
           </button>
