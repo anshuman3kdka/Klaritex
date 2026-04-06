@@ -6,6 +6,7 @@ import { CommitmentBreakdown } from "@/components/results/CommitmentBreakdown";
 import { CommitmentSummary } from "@/components/results/CommitmentSummary";
 import { ExposureCheck } from "@/components/results/ExposureCheck";
 import { LowestAnchors } from "@/components/results/LowestAnchors";
+import { ResultsSkeleton } from "@/components/results/ResultsSkeleton";
 import { ScoreSummaryBar } from "@/components/results/ScoreSummaryBar";
 import { UnanchoredClaims } from "@/components/results/UnanchoredClaims";
 import { VagueLines } from "@/components/results/VagueLines";
@@ -13,40 +14,51 @@ import { VerifiableRequirements } from "@/components/results/VerifiableRequireme
 import type { AnalysisResult } from "@/lib/types";
 
 interface ResultsPanelProps {
-  result: AnalysisResult;
+  result?: AnalysisResult | null;
+  isLoading?: boolean;
 }
 
-export function ResultsPanel({ result }: ResultsPanelProps) {
+export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
   return (
-    <section className="mx-auto mt-6 w-full max-w-3xl space-y-4">
-      <ScoreSummaryBar
-        ambiguityScore={result.ambiguityScore}
-        tier={result.tier}
-        tierOverride={result.tierOverride}
-        overrideRule={result.overrideRule}
-      />
+    <>
+      {isLoading ? <ResultsSkeleton /> : null}
 
-      <AmbiguityScore ambiguityScore={result.ambiguityScore} rawPenaltyScore={result.rawPenaltyScore} />
+      {result ? (
+        <section className="mx-auto mt-6 w-full max-w-3xl space-y-4">
+          <ScoreSummaryBar
+            ambiguityScore={result.ambiguityScore}
+            tier={result.tier}
+            tierOverride={result.tierOverride}
+            overrideRule={result.overrideRule}
+          />
 
-      <ClarityLevel clarityLevel={result.clarityLevel} />
+          <AmbiguityScore
+            ambiguityScore={result.ambiguityScore}
+            rawPenaltyScore={result.rawPenaltyScore}
+            tier={result.tier}
+          />
 
-      <ExposureCheck exposureCheck={result.exposureCheck} />
+          <ClarityLevel clarityLevel={result.clarityLevel} />
 
-      <UnanchoredClaims unanchoredClaimsCount={result.unanchoredClaimsCount} />
+          <ExposureCheck exposureCheck={result.exposureCheck} />
 
-      <VagueLines vagueLines={result.vagueLines} />
+          <UnanchoredClaims unanchoredClaimsCount={result.unanchoredClaimsCount} />
 
-      <LowestAnchors lowestAnchors={result.lowestAnchors} />
+          <VagueLines vagueLines={result.vagueLines} />
 
-      <ActionTalkRatio actionRatio={result.actionRatio} talkRatio={result.talkRatio} ratioLabel={result.ratioLabel} />
+          <LowestAnchors lowestAnchors={result.lowestAnchors} />
 
-      <CommitmentSummary commitmentSummary={result.commitmentSummary} />
+          <ActionTalkRatio actionRatio={result.actionRatio} talkRatio={result.talkRatio} ratioLabel={result.ratioLabel} />
 
-      <AmbiguityExplanation ambiguityExplanation={result.ambiguityExplanation} />
+          <CommitmentSummary commitmentSummary={result.commitmentSummary} />
 
-      <CommitmentBreakdown elements={result.elements} />
+          <AmbiguityExplanation ambiguityExplanation={result.ambiguityExplanation} />
 
-      <VerifiableRequirements verifiableRequirements={result.verifiableRequirements} />
-    </section>
+          <CommitmentBreakdown elements={result.elements} />
+
+          <VerifiableRequirements verifiableRequirements={result.verifiableRequirements} />
+        </section>
+      ) : null}
+    </>
   );
 }
