@@ -5,8 +5,8 @@ export default function HomePage() {
     <div className="min-h-screen bg-[var(--bg-primary)]">
       <header className="border-b border-[var(--border)] bg-[var(--bg-surface)]/70">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-3 items-center gap-4 px-4 py-5 sm:px-6">
-          <div className="h-8 rounded-md border border-dashed border-[var(--border)]/70" aria-hidden />
-          <div className="h-8 rounded-md border border-dashed border-[var(--border)]/70" aria-hidden />
+          <div className="h-8 rounded-md border border-dashed border-[var(--border)]/70" aria-hidden="true" />
+          <div className="h-8 rounded-md border border-dashed border-[var(--border)]/70" aria-hidden="true" />
           <div className="text-right">
             <span className="font-display text-2xl tracking-tight text-[var(--text-gold)] sm:text-3xl">Klaritex</span>
           </div>
