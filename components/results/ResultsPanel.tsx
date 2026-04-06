@@ -54,7 +54,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
           </div>
 
           <div style={animationStyle(3)}>
-            <ExposureCheck exposureCheck={result.exposureCheck} />
+            <ExposureCheck elements={result.elements} />
           </div>
 
           <div style={animationStyle(4)}>
