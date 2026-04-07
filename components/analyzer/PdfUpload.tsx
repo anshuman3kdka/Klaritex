@@ -106,7 +106,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
             inputRef.current?.click();
           }
         }}
-        className={`cursor-pointer rounded-lg border border-dashed p-6 text-sm transition ${
+        className={`cursor-pointer rounded-lg border border-dashed p-6 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
           disabled
             ? "cursor-not-allowed border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
             : isDragActive

@@ -61,18 +61,19 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
   return (
     <div className="space-y-3">
       <p className="font-ui text-sm font-medium text-[var(--text-primary)]">Processing Mode</p>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-2 sm:grid-cols-2" role="radiogroup">
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
 
           return (
             <button
               key={option.value}
+              role="radio"
+              aria-checked={isActive}
               type="button"
-              aria-pressed={isActive}
               disabled={disabled}
               onClick={() => onChange(option.value)}
-              className={`rounded-lg border p-3 text-left transition ${
+              className={`rounded-lg border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
                 isActive
                   ? "border-[var(--border-accent)] border-l-4 bg-[var(--bg-elevated)]"
                   : "border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)]"
