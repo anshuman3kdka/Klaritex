@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, ReactNode } from "react";
+import { useState, useId, ReactNode } from "react";
 
 interface CollapsibleCardProps {
   title: string;
@@ -18,14 +18,16 @@ export function CollapsibleCard({
   defaultExpanded = false,
 }: CollapsibleCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const contentId = useId();
 
   return (
     <article className={`k-module-card flex flex-col ${className}`}>
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between p-5 text-left transition-colors hover:bg-[var(--bg-elevated)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-accent)]"
+        className="flex w-full items-center justify-between p-5 text-left transition-colors hover:bg-[var(--bg-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50"
         aria-expanded={isExpanded}
+        aria-controls={contentId}
       >
         <h3 className="k-module-label flex-1">{title}</h3>
 
@@ -49,10 +51,12 @@ export function CollapsibleCard({
       </button>
 
       <div
-        className="grid transition-[grid-template-rows,opacity] duration-300 ease-out"
+        id={contentId}
+        className="grid transition-[grid-template-rows,opacity,visibility] duration-300 ease-out"
         style={{
           gridTemplateRows: isExpanded ? "1fr" : "0fr",
           opacity: isExpanded ? 1 : 0,
+          visibility: isExpanded ? "visible" : "hidden",
         }}
       >
         <div className="overflow-hidden">
