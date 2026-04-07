@@ -1,0 +1,4 @@
+## 2024-04-07 - SSRF Vulnerability in URL Extraction
+**Vulnerability:** The application was extracting URLs by making unrestricted HTTP fetches. Since no bounds validation existed, the app was susceptible to Server-Side Request Forgery (SSRF) and could be tricked into querying `localhost`, loopback metadata APIs, and internal IP subnets (e.g., `127.0.0.1`, `169.254.169.254`).
+**Learning:** `fetch` calls and network libraries in Node.js do not natively protect against SSRF. Any user-provided URL must be strictly sanitized and tested against prohibited blocks prior to the initial request and also prior to redirect loops.
+**Prevention:** Implement strict URL validation (e.g., protocol allowlisting and internal hostname/IP blocklisting) before passing URLs to network fetching interfaces like `node-fetch`.
