@@ -17,6 +17,12 @@ export function isValidHttpUrl(value: string): boolean {
 }
 
 export function UrlInput({ value, disabled = false, errorMessage, onChange }: UrlInputProps) {
+  const isInvalid = !!errorMessage;
+  const descriptionIds = [
+    "klaritex-url-helper",
+    isInvalid ? "klaritex-url-error" : null
+  ].filter(Boolean).join(" ");
+
   return (
     <div>
       <label htmlFor="klaritex-url-input" className="font-ui mb-2 block text-sm font-medium text-[var(--text-primary)]">
@@ -29,13 +35,19 @@ export function UrlInput({ value, disabled = false, errorMessage, onChange }: Ur
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
         placeholder="https://..."
+        aria-invalid={isInvalid}
+        aria-describedby={descriptionIds}
         className="font-ui w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--gold-primary)] focus:ring-2 focus:ring-[var(--gold-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)]"
       />
 
-      <p className="font-ui mt-2 text-xs text-[var(--text-secondary)]">
+      <p id="klaritex-url-helper" className="font-ui mt-2 text-xs text-[var(--text-secondary)]">
         Klaritex analyzes the article&apos;s text only. It does not search the web or fact-check claims.
       </p>
-      {errorMessage ? <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{errorMessage}</p> : null}
+      {errorMessage ? (
+        <p id="klaritex-url-error" role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">
+          {errorMessage}
+        </p>
+      ) : null}
     </div>
   );
 }

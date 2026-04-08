@@ -31,6 +31,13 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
   const [localError, setLocalError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  const activeErrorMessage = localError ?? errorMessage;
+  const isInvalid = !!activeErrorMessage;
+  const descriptionIds = [
+    "klaritex-pdf-helper",
+    isInvalid ? "klaritex-pdf-error" : null
+  ].filter(Boolean).join(" ");
+
   function updateFile(nextFile: File | null) {
     if (!nextFile) {
       setLocalError(null);
@@ -79,8 +86,6 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
     setIsDragActive(false);
   }
 
-  const activeErrorMessage = localError ?? errorMessage;
-
   return (
     <div>
       <input
@@ -89,6 +94,8 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         accept=".pdf,application/pdf"
         onChange={handleInputChange}
         disabled={disabled}
+        aria-invalid={isInvalid}
+        aria-describedby={descriptionIds}
         className="sr-only"
         id="klaritex-pdf-upload"
       />
@@ -106,6 +113,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
             inputRef.current?.click();
           }
         }}
+        aria-describedby={descriptionIds}
         className={`cursor-pointer rounded-lg border border-dashed p-6 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
           disabled
             ? "cursor-not-allowed border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
@@ -116,7 +124,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         aria-label="Upload PDF"
       >
         <p className="font-ui font-medium">Drag and drop a PDF here, or click to choose a file</p>
-        <p className="font-ui mt-1 text-xs text-[var(--text-secondary)]">PDF only · Maximum 5MB</p>
+        <p id="klaritex-pdf-helper" className="font-ui mt-1 text-xs text-[var(--text-secondary)]">PDF only · Maximum 5MB</p>
 
         {value ? (
           <div className="mt-4 rounded-md border border-[var(--clear-color)]/40 bg-[var(--clear-color)]/15 p-3">
@@ -126,7 +134,11 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         ) : null}
       </div>
 
-      {activeErrorMessage ? <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
+      {activeErrorMessage ? (
+        <p id="klaritex-pdf-error" role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">
+          {activeErrorMessage}
+        </p>
+      ) : null}
     </div>
   );
 }

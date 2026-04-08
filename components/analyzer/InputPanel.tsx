@@ -271,9 +271,11 @@ export function InputPanel() {
                 rows={10}
                 disabled={isAnalyzing}
                 placeholder="Paste a political statement, policy claim, corporate announcement, or any text you want analyzed..."
+                aria-invalid={!!errorMessage}
+                aria-describedby={`klaritex-text-count ${errorMessage ? "klaritex-text-error" : ""}`.trim()}
                 className="font-ui w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--gold-primary)] focus:ring-2 focus:ring-[var(--gold-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)]"
               />
-              <p className={`font-mono-ui mt-2 text-sm ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}>
+              <p id="klaritex-text-count" className={`font-mono-ui mt-2 text-sm ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}>
                 {textInput.length.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()}
                 {isNearLimit && " (approaching limit)"}
               </p>
@@ -314,6 +316,7 @@ export function InputPanel() {
             type="button"
             onClick={handleAnalyze}
             disabled={!canAnalyze}
+            aria-busy={isAnalyzing}
             className="font-ui inline-flex w-full items-center justify-center rounded-lg bg-[var(--gold-primary)] px-5 py-3 font-semibold text-[var(--bg-primary)] transition hover:bg-[var(--gold-bright)] hover:shadow-[0_0_18px_rgba(201,168,76,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 disabled:cursor-not-allowed disabled:bg-[var(--gold-muted)]/70"
           >
             {isAnalyzing ? "Analyzing..." : "Analyze"}
@@ -321,8 +324,8 @@ export function InputPanel() {
           {isAnalyzing ? <div className="k-gold-loader mt-2" aria-hidden /> : null}
         </div>
 
-        {analysisStateMessage && <p className="font-ui mt-4 text-sm text-[var(--text-secondary)]">{analysisStateMessage}</p>}
-        {errorMessage && inputMode === "text" && <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{errorMessage}</p>}
+        {analysisStateMessage && <p aria-live="polite" className="font-ui mt-4 text-sm text-[var(--text-secondary)]">{analysisStateMessage}</p>}
+        {errorMessage && inputMode === "text" && <p id="klaritex-text-error" role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">{errorMessage}</p>}
       </section>
 
       <ResultsPanel result={lastResult} isLoading={isAnalyzing} />
