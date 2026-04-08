@@ -14,10 +14,69 @@ function normalizeWhitespace(text: string): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
+function isSafeUrl(urlString: string): boolean {
+  try {
+    const url = new URL(urlString);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+
+    const hostname = url.hostname.toLowerCase();
+
+    if (
+      hostname === "localhost" ||
+      hostname.endsWith(".localhost") ||
+      hostname.endsWith(".local")
+    ) {
+      return false;
+    }
+
+    const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+    const match = hostname.match(ipv4Regex);
+    if (match) {
+      const p1 = parseInt(match[1]!, 10);
+      const p2 = parseInt(match[2]!, 10);
+      if (
+        p1 === 0 || // 0.0.0.0/8
+        p1 === 10 || // 10.0.0.0/8
+        p1 === 127 || // 127.0.0.0/8
+        (p1 === 172 && p2 >= 16 && p2 <= 31) || // 172.16.0.0/12
+        (p1 === 192 && p2 === 168) || // 192.168.0.0/16
+        (p1 === 169 && p2 === 254) // 169.254.0.0/16
+      ) {
+        return false;
+      }
+    }
+
+    if (hostname.startsWith("[") && hostname.endsWith("]")) {
+      const ipv6 = hostname.slice(1, -1);
+      if (
+        ipv6 === "::" ||
+        ipv6 === "0:0:0:0:0:0:0:0" ||
+        ipv6 === "::1" ||
+        ipv6 === "0:0:0:0:0:0:0:1" ||
+        ipv6.startsWith("fd") ||
+        ipv6.startsWith("fc") ||
+        ipv6.startsWith("fe80") ||
+        ipv6.includes("127.0.0.1") ||
+        ipv6.startsWith("::ffff:7f")
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
   let currentUrl = initialUrl;
 
   for (let hop = 0; hop <= MAX_REDIRECT_HOPS; hop += 1) {
+    if (!isSafeUrl(currentUrl)) {
+      throw new UrlExtractionError("Could not fetch content from URL.");
+    }
+
     const response = await fetch(currentUrl, {
       method: "GET",
       redirect: "manual"
