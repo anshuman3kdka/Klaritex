@@ -100,6 +100,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         onClick={() => inputRef.current?.click()}
         role="button"
         tabIndex={disabled ? -1 : 0}
+        aria-describedby={activeErrorMessage ? "pdf-upload-error" : undefined}
         onKeyDown={(event) => {
           if (!disabled && (event.key === "Enter" || event.key === " ")) {
             event.preventDefault();
@@ -126,7 +127,11 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         ) : null}
       </div>
 
-      {activeErrorMessage ? <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
+      {activeErrorMessage ? (
+        <p id="pdf-upload-error" role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">
+          {activeErrorMessage}
+        </p>
+      ) : null}
     </div>
   );
 }

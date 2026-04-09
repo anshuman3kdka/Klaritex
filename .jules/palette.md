@@ -4,3 +4,6 @@
 ## 2025-02-14 - CSS Grid Animations and Accessibility
 **Learning:** When using CSS `grid-template-rows: 0fr` to hide collapsible content with animation, the elements remain in the DOM, allowing screen readers to access them and keyboard users to tab into invisible content. This creates a confusing and inaccessible experience.
 **Action:** Use `visibility: hidden` combined with the CSS `transition` property on `visibility`. This elegantly delays the element becoming fully `hidden` until the transition completes, keeping it accessible only when visually expanded.
+## 2025-02-14 - Dynamic Validation Accessibility
+**Learning:** Adding dynamic error messages below input fields does not naturally alert screen readers when the error state changes. Furthermore, `aria-invalid` is not a valid attribute for custom `role="button"` elements.
+**Action:** When implementing dynamic error validation for text inputs or custom interactive elements, link the element to the error message container using `aria-describedby` (pointing to an ID). For native inputs like `<input>` and `<textarea>`, you can also use `aria-invalid={true}`. Critically, ensure the error message container itself uses `role="alert"` so screen readers dynamically announce the error without requiring focus to shift.
