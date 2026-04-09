@@ -7,10 +7,10 @@ const GEMINI_API_KEY_ENV_NAMES = ["Klaritex", "KLARITEX", "GEMINI_API_KEY"] as c
 
 export function sanitizeInput(text: string): string {
   return text
+    .slice(0, 10000)
     .replace(/\0/g, "")
     .replace(/[\x01-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
-    .trim()
-    .slice(0, 10000);
+    .trim();
 }
 
 function getConfiguredGeminiApiKey(): string {
