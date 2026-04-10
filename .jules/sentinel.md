@@ -1,3 +1,8 @@
+## 2024-04-09 - Memory Exhaustion DoS via Unbounded Fetch
+**Vulnerability:** The application used `node-fetch` to retrieve external URL contents without setting a maximum response size limit. A malicious server could return an extremely large response (e.g., streaming endless data or returning gigabytes of content), exhausting the Node.js process memory (`v8::internal::V8::FatalProcessOutOfMemory`) and causing a Denial of Service.
+**Learning:** `fetch` calls, by default, will stream response bodies into memory indefinitely if no bounds are set. This is a critical risk when fetching arbitrary user-provided URLs.
+**Prevention:** Always set the `size` option in `node-fetch` (e.g., `size: 5 * 1024 * 1024` for 5MB) when making requests to untrusted servers to strictly limit the maximum bytes consumed. Additionally, use an `AbortController` to enforce connection timeouts and properly cancel/destroy the response stream (especially on redirects) to avoid resource leaks.
+
 ## 2024-04-08 - ReDoS Vulnerability in Input Sanitization
 **Vulnerability:** The application was applying regular expression replacements (e.g., stripping null bytes and control characters) to unconstrained user input *before* truncating the string. This created a vector for Regular Expression Denial of Service (ReDoS) if an attacker submitted an extremely large string, as the regex engine would have to process the entire massive payload before truncation.
 **Learning:** Any operation whose execution time scales linearly (or worse) with input length, such as regex pattern matching or replacement, should only be performed on size-constrained inputs.

@@ -77,38 +77,53 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
 
-    const response = await fetch(currentUrl, {
-      method: "GET",
-      redirect: "manual"
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout to prevent connection DoS
 
-    const status = response.status;
-    const isRedirect = status >= 300 && status < 400;
+    try {
+      const response = await fetch(currentUrl, {
+        method: "GET",
+        redirect: "manual",
+        size: 5 * 1024 * 1024, // 5MB limit to prevent memory exhaustion DoS
+        signal: controller.signal
+      });
 
-    if (isRedirect) {
-      if (hop >= MAX_REDIRECT_HOPS) {
+      const status = response.status;
+      const isRedirect = status >= 300 && status < 400;
+
+      if (isRedirect) {
+        // Destroy the response body to prevent socket leaks before continuing
+        if (response.body && typeof (response.body as any).destroy === "function") {
+          (response.body as any).destroy();
+        }
+
+        if (hop >= MAX_REDIRECT_HOPS) {
+          throw new UrlExtractionError("Could not fetch content from URL.");
+        }
+
+        const location = response.headers.get("location");
+
+        if (!location) {
+          throw new UrlExtractionError("Could not fetch content from URL.");
+        }
+
+        currentUrl = new URL(location, currentUrl).toString();
+        continue;
+      }
+
+      if (!response.ok) {
         throw new UrlExtractionError("Could not fetch content from URL.");
       }
 
-      const location = response.headers.get("location");
-
-      if (!location) {
-        throw new UrlExtractionError("Could not fetch content from URL.");
-      }
-
-      currentUrl = new URL(location, currentUrl).toString();
-      continue;
+      return await response.text();
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    if (!response.ok) {
-      throw new UrlExtractionError("Could not fetch content from URL.");
-    }
-
-    return await response.text();
   }
 
   throw new UrlExtractionError("Could not fetch content from URL.");
 }
+
 
 export async function extractUrlText(url: string): Promise<string> {
   let html: string;
