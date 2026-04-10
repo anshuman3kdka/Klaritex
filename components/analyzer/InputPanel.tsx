@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 import { ModeToggle } from "@/components/analyzer/ModeToggle";
 import { PdfUpload } from "@/components/analyzer/PdfUpload";
@@ -107,8 +107,11 @@ export function InputPanel() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [urlInput, setUrlInput] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isFieldValidationError, setIsFieldValidationError] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [lastResult, setLastResult] = useState<AnalysisResult | null>(null);
+
+  const textInputErrorId = useId();
 
   const isNearLimit = textInput.length >= WARNING_THRESHOLD;
 
@@ -136,6 +139,7 @@ export function InputPanel() {
     setPdfFile(null);
     setUrlInput("");
     setErrorMessage(null);
+    setIsFieldValidationError(false);
   }
 
   async function handleAnalyze() {
@@ -145,16 +149,19 @@ export function InputPanel() {
 
     if (inputMode === "url" && !isValidHttpUrl(urlInput)) {
       setErrorMessage("Please enter a valid URL starting with http:// or https://.");
+      setIsFieldValidationError(true);
       return;
     }
 
     if (inputMode === "text" && textInput.length > MAX_TEXT_LENGTH) {
       setErrorMessage("Input is too long. Maximum is 10,000 characters.");
+      setIsFieldValidationError(true);
       return;
     }
 
     setIsAnalyzing(true);
     setErrorMessage(null);
+    setIsFieldValidationError(false);
 
     try {
       let response: Response;
@@ -208,6 +215,7 @@ export function InputPanel() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Analysis failed.";
       setErrorMessage(normalizeErrorMessage(message, inputMode));
+      setIsFieldValidationError(false);
     } finally {
       setIsAnalyzing(false);
     }
@@ -259,20 +267,22 @@ export function InputPanel() {
                   if (nextValue.length > MAX_TEXT_LENGTH) {
                     setTextInput(nextValue.slice(0, MAX_TEXT_LENGTH));
                     setErrorMessage("Input is too long. Maximum is 10,000 characters.");
+                    setIsFieldValidationError(true);
                     return;
                   }
 
                   setTextInput(nextValue);
                   if (errorMessage === "Input is too long. Maximum is 10,000 characters.") {
                     setErrorMessage(null);
+                    setIsFieldValidationError(false);
                   }
                 }}
                 maxLength={MAX_TEXT_LENGTH}
                 rows={10}
                 disabled={isAnalyzing}
                 placeholder="Paste a political statement, policy claim, corporate announcement, or any text you want analyzed..."
-                aria-invalid={!!errorMessage}
-                aria-describedby={errorMessage && inputMode === "text" ? "text-input-error" : undefined}
+                aria-invalid={isFieldValidationError ? true : undefined}
+                aria-describedby={isFieldValidationError && inputMode === "text" ? textInputErrorId : undefined}
                 className="font-ui w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--gold-primary)] focus:ring-2 focus:ring-[var(--gold-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)]"
               />
               <p className={`font-mono-ui mt-2 text-sm ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}>
@@ -290,6 +300,7 @@ export function InputPanel() {
               onFileChange={(file) => {
                 setPdfFile(file);
                 setErrorMessage(null);
+                setIsFieldValidationError(false);
               }}
             />
           ) : null}
@@ -299,9 +310,11 @@ export function InputPanel() {
               value={urlInput}
               disabled={isAnalyzing}
               errorMessage={errorMessage}
+              isInvalid={isFieldValidationError}
               onChange={(value) => {
                 setUrlInput(value);
                 setErrorMessage(null);
+                setIsFieldValidationError(false);
               }}
             />
           ) : null}
@@ -325,7 +338,7 @@ export function InputPanel() {
 
         {analysisStateMessage && <p className="font-ui mt-4 text-sm text-[var(--text-secondary)]">{analysisStateMessage}</p>}
         {errorMessage && inputMode === "text" && (
-          <p id="text-input-error" role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">
+          <p id={textInputErrorId} role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">
             {errorMessage}
           </p>
         )}

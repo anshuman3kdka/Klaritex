@@ -1,9 +1,12 @@
 "use client";
 
+import { useId } from "react";
+
 interface UrlInputProps {
   value: string;
   disabled?: boolean;
   errorMessage?: string | null;
+  isInvalid?: boolean;
   onChange: (value: string) => void;
 }
 
@@ -16,7 +19,9 @@ export function isValidHttpUrl(value: string): boolean {
   }
 }
 
-export function UrlInput({ value, disabled = false, errorMessage, onChange }: UrlInputProps) {
+export function UrlInput({ value, disabled = false, errorMessage, isInvalid = false, onChange }: UrlInputProps) {
+  const errorId = useId();
+
   return (
     <div>
       <label htmlFor="klaritex-url-input" className="font-ui mb-2 block text-sm font-medium text-[var(--text-primary)]">
@@ -29,8 +34,8 @@ export function UrlInput({ value, disabled = false, errorMessage, onChange }: Ur
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
         placeholder="https://..."
-        aria-invalid={!!errorMessage}
-        aria-describedby={errorMessage ? "url-input-error" : undefined}
+        aria-invalid={isInvalid ? true : undefined}
+        aria-describedby={errorMessage ? errorId : undefined}
         className="font-ui w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--gold-primary)] focus:ring-2 focus:ring-[var(--gold-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)]"
       />
 
@@ -38,7 +43,7 @@ export function UrlInput({ value, disabled = false, errorMessage, onChange }: Ur
         Klaritex analyzes the article&apos;s text only. It does not search the web or fact-check claims.
       </p>
       {errorMessage ? (
-        <p id="url-input-error" role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">
+        <p id={errorId} role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">
           {errorMessage}
         </p>
       ) : null}
