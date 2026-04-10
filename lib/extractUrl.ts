@@ -79,7 +79,8 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
 
     const response = await fetch(currentUrl, {
       method: "GET",
-      redirect: "manual"
+      redirect: "manual",
+      size: 5 * 1024 * 1024 // 5MB limit to prevent memory exhaustion DoS
     });
 
     const status = response.status;
