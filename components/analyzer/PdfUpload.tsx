@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { useId, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 
 const MAX_PDF_SIZE_BYTES = 5 * 1024 * 1024;
 
@@ -30,6 +30,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
   const [isDragActive, setIsDragActive] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const errorId = useId();
 
   function updateFile(nextFile: File | null) {
     if (!nextFile) {
@@ -100,6 +101,8 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         onClick={() => inputRef.current?.click()}
         role="button"
         tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled ? true : undefined}
+        aria-describedby={activeErrorMessage ? errorId : undefined}
         onKeyDown={(event) => {
           if (!disabled && (event.key === "Enter" || event.key === " ")) {
             event.preventDefault();
@@ -126,7 +129,11 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         ) : null}
       </div>
 
-      {activeErrorMessage ? <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
+      {activeErrorMessage ? (
+        <p id={errorId} role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">
+          {activeErrorMessage}
+        </p>
+      ) : null}
     </div>
   );
 }
