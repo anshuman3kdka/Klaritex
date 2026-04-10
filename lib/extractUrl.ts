@@ -57,9 +57,33 @@ function isSafeUrl(urlString: string): boolean {
         ipv6.startsWith("fc") ||
         ipv6.startsWith("fe80") ||
         ipv6.includes("127.0.0.1") ||
-        ipv6.startsWith("::ffff:7f")
+        ipv6.startsWith("::ffff:7f") ||
+        ipv6.startsWith("::ffff:a00:") ||
+        ipv6.startsWith("::ffff:a9fe:") ||
+        ipv6.startsWith("::ffff:c0a8:") ||
+        ipv6.startsWith("::7f") ||
+        ipv6.startsWith("::a00:") ||
+        ipv6.startsWith("::a9fe:") ||
+        ipv6.startsWith("::c0a8:") ||
+        ipv6.startsWith("0:0:0:0:0:ffff:7f") ||
+        ipv6.startsWith("0:0:0:0:0:ffff:a00:") ||
+        ipv6.startsWith("0:0:0:0:0:ffff:a9fe:") ||
+        ipv6.startsWith("0:0:0:0:0:ffff:c0a8:") ||
+        ipv6.startsWith("0:0:0:0:0:0:7f") ||
+        ipv6.startsWith("0:0:0:0:0:0:a00:") ||
+        ipv6.startsWith("0:0:0:0:0:0:a9fe:") ||
+        ipv6.startsWith("0:0:0:0:0:0:c0a8:")
       ) {
         return false;
+      }
+
+      // Handle 172.16.0.0/12 (ac10 to ac1f)
+      const matchAc1 = ipv6.match(/^(?:::ffff:|::|0:0:0:0:0:ffff:|0:0:0:0:0:0:)ac1([0-9a-f])/i);
+      if (matchAc1) {
+        const hexDigit = matchAc1[1];
+        if (hexDigit && parseInt(hexDigit, 16) >= 0 && parseInt(hexDigit, 16) <= 15) {
+          return false;
+        }
       }
     }
 
