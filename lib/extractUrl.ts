@@ -57,7 +57,7 @@ function isSafeUrl(urlString: string): boolean {
         ipv6.startsWith("fc") ||
         ipv6.startsWith("fe80") ||
         ipv6.includes("127.0.0.1") ||
-        ipv6.startsWith("::ffff:7f")
+        /^::ffff:(7f[0-9a-f]{2}|a[0-9a-f]{2}|ac1[0-9a-f]|c0a8|a9fe|0{1,4}):/i.test(ipv6)
       ) {
         return false;
       }
