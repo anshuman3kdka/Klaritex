@@ -217,12 +217,60 @@ body {
   animation: kSkeletonSweep 1.8s linear infinite;
 }
 
+.k-stress-toggle {
+  will-change: transform, background-color;
+}
+
+.k-commitment-row {
+  transition:
+    opacity 400ms ease,
+    filter 400ms ease,
+    background-color 400ms ease;
+}
+
+.k-row-stress-untestable {
+  opacity: 0.35;
+  filter: grayscale(60%);
+}
+
+.k-row-enter-testable {
+  animation: kStressPulseGreen 600ms ease-out;
+}
+
+.k-row-enter-contested {
+  animation: kStressPulseAmber 600ms ease-out;
+}
+
 @keyframes kSkeletonSweep {
   0% {
     background-position: -200% 0;
   }
   100% {
     background-position: 200% 0;
+  }
+}
+
+@keyframes kStressPulseGreen {
+  0% {
+    background-color: rgba(45, 122, 79, 0);
+  }
+  25% {
+    background-color: rgba(45, 122, 79, 0.3);
+  }
+  100% {
+    background-color: rgba(45, 122, 79, 0);
+  }
+}
+
+@keyframes kStressPulseAmber {
+  0% {
+    background-color: rgba(184, 134, 11, 0);
+  }
+  25% {
+    background-color: rgba(184, 134, 11, 0.3);
+  }
+  100% {
+    background-color: rgba(184, 134, 11, 0);
   }
 }
 @keyframes kPulseLine {

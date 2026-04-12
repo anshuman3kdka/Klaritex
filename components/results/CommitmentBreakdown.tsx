@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { CommitmentElement, ElementStatus } from "@/lib/types";
 import { CollapsibleCard } from "./CollapsibleCard";
@@ -45,7 +45,7 @@ const stressStyles: Record<StressLabel, { row: string; badge: string }> = {
     badge: "k-status-contested"
   },
   Untestable: {
-    row: "opacity-35 grayscale",
+    row: "k-row-stress-untestable",
     badge: "k-status-untestable"
   }
 };
@@ -78,8 +78,37 @@ function getStressVerdict(testableCount: number): string {
   return "This statement is accountability-proof. Nothing can be verified.";
 }
 
+function useTypewriter(text: string, speed: number): string {
+  const [visibleText, setVisibleText] = useState("");
+
+  useEffect(() => {
+    if (!text) {
+      setVisibleText("");
+      return;
+    }
+
+    setVisibleText("");
+    let currentIndex = 0;
+    const interval = window.setInterval(() => {
+      currentIndex += 1;
+      setVisibleText(text.slice(0, currentIndex));
+
+      if (currentIndex >= text.length) {
+        window.clearInterval(interval);
+      }
+    }, speed);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [speed, text]);
+
+  return visibleText;
+}
+
 export function CommitmentBreakdown({ elements }: CommitmentBreakdownProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("breakdown");
+  const [stressActivationTick, setStressActivationTick] = useState(0);
 
   const elementMap = useMemo(
     () => new Map((elements ?? []).map((element) => [element.name, element])),
@@ -96,31 +125,48 @@ export function CommitmentBreakdown({ elements }: CommitmentBreakdownProps) {
     [stressLabels]
   );
 
+  const verdictText = getStressVerdict(stressTestableCount);
+  const typedVerdict = useTypewriter(viewMode === "stress" ? verdictText : "", 30);
+
+  const handleViewChange = (nextView: ViewMode) => {
+    if (nextView === viewMode) {
+      return;
+    }
+
+    if (nextView === "stress") {
+      setStressActivationTick((previous) => previous + 1);
+    }
+
+    setViewMode(nextView);
+  };
+
   return (
     <CollapsibleCard
       title="Module 10 · Commitment Breakdown"
       headerAction={
-        <div className="inline-flex border-b border-[var(--border)]">
+        <div className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-primary)]/45 p-1">
           <button
             type="button"
-            onClick={() => setViewMode("breakdown")}
-            className={`font-ui border-b-2 px-3 py-1.5 text-xs font-semibold transition ${
+            onClick={() => handleViewChange("breakdown")}
+            className={`font-ui rounded px-3 py-1.5 text-xs font-semibold transition-transform duration-100 ease-out transition-colors active:scale-[0.96] ${
               viewMode === "breakdown"
-                ? "border-[var(--border-accent)] text-[var(--text-gold)]"
-                : "border-transparent text-[var(--text-secondary)]"
+                ? "bg-[var(--bg-elevated)] text-[var(--text-gold)]"
+                : "bg-transparent text-[var(--text-secondary)]"
             }`}
+            style={{ transitionDuration: "100ms, 300ms" }}
             aria-pressed={viewMode === "breakdown"}
           >
             Breakdown
           </button>
           <button
             type="button"
-            onClick={() => setViewMode("stress")}
-            className={`font-ui border-b-2 px-3 py-1.5 text-xs font-semibold transition ${
+            onClick={() => handleViewChange("stress")}
+            className={`font-ui k-stress-toggle rounded px-3 py-1.5 text-xs font-semibold transition-transform duration-100 ease-out transition-colors active:scale-[0.96] ${
               viewMode === "stress"
-                ? "border-[var(--border-accent)] text-[var(--text-gold)]"
-                : "border-transparent text-[var(--text-secondary)]"
+                ? "bg-[var(--gold-primary)]/18 text-[var(--text-gold)]"
+                : "bg-transparent text-[var(--text-secondary)]"
             }`}
+            style={{ transitionDuration: "100ms, 300ms" }}
             aria-pressed={viewMode === "stress"}
           >
             Stress Test
@@ -144,10 +190,12 @@ export function CommitmentBreakdown({ elements }: CommitmentBreakdownProps) {
               const status: ElementStatus | null = element?.status ?? null;
               const extractedValue = element?.status === "missing" ? "—" : element?.notes || "—";
               const stressLabel = getStressLabel(status);
-              const rowClasses =
-                viewMode === "stress"
-                  ? `border-b border-[var(--border)]/40 align-top transition ${stressStyles[stressLabel].row}`
-                  : "border-b border-[var(--border)]/40 align-top odd:bg-[var(--bg-surface)] even:bg-[var(--bg-elevated)]";
+              const isStressMode = viewMode === "stress";
+              const rowClasses = `k-commitment-row border-b border-[var(--border)]/40 align-top ${
+                isStressMode
+                  ? `${stressStyles[stressLabel].row} ${stressActivationTick > 0 ? `k-row-enter-${stressLabel.toLowerCase()}` : ""}`
+                  : "odd:bg-[var(--bg-surface)] even:bg-[var(--bg-elevated)]"
+              }`;
 
               return (
                 <tr key={name} className={rowClasses}>
@@ -183,7 +231,7 @@ export function CommitmentBreakdown({ elements }: CommitmentBreakdownProps) {
       </div>
 
       {viewMode === "stress" ? (
-        <p className="font-display mt-4 text-sm italic text-[var(--text-gold)]">{getStressVerdict(stressTestableCount)}</p>
+        <p className="font-display mt-4 text-sm italic text-[var(--text-gold)]">{typedVerdict}</p>
       ) : null}
     </CollapsibleCard>
   );
