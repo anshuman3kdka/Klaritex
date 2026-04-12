@@ -125,6 +125,8 @@ export function InputPanel() {
   });
   const [isResetShaking, setIsResetShaking] = useState(false);
   const [rotatingTab, setRotatingTab] = useState<InputMode | null>(null);
+  const [isTextInputFocused, setIsTextInputFocused] = useState(false);
+  const [isAnalyzePressed, setIsAnalyzePressed] = useState(false);
   const tabListRef = useRef<HTMLDivElement | null>(null);
   const tabRefs = useRef<Record<InputMode, HTMLButtonElement | null>>({
     text: null,
@@ -214,6 +216,12 @@ export function InputPanel() {
     if (inputMode === "text" && textInput.length > MAX_TEXT_LENGTH) {
       setErrorMessage("Input is too long. Maximum is 10,000 characters.");
       return;
+    }
+
+    if (window.matchMedia("(max-width: 768px)").matches) {
+      setIsAnalyzePressed(true);
+      await new Promise((resolve) => window.setTimeout(resolve, 100));
+      setIsAnalyzePressed(false);
     }
 
     let analysisSucceeded = false;
@@ -423,33 +431,45 @@ export function InputPanel() {
               <label htmlFor="klaritex-text-input" className="font-ui mb-2 block text-sm font-medium text-[var(--text-primary)]">
                 Text to analyze
               </label>
-              <textarea
-                id="klaritex-text-input"
-                value={textInput}
-                onChange={(event) => {
-                  const nextValue = event.target.value;
+              <div
+                className={`overflow-hidden transition-[max-height] duration-300 ease-out md:max-h-none ${
+                  isTextInputFocused ? "max-h-[200px] h-[200px]" : "max-h-[120px] h-[120px]"
+                } md:h-auto`}
+              >
+                <div className="flex h-full flex-col md:block">
+                  <textarea
+                    id="klaritex-text-input"
+                    value={textInput}
+                    onFocus={() => setIsTextInputFocused(true)}
+                    onBlur={() => setIsTextInputFocused(false)}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
 
-                  if (nextValue.length > MAX_TEXT_LENGTH) {
-                    setTextInput(nextValue.slice(0, MAX_TEXT_LENGTH));
-                    setErrorMessage("Input is too long. Maximum is 10,000 characters.");
-                    return;
-                  }
+                      if (nextValue.length > MAX_TEXT_LENGTH) {
+                        setTextInput(nextValue.slice(0, MAX_TEXT_LENGTH));
+                        setErrorMessage("Input is too long. Maximum is 10,000 characters.");
+                        return;
+                      }
 
-                  setTextInput(nextValue);
-                  if (errorMessage === "Input is too long. Maximum is 10,000 characters.") {
-                    setErrorMessage(null);
-                  }
-                }}
-                maxLength={MAX_TEXT_LENGTH}
-                rows={10}
-                disabled={isAnalyzing}
-                placeholder="Paste a political statement, policy claim, corporate announcement, or any text you want analyzed..."
-                className="font-ui w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--gold-primary)] focus:ring-2 focus:ring-[var(--gold-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)]"
-              />
-              <p className={`font-mono-ui mt-2 text-sm ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}>
-                {textInput.length.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()}
-                {isNearLimit && " (approaching limit)"}
-              </p>
+                      setTextInput(nextValue);
+                      if (errorMessage === "Input is too long. Maximum is 10,000 characters.") {
+                        setErrorMessage(null);
+                      }
+                    }}
+                    maxLength={MAX_TEXT_LENGTH}
+                    rows={10}
+                    disabled={isAnalyzing}
+                    placeholder="Paste a political statement, policy claim, corporate announcement, or any text you want analyzed..."
+                    className="font-ui h-full w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--gold-primary)] focus:ring-2 focus:ring-[var(--gold-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)] md:h-auto"
+                  />
+                  <p
+                    className={`font-mono-ui mt-2 shrink-0 text-sm ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}
+                  >
+                    {textInput.length.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()}
+                    {isNearLimit && " (approaching limit)"}
+                  </p>
+                </div>
+              </div>
             </>
           ) : null}
 
@@ -488,7 +508,9 @@ export function InputPanel() {
             onClick={handleAnalyze}
             disabled={!canAnalyze || analyzeButtonState === "complete"}
             style={analyzeButtonAnimationStyle}
-            className={`k-entrance-scale-in analyze-button font-ui relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg px-5 py-3 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+            className={`k-entrance-scale-in analyze-button font-ui relative inline-flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-lg px-5 py-0 font-semibold transition-transform duration-100 ease-out sm:h-auto sm:py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+              isAnalyzePressed ? "scale-[0.97]" : "scale-100"
+            } ${
               analyzeButtonState === "idle-active"
                 ? "analyze-button--idle-active"
                 : analyzeButtonState === "idle-disabled"
