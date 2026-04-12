@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
 import type { AnalysisMode } from "@/lib/types";
 
 interface ModeToggleProps {
@@ -58,12 +60,36 @@ const MODE_OPTIONS: Array<{
 ];
 
 export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProps) {
+  const [touchFlashMode, setTouchFlashMode] = useState<AnalysisMode | null>(null);
+  const touchFlashTimeoutRef = useRef<number | null>(null);
+
+  const triggerTouchFlash = (mode: AnalysisMode) => {
+    if (touchFlashTimeoutRef.current !== null) {
+      window.clearTimeout(touchFlashTimeoutRef.current);
+    }
+
+    setTouchFlashMode(mode);
+    touchFlashTimeoutRef.current = window.setTimeout(() => {
+      setTouchFlashMode((current) => (current === mode ? null : current));
+      touchFlashTimeoutRef.current = null;
+    }, 130);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (touchFlashTimeoutRef.current !== null) {
+        window.clearTimeout(touchFlashTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="space-y-3">
       <p className="font-ui text-sm font-medium text-[var(--text-primary)]">Processing Mode</p>
-      <div className="grid gap-2 sm:grid-cols-2" role="radiogroup">
+      <div className="grid grid-cols-2 gap-2" role="radiogroup">
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
+          const isTouchFlashing = touchFlashMode === option.value;
 
           return (
             <button
@@ -72,8 +98,17 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
               aria-checked={isActive}
               type="button"
               disabled={disabled}
+              onTouchStart={() => {
+                if (!disabled) {
+                  triggerTouchFlash(option.value);
+                }
+              }}
               onClick={() => onChange(option.value)}
-              className={`rounded-lg border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+              className={`rounded-lg border p-3 text-left transition-colors duration-150 active:bg-[var(--bg-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+                isTouchFlashing
+                  ? "bg-[var(--bg-elevated)]"
+                  : ""
+              } ${
                 isActive
                   ? "border-[var(--border-accent)] border-l-4 bg-[var(--bg-elevated)]"
                   : "border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)]"
