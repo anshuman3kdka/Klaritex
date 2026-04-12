@@ -7,6 +7,7 @@ import { CommitmentSummary } from "@/components/results/CommitmentSummary";
 import { ExposureCheck } from "@/components/results/ExposureCheck";
 import { LowestAnchors } from "@/components/results/LowestAnchors";
 import { ScoreSummaryBar } from "@/components/results/ScoreSummaryBar";
+import { ScrollRevealCard } from "@/components/results/ScrollRevealCard";
 import { UnanchoredClaims } from "@/components/results/UnanchoredClaims";
 import { VagueLines } from "@/components/results/VagueLines";
 import { VerifiableRequirements } from "@/components/results/VerifiableRequirements";
@@ -56,14 +57,6 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
     }
   }, [result]);
 
-  const contentAnimationStyle = (index: number) => ({
-    animation: `slideUpFade 400ms cubic-bezier(0.22, 1, 0.36, 1) ${index * 40}ms both`,
-  });
-
-  const moduleAnimationStyle = (index: number) => ({
-    animation: `kResultModuleFadeUp 400ms cubic-bezier(0.22, 1, 0.36, 1) ${index * 60}ms both`,
-  });
-
   return (
     <>
       {showSkeleton ? (
@@ -85,7 +78,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
           className="mx-auto mt-6 w-full max-w-3xl space-y-4"
           style={{ opacity: isLoading ? 0 : 1, transition: "opacity 400ms ease" }}
         >
-          <div style={contentAnimationStyle(0)}>
+          <div>
             <ScoreSummaryBar
               ambiguityScore={result.ambiguityScore}
               tier={result.tier}
@@ -94,54 +87,54 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
             />
           </div>
 
-          <div style={moduleAnimationStyle(0)}>
+          <ScrollRevealCard>
             <AmbiguityScore
               ambiguityScore={result.ambiguityScore}
               rawPenaltyScore={result.rawPenaltyScore}
               tier={result.tier}
               animationKey={animationKey}
             />
-          </div>
+          </ScrollRevealCard>
 
-          <div style={moduleAnimationStyle(1)}>
+          <ScrollRevealCard>
             <ClarityLevel clarityLevel={result.clarityLevel} />
-          </div>
+          </ScrollRevealCard>
 
-          <div style={moduleAnimationStyle(2)}>
+          <ScrollRevealCard>
             <ExposureCheck elements={result.elements} />
-          </div>
+          </ScrollRevealCard>
 
-          <div style={moduleAnimationStyle(3)}>
+          <ScrollRevealCard>
             <UnanchoredClaims unanchoredClaimsCount={result.unanchoredClaimsCount} />
-          </div>
+          </ScrollRevealCard>
 
-          <div style={moduleAnimationStyle(4)}>
+          <ScrollRevealCard>
             <VagueLines vagueLines={result.vagueLines} />
-          </div>
+          </ScrollRevealCard>
 
-          <div style={moduleAnimationStyle(5)}>
+          <ScrollRevealCard>
             <LowestAnchors lowestAnchors={result.lowestAnchors} />
-          </div>
+          </ScrollRevealCard>
 
-          <div style={moduleAnimationStyle(6)}>
+          <ScrollRevealCard>
             <ActionTalkRatio actionRatio={result.actionRatio} talkRatio={result.talkRatio} ratioLabel={result.ratioLabel} />
-          </div>
+          </ScrollRevealCard>
 
-          <div style={moduleAnimationStyle(7)}>
+          <ScrollRevealCard>
             <CommitmentSummary commitmentSummary={result.commitmentSummary} />
-          </div>
+          </ScrollRevealCard>
 
-          <div style={moduleAnimationStyle(8)}>
+          <ScrollRevealCard>
             <AmbiguityExplanation ambiguityExplanation={result.ambiguityExplanation} />
-          </div>
+          </ScrollRevealCard>
 
-          <div style={moduleAnimationStyle(9)}>
+          <ScrollRevealCard>
             <CommitmentBreakdown elements={result.elements} />
-          </div>
+          </ScrollRevealCard>
 
-          <div style={moduleAnimationStyle(10)}>
+          <ScrollRevealCard>
             <VerifiableRequirements verifiableRequirements={result.verifiableRequirements} />
-          </div>
+          </ScrollRevealCard>
         </section>
       ) : null}
     </>

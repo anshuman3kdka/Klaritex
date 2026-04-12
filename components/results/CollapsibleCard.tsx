@@ -21,15 +21,15 @@ export function CollapsibleCard({
   const contentId = useId();
 
   return (
-    <article className={`k-module-card flex flex-col ${className}`}>
+    <article className={`module-card flex flex-col ${className}`}>
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between p-5 text-left transition-colors hover:bg-[var(--bg-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50"
+        className="flex w-full items-center justify-between p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50"
         aria-expanded={isExpanded}
         aria-controls={contentId}
       >
-        <h3 className="k-module-label flex-1">{title}</h3>
+        <h3 className="k-module-label module-card-title flex-1">{title}</h3>
 
         <div className="flex items-center gap-3">
           {headerAction && (

@@ -74,6 +74,38 @@ body {
   background: var(--bg-surface);
 }
 
+.module-card {
+  border: 1px solid rgba(201, 168, 76, 0.15);
+  border-radius: 0.9rem;
+  background: var(--bg-surface);
+  transition: border-color 200ms ease, background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+}
+
+.module-card .module-card-title {
+  transition: color 150ms ease;
+}
+
+.module-card .module-status-badge {
+  transition: background-color 200ms ease, filter 200ms ease;
+}
+
+@media (hover: hover) {
+  .module-card:hover {
+    border-color: rgba(201, 168, 76, 0.4);
+    background: var(--bg-elevated);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(201, 168, 76, 0.08);
+  }
+
+  .module-card:hover .module-card-title {
+    color: var(--gold-primary);
+  }
+
+  .module-card:hover .module-status-badge {
+    filter: brightness(1.1);
+  }
+}
+
 .k-module-label {
   font-family: "DM Mono", monospace;
   font-size: 0.72rem;
@@ -300,5 +332,18 @@ body {
 
   .k-skeleton-shimmer {
     background-position: 0 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-card,
+  .module-card .module-card-title,
+  .module-card .module-status-badge {
+    transition: none;
+  }
+
+  .module-card:hover {
+    transform: none;
+    box-shadow: none;
   }
 }

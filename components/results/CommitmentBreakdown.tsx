@@ -157,7 +157,7 @@ export function CommitmentBreakdown({ elements }: CommitmentBreakdownProps) {
                   <td className="py-3">
                     {status ? (
                       <span
-                        className={`k-badge ${
+                        className={`k-badge module-status-badge ${
                           viewMode === "stress" ? stressStyles[stressLabel].badge : statusStyles[status]
                         }`}
                       >
@@ -167,7 +167,7 @@ export function CommitmentBreakdown({ elements }: CommitmentBreakdownProps) {
                       <span
                         className={
                           viewMode === "stress"
-                            ? "k-badge k-status-untestable"
+                            ? "k-badge module-status-badge k-status-untestable"
                             : "font-ui text-[var(--text-secondary)]"
                         }
                       >
