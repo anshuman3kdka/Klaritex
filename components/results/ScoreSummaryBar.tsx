@@ -9,9 +9,9 @@ interface ScoreSummaryBarProps {
 }
 
 const tierStyles: Record<AmbiguityTier, string> = {
-  1: "border-[color:var(--tier1-color)]/45 bg-[color:var(--tier1-color)]/15 text-[var(--tier1-color)]",
-  2: "border-[color:var(--tier2-color)]/45 bg-[color:var(--tier2-color)]/15 text-[var(--tier2-color)]",
-  3: "border-[color:var(--tier3-color)]/45 bg-[color:var(--tier3-color)]/15 text-[var(--tier3-color)]"
+  1: "k-tier-badge--1",
+  2: "k-tier-badge--2",
+  3: "k-tier-badge--3"
 };
 
 const tierLabel: Record<AmbiguityTier, string> = {
@@ -42,7 +42,7 @@ export function ScoreSummaryBar({ ambiguityScore, tier, tierOverride = false, ov
         <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4">
           <p className="k-module-label">Tier Badge</p>
           {hasTier ? (
-            <span className={`k-badge mt-2 border px-3 py-1 text-xs ${tierStyles[tier]}`}>
+            <span className={`k-tier-badge k-tier-badge--summary mt-2 ${tierStyles[tier]}`}>
               {tierLabel[tier]}
             </span>
           ) : (
