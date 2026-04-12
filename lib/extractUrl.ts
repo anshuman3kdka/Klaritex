@@ -49,9 +49,6 @@ function isSafeUrl(urlString: string): boolean {
     if (hostname.startsWith("[") && hostname.endsWith("]")) {
       const ipv6 = hostname.slice(1, -1);
 
-      // Cover the entire 10.0.0.0/8 block mapped in IPv6
-      const isClassA = /^(?:::ffff:|::|0:0:0:0:0:ffff:|0:0:0:0:0:0:)a[0-f]{2}:/i.test(ipv6);
-
       if (
         ipv6 === "::" ||
         ipv6 === "0:0:0:0:0:0:0:0" ||
@@ -59,30 +56,30 @@ function isSafeUrl(urlString: string): boolean {
         ipv6 === "0:0:0:0:0:0:0:1" ||
         ipv6.startsWith("fd") ||
         ipv6.startsWith("fc") ||
-        ipv6.startsWith("fe80") ||
-        ipv6.includes("127.0.0.1") ||
-        ipv6.startsWith("::ffff:7f") ||
-        ipv6.startsWith("::ffff:a9fe:") ||
-        ipv6.startsWith("::ffff:c0a8:") ||
-        ipv6.startsWith("::7f") ||
-        ipv6.startsWith("::a9fe:") ||
-        ipv6.startsWith("::c0a8:") ||
-        ipv6.startsWith("0:0:0:0:0:ffff:7f") ||
-        ipv6.startsWith("0:0:0:0:0:ffff:a9fe:") ||
-        ipv6.startsWith("0:0:0:0:0:ffff:c0a8:") ||
-        ipv6.startsWith("0:0:0:0:0:0:7f") ||
-        ipv6.startsWith("0:0:0:0:0:0:a9fe:") ||
-        ipv6.startsWith("0:0:0:0:0:0:c0a8:") ||
-        isClassA
+        ipv6.startsWith("fe80")
       ) {
         return false;
       }
 
-      // Handle 172.16.0.0/12 (ac10 to ac1f)
-      const matchAc1 = ipv6.match(/^(?:::ffff:|::|0:0:0:0:0:ffff:|0:0:0:0:0:0:)ac1([0-9a-f])/i);
-      if (matchAc1) {
-        const hexDigit = matchAc1[1];
-        if (hexDigit && parseInt(hexDigit, 16) >= 0 && parseInt(hexDigit, 16) <= 15) {
+      // Handle IPv4-mapped (::ffff:XXYY:ZZWW) and IPv4-compatible (::XXYY:ZZWW) addresses.
+      // Node.js normalizes both ::ffff:w.x.y.z and ::w.x.y.z to these canonical hex forms.
+      // Parse the embedded IPv4 hex groups into octets and apply the same range checks.
+      const ipv4InIpv6 = ipv6.match(
+        /^::(?:ffff:)?([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i
+      );
+      if (ipv4InIpv6) {
+        const high = parseInt(ipv4InIpv6[1]!, 16);
+        const low = parseInt(ipv4InIpv6[2]!, 16);
+        const p1 = (high >> 8) & 0xff;
+        const p2 = high & 0xff;
+        if (
+          p1 === 0 || // 0.0.0.0/8
+          p1 === 10 || // 10.0.0.0/8
+          p1 === 127 || // 127.0.0.0/8
+          (p1 === 172 && p2 >= 16 && p2 <= 31) || // 172.16.0.0/12
+          (p1 === 192 && p2 === 168) || // 192.168.0.0/16
+          (p1 === 169 && p2 === 254) // 169.254.0.0/16
+        ) {
           return false;
         }
       }
