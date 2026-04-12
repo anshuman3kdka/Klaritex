@@ -47,7 +47,7 @@ function isSafeUrl(urlString: string): boolean {
     }
 
     if (hostname.startsWith("[") && hostname.endsWith("]")) {
-      const ipv6 = hostname.slice(1, -1);
+      const ipv6 = hostname.slice(1, -1).toLowerCase();
       if (
         ipv6 === "::" ||
         ipv6 === "0:0:0:0:0:0:0:0" ||
@@ -55,11 +55,55 @@ function isSafeUrl(urlString: string): boolean {
         ipv6 === "0:0:0:0:0:0:0:1" ||
         ipv6.startsWith("fd") ||
         ipv6.startsWith("fc") ||
-        ipv6.startsWith("fe80") ||
-        ipv6.includes("127.0.0.1") ||
-        ipv6.startsWith("::ffff:7f")
+        ipv6.startsWith("fe80")
       ) {
         return false;
+      }
+
+      // Handle IPv4-mapped IPv6 in dotted-decimal form: ::ffff:a.b.c.d
+      const dottedMatch = ipv6.match(
+        /^::ffff:(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+      );
+      if (dottedMatch) {
+        const p1 = parseInt(dottedMatch[1]!, 10);
+        const p2 = parseInt(dottedMatch[2]!, 10);
+        // Reject malformed octets (0-255 only) and private/internal ranges.
+        if (
+          p1 > 255 || p2 > 255 ||
+          parseInt(dottedMatch[3]!, 10) > 255 ||
+          parseInt(dottedMatch[4]!, 10) > 255 ||
+          p1 === 0 ||
+          p1 === 10 ||
+          p1 === 127 ||
+          (p1 === 172 && p2 >= 16 && p2 <= 31) ||
+          (p1 === 192 && p2 === 168) ||
+          (p1 === 169 && p2 === 254)
+        ) {
+          return false;
+        }
+      }
+
+      // Handle IPv4-mapped IPv6 in hex form: ::ffff:HHHH:HHHH
+      // Node.js normalizes ::ffff:a.b.c.d → ::ffff:(a*256+b):(c*256+d) in hex.
+      // Reconstruct the first two IPv4 octets from the high 16-bit group and
+      // reuse the same range checks as the IPv4 path above.
+      // The low 16-bit group (third and fourth octets) is the host portion and
+      // does not affect which subnet the address belongs to for any blocked range.
+      const hexMatch = ipv6.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+      if (hexMatch) {
+        const high = parseInt(hexMatch[1]!, 16);
+        const p1 = (high >> 8) & 0xff;
+        const p2 = high & 0xff;
+        if (
+          p1 === 0 ||
+          p1 === 10 ||
+          p1 === 127 ||
+          (p1 === 172 && p2 >= 16 && p2 <= 31) ||
+          (p1 === 192 && p2 === 168) ||
+          (p1 === 169 && p2 === 254)
+        ) {
+          return false;
+        }
       }
     }
 
