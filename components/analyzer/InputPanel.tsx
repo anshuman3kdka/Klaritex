@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ModeToggle } from "@/components/analyzer/ModeToggle";
 import { PdfUpload } from "@/components/analyzer/PdfUpload";
@@ -15,6 +15,9 @@ const INPUT_CARD_DELAY_MS = 750;
 const TAB_STAGGER_MS = 80;
 const TABS_START_DELAY_MS = 1_350;
 const ANALYZE_BUTTON_DELAY_MS = 2_190;
+const COMPLETE_STATE_DURATION_MS = 800;
+
+type AnalyzeButtonState = "idle-active" | "idle-disabled" | "loading" | "complete";
 
 const TABS: Array<{ value: InputMode; label: string; icon: ReactNode }> = [
   {
@@ -113,14 +116,16 @@ export function InputPanel() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [lastResult, setLastResult] = useState<AnalysisResult | null>(null);
+  const [analyzeButtonState, setAnalyzeButtonState] = useState<AnalyzeButtonState>("idle-disabled");
 
   const isNearLimit = textInput.length >= WARNING_THRESHOLD;
 
-  const canAnalyze =
-    !isAnalyzing &&
-    ((inputMode === "text" && textInput.trim().length > 0) ||
-      (inputMode === "pdf" && pdfFile !== null) ||
-      (inputMode === "url" && urlInput.trim().length > 0));
+  const hasInput =
+    (inputMode === "text" && textInput.trim().length > 0) ||
+    (inputMode === "pdf" && pdfFile !== null) ||
+    (inputMode === "url" && urlInput.trim().length > 0);
+
+  const canAnalyze = !isAnalyzing && hasInput;
 
   const analysisStateMessage = useMemo(() => {
     if (isAnalyzing) {
@@ -157,7 +162,10 @@ export function InputPanel() {
       return;
     }
 
+    let analysisSucceeded = false;
+
     setIsAnalyzing(true);
+    setAnalyzeButtonState("loading");
     setErrorMessage(null);
 
     try {
@@ -209,11 +217,13 @@ export function InputPanel() {
       }
 
       setLastResult(payload as AnalysisResult);
+      analysisSucceeded = true;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Analysis failed.";
       setErrorMessage(normalizeErrorMessage(message, inputMode));
     } finally {
       setIsAnalyzing(false);
+      setAnalyzeButtonState(analysisSucceeded ? "complete" : hasInput ? "idle-active" : "idle-disabled");
     }
   }
 
@@ -228,6 +238,31 @@ export function InputPanel() {
   const analyzeButtonAnimationStyle: CSSProperties = {
     animationDelay: `${ANALYZE_BUTTON_DELAY_MS}ms`,
   };
+
+  useEffect(() => {
+    if (isAnalyzing) {
+      setAnalyzeButtonState("loading");
+      return;
+    }
+
+    if (analyzeButtonState === "complete") {
+      return;
+    }
+
+    setAnalyzeButtonState(hasInput ? "idle-active" : "idle-disabled");
+  }, [analyzeButtonState, hasInput, isAnalyzing]);
+
+  useEffect(() => {
+    if (analyzeButtonState !== "complete") {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setAnalyzeButtonState(hasInput ? "idle-active" : "idle-disabled");
+    }, COMPLETE_STATE_DURATION_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [analyzeButtonState, hasInput]);
 
   return (
     <>
@@ -330,13 +365,32 @@ export function InputPanel() {
           <button
             type="button"
             onClick={handleAnalyze}
-            disabled={!canAnalyze}
+            disabled={!canAnalyze || analyzeButtonState === "complete"}
             style={analyzeButtonAnimationStyle}
-            className="k-entrance-scale-in font-ui inline-flex w-full items-center justify-center rounded-lg bg-[var(--gold-primary)] px-5 py-3 font-semibold text-[var(--bg-primary)] transition hover:bg-[var(--gold-bright)] hover:shadow-[0_0_18px_rgba(201,168,76,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 disabled:cursor-not-allowed disabled:bg-[var(--gold-muted)]/70"
+            className={`k-entrance-scale-in analyze-button font-ui relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg px-5 py-3 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+              analyzeButtonState === "idle-active"
+                ? "analyze-button--idle-active"
+                : analyzeButtonState === "idle-disabled"
+                  ? "analyze-button--idle-disabled"
+                  : analyzeButtonState === "loading"
+                    ? "analyze-button--loading"
+                    : "analyze-button--complete"
+            }`}
           >
-            {isAnalyzing ? "Analyzing..." : "Analyze"}
+            {analyzeButtonState === "loading" ? (
+              <>
+                <span className="analyze-button__spinner" aria-hidden />
+                <span>Analyzing...</span>
+              </>
+            ) : analyzeButtonState === "complete" ? (
+              <>
+                <span aria-hidden>✓</span>
+                <span>Done</span>
+              </>
+            ) : (
+              "Analyze"
+            )}
           </button>
-          {isAnalyzing ? <div className="k-gold-loader mt-2" aria-hidden /> : null}
         </div>
 
         {analysisStateMessage && <p className="font-ui mt-4 text-sm text-[var(--text-secondary)]">{analysisStateMessage}</p>}
@@ -344,6 +398,93 @@ export function InputPanel() {
       </section>
 
       <ResultsPanel result={lastResult} isLoading={isAnalyzing} />
+
+      <style jsx>{`
+        .analyze-button {
+          transition: all 300ms ease;
+          color: #1a1a1a;
+        }
+
+        .analyze-button--idle-active {
+          background: #c9a84c;
+          opacity: 1;
+          animation: goldPulse 2s infinite;
+        }
+
+        .analyze-button--idle-disabled {
+          background: #c9a84c;
+          opacity: 0.4;
+          cursor: not-allowed;
+          animation: none;
+        }
+
+        .analyze-button--loading {
+          background: #a8853a;
+          color: #1a1a1a;
+        }
+
+        .analyze-button--loading::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.28) 50%, transparent 100%);
+          transform: translateX(-120%);
+          animation: loadingShimmer 1.5s linear infinite;
+          pointer-events: none;
+        }
+
+        .analyze-button--complete {
+          background: #c9a84c;
+          opacity: 1;
+          animation: completeBounce ${COMPLETE_STATE_DURATION_MS}ms ease;
+        }
+
+        .analyze-button__spinner {
+          width: 16px;
+          height: 16px;
+          border-radius: 9999px;
+          border: 2px solid #c9a84c;
+          border-top-color: transparent;
+          animation: spin 600ms linear infinite;
+          z-index: 1;
+        }
+
+        @keyframes goldPulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(201, 168, 76, 0);
+          }
+          50% {
+            box-shadow: 0 0 0 8px rgba(201, 168, 76, 0.3);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(201, 168, 76, 0);
+          }
+        }
+
+        @keyframes loadingShimmer {
+          100% {
+            transform: translateX(120%);
+          }
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        @keyframes completeBounce {
+          0% {
+            transform: scale(1);
+          }
+          45% {
+            transform: scale(1.03);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </>
   );
 }
