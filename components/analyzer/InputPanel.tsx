@@ -7,10 +7,14 @@ import { PdfUpload } from "@/components/analyzer/PdfUpload";
 import { UrlInput, isValidHttpUrl } from "@/components/analyzer/UrlInput";
 import { ResultsPanel } from "@/components/results/ResultsPanel";
 import type { AnalysisMode, AnalysisResult, InputMode } from "@/lib/types";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 const MAX_TEXT_LENGTH = 10_000;
 const WARNING_THRESHOLD = Math.floor(MAX_TEXT_LENGTH * 0.9);
+const INPUT_CARD_DELAY_MS = 750;
+const TAB_STAGGER_MS = 80;
+const TABS_START_DELAY_MS = 1_350;
+const ANALYZE_BUTTON_DELAY_MS = 2_190;
 
 const TABS: Array<{ value: InputMode; label: string; icon: ReactNode }> = [
   {
@@ -213,11 +217,23 @@ export function InputPanel() {
     }
   }
 
+  const cardAnimationStyle: CSSProperties = {
+    animationDelay: `${INPUT_CARD_DELAY_MS}ms`,
+  };
+
+  const tabAnimationStyle = (index: number): CSSProperties => ({
+    animationDelay: `${TABS_START_DELAY_MS + index * TAB_STAGGER_MS}ms`,
+  });
+
+  const analyzeButtonAnimationStyle: CSSProperties = {
+    animationDelay: `${ANALYZE_BUTTON_DELAY_MS}ms`,
+  };
+
   return (
     <>
-      <section className="k-card mx-auto w-full max-w-3xl p-4 sm:p-6">
+      <section className="k-card k-entrance-fade-down mx-auto w-full max-w-3xl p-4 sm:p-6" style={cardAnimationStyle}>
         <div className="grid grid-cols-1 gap-2 border-b border-[var(--border)] pb-2 sm:grid-cols-3" role="tablist">
-          {TABS.map((tab) => {
+          {TABS.map((tab, index) => {
             const isActive = inputMode === tab.value;
 
             return (
@@ -227,7 +243,8 @@ export function InputPanel() {
                 aria-selected={isActive}
                 type="button"
                 onClick={() => handleTabSwitch(tab.value)}
-                className={`font-ui rounded-none border-b-2 px-2 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+                style={tabAnimationStyle(index)}
+                className={`k-entrance-fade-down font-ui rounded-none border-b-2 px-2 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
                   isActive
                     ? "border-[var(--border-accent)] text-[var(--text-gold)]"
                     : "border-transparent text-[var(--text-secondary)] hover:border-[var(--gold-muted)] hover:text-[var(--text-primary)]"
@@ -314,7 +331,8 @@ export function InputPanel() {
             type="button"
             onClick={handleAnalyze}
             disabled={!canAnalyze}
-            className="font-ui inline-flex w-full items-center justify-center rounded-lg bg-[var(--gold-primary)] px-5 py-3 font-semibold text-[var(--bg-primary)] transition hover:bg-[var(--gold-bright)] hover:shadow-[0_0_18px_rgba(201,168,76,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 disabled:cursor-not-allowed disabled:bg-[var(--gold-muted)]/70"
+            style={analyzeButtonAnimationStyle}
+            className="k-entrance-scale-in font-ui inline-flex w-full items-center justify-center rounded-lg bg-[var(--gold-primary)] px-5 py-3 font-semibold text-[var(--bg-primary)] transition hover:bg-[var(--gold-bright)] hover:shadow-[0_0_18px_rgba(201,168,76,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 disabled:cursor-not-allowed disabled:bg-[var(--gold-muted)]/70"
           >
             {isAnalyzing ? "Analyzing..." : "Analyze"}
           </button>
