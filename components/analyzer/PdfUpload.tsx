@@ -89,6 +89,8 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         accept=".pdf,application/pdf"
         onChange={handleInputChange}
         disabled={disabled}
+        aria-invalid={!!activeErrorMessage}
+        aria-describedby={activeErrorMessage ? "pdf-error" : undefined}
         className="sr-only"
         id="klaritex-pdf-upload"
       />
@@ -100,6 +102,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         onClick={() => inputRef.current?.click()}
         role="button"
         tabIndex={disabled ? -1 : 0}
+        aria-describedby={activeErrorMessage ? "pdf-error" : undefined}
         onKeyDown={(event) => {
           if (!disabled && (event.key === "Enter" || event.key === " ")) {
             event.preventDefault();
@@ -126,7 +129,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         ) : null}
       </div>
 
-      {activeErrorMessage ? <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
+      {activeErrorMessage ? <p id="pdf-error" role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
     </div>
   );
 }
