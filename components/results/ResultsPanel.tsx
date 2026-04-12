@@ -38,6 +38,7 @@ const SKELETON_LINE_PATTERNS = [
 export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
   const resultKey = useMemo(() => (result ? "active" : "empty"), [result]);
   const [showSkeleton, setShowSkeleton] = useState(isLoading);
+  const [animationKey, setAnimationKey] = useState(0);
 
   useEffect(() => {
     if (isLoading) {
@@ -49,8 +50,18 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
     return () => window.clearTimeout(timer);
   }, [isLoading]);
 
+  useEffect(() => {
+    if (result) {
+      setAnimationKey((current) => current + 1);
+    }
+  }, [result]);
+
   const contentAnimationStyle = (index: number) => ({
     animation: `slideUpFade 400ms cubic-bezier(0.22, 1, 0.36, 1) ${index * 40}ms both`,
+  });
+
+  const moduleAnimationStyle = (index: number) => ({
+    animation: `kResultModuleFadeUp 400ms cubic-bezier(0.22, 1, 0.36, 1) ${index * 60}ms both`,
   });
 
   return (
@@ -83,51 +94,52 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
             />
           </div>
 
-          <div style={contentAnimationStyle(1)}>
+          <div style={moduleAnimationStyle(0)}>
             <AmbiguityScore
               ambiguityScore={result.ambiguityScore}
               rawPenaltyScore={result.rawPenaltyScore}
               tier={result.tier}
+              animationKey={animationKey}
             />
           </div>
 
-          <div style={contentAnimationStyle(2)}>
+          <div style={moduleAnimationStyle(1)}>
             <ClarityLevel clarityLevel={result.clarityLevel} />
           </div>
 
-          <div style={contentAnimationStyle(3)}>
+          <div style={moduleAnimationStyle(2)}>
             <ExposureCheck elements={result.elements} />
           </div>
 
-          <div style={contentAnimationStyle(4)}>
+          <div style={moduleAnimationStyle(3)}>
             <UnanchoredClaims unanchoredClaimsCount={result.unanchoredClaimsCount} />
           </div>
 
-          <div style={contentAnimationStyle(5)}>
+          <div style={moduleAnimationStyle(4)}>
             <VagueLines vagueLines={result.vagueLines} />
           </div>
 
-          <div style={contentAnimationStyle(6)}>
+          <div style={moduleAnimationStyle(5)}>
             <LowestAnchors lowestAnchors={result.lowestAnchors} />
           </div>
 
-          <div style={contentAnimationStyle(7)}>
+          <div style={moduleAnimationStyle(6)}>
             <ActionTalkRatio actionRatio={result.actionRatio} talkRatio={result.talkRatio} ratioLabel={result.ratioLabel} />
           </div>
 
-          <div style={contentAnimationStyle(8)}>
+          <div style={moduleAnimationStyle(7)}>
             <CommitmentSummary commitmentSummary={result.commitmentSummary} />
           </div>
 
-          <div style={contentAnimationStyle(9)}>
+          <div style={moduleAnimationStyle(8)}>
             <AmbiguityExplanation ambiguityExplanation={result.ambiguityExplanation} />
           </div>
 
-          <div style={contentAnimationStyle(10)}>
+          <div style={moduleAnimationStyle(9)}>
             <CommitmentBreakdown elements={result.elements} />
           </div>
 
-          <div style={contentAnimationStyle(11)}>
+          <div style={moduleAnimationStyle(10)}>
             <VerifiableRequirements verifiableRequirements={result.verifiableRequirements} />
           </div>
         </section>
