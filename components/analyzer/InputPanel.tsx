@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ModeToggle } from "@/components/analyzer/ModeToggle";
 import { PdfUpload } from "@/components/analyzer/PdfUpload";
@@ -117,6 +117,21 @@ export function InputPanel() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [lastResult, setLastResult] = useState<AnalysisResult | null>(null);
   const [analyzeButtonState, setAnalyzeButtonState] = useState<AnalyzeButtonState>("idle-disabled");
+  const [activeIndicatorStyle, setActiveIndicatorStyle] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
+  const [hoverIndicatorStyle, setHoverIndicatorStyle] = useState<{ left: number; width: number; visible: boolean }>({
+    left: 0,
+    width: 0,
+    visible: false,
+  });
+  const [isResetShaking, setIsResetShaking] = useState(false);
+  const [rotatingTab, setRotatingTab] = useState<InputMode | null>(null);
+  const tabListRef = useRef<HTMLDivElement | null>(null);
+  const tabRefs = useRef<Record<InputMode, HTMLButtonElement | null>>({
+    text: null,
+    pdf: null,
+    url: null,
+  });
+  const hasMountedRef = useRef(false);
 
   const isNearLimit = textInput.length >= WARNING_THRESHOLD;
 
@@ -126,6 +141,35 @@ export function InputPanel() {
     (inputMode === "url" && urlInput.trim().length > 0);
 
   const canAnalyze = !isAnalyzing && hasInput;
+
+  const hasContentInMode = (mode: InputMode): boolean => {
+    if (mode === "text") {
+      return textInput.trim().length > 0;
+    }
+
+    if (mode === "pdf") {
+      return pdfFile !== null;
+    }
+
+    return urlInput.trim().length > 0;
+  };
+
+  const updateActiveIndicatorPosition = useCallback(() => {
+    const tabListEl = tabListRef.current;
+    const activeTabEl = tabRefs.current[inputMode];
+
+    if (!tabListEl || !activeTabEl) {
+      return;
+    }
+
+    const containerRect = tabListEl.getBoundingClientRect();
+    const tabRect = activeTabEl.getBoundingClientRect();
+
+    setActiveIndicatorStyle({
+      left: tabRect.left - containerRect.left,
+      width: tabRect.width,
+    });
+  }, [inputMode]);
 
   const analysisStateMessage = useMemo(() => {
     if (isAnalyzing) {
@@ -140,11 +184,21 @@ export function InputPanel() {
   }, [isAnalyzing, lastResult]);
 
   function handleTabSwitch(nextMode: InputMode) {
+    if (nextMode === inputMode) {
+      return;
+    }
+
+    if (hasContentInMode(inputMode)) {
+      setIsResetShaking(true);
+      window.setTimeout(() => setIsResetShaking(false), 360);
+    }
+
     setInputMode(nextMode);
     setTextInput("");
     setPdfFile(null);
     setUrlInput("");
     setErrorMessage(null);
+    setHoverIndicatorStyle((previous) => ({ ...previous, visible: false }));
   }
 
   async function handleAnalyze() {
@@ -240,6 +294,32 @@ export function InputPanel() {
   };
 
   useEffect(() => {
+    updateActiveIndicatorPosition();
+  }, [updateActiveIndicatorPosition]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      updateActiveIndicatorPosition();
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [updateActiveIndicatorPosition]);
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+
+    setRotatingTab(inputMode);
+    const timer = window.setTimeout(() => setRotatingTab(null), 400);
+
+    return () => window.clearTimeout(timer);
+  }, [inputMode]);
+
+  useEffect(() => {
     if (isAnalyzing) {
       setAnalyzeButtonState("loading");
       return;
@@ -267,26 +347,67 @@ export function InputPanel() {
   return (
     <>
       <section className="k-card k-entrance-fade-down mx-auto w-full max-w-3xl p-4 sm:p-6" style={cardAnimationStyle}>
-        <div className="grid grid-cols-1 gap-2 border-b border-[var(--border)] pb-2 sm:grid-cols-3" role="tablist">
+        <div
+          ref={tabListRef}
+          className="relative grid grid-cols-1 gap-2 border-b border-[var(--border)] pb-2 sm:grid-cols-3"
+          role="tablist"
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute bottom-0 h-[2px] bg-[var(--gold-primary)]"
+            style={{
+              left: `${activeIndicatorStyle.left}px`,
+              width: `${activeIndicatorStyle.width}px`,
+              transition: "left 250ms cubic-bezier(0.4, 0, 0.2, 1), width 250ms cubic-bezier(0.4, 0, 0.2, 1)",
+            }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute bottom-0 h-[2px] bg-[var(--gold-primary)]"
+            style={{
+              left: `${hoverIndicatorStyle.left}px`,
+              width: `${hoverIndicatorStyle.width}px`,
+              opacity: hoverIndicatorStyle.visible ? 0.3 : 0,
+              transition: "left 200ms cubic-bezier(0.4, 0, 0.2, 1), width 200ms cubic-bezier(0.4, 0, 0.2, 1), opacity 150ms ease",
+            }}
+          />
           {TABS.map((tab, index) => {
             const isActive = inputMode === tab.value;
 
             return (
               <button
                 key={tab.value}
+                ref={(element) => {
+                  tabRefs.current[tab.value] = element;
+                }}
                 role="tab"
                 aria-selected={isActive}
                 type="button"
                 onClick={() => handleTabSwitch(tab.value)}
+                onMouseEnter={() => {
+                  if (isActive || !tabListRef.current || !tabRefs.current[tab.value]) {
+                    return;
+                  }
+
+                  const containerRect = tabListRef.current.getBoundingClientRect();
+                  const tabRect = tabRefs.current[tab.value]!.getBoundingClientRect();
+
+                  setHoverIndicatorStyle({
+                    left: tabRect.left - containerRect.left,
+                    width: tabRect.width,
+                    visible: true,
+                  });
+                }}
+                onMouseLeave={() => {
+                  setHoverIndicatorStyle((previous) => ({ ...previous, visible: false }));
+                }}
                 style={tabAnimationStyle(index)}
-                className={`k-entrance-fade-down font-ui rounded-none border-b-2 px-2 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
-                  isActive
-                    ? "border-[var(--border-accent)] text-[var(--text-gold)]"
-                    : "border-transparent text-[var(--text-secondary)] hover:border-[var(--gold-muted)] hover:text-[var(--text-primary)]"
+                className={`k-entrance-fade-down font-ui relative rounded-none px-2 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+                  isActive ? "text-[var(--text-gold)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
                 <p className="font-medium flex items-center">
-                  <span className="mr-2" aria-hidden>
+                  <span className={`mr-2 ${rotatingTab === tab.value ? "tab-icon-rotate" : ""}`} aria-hidden>
                     {tab.icon}
                   </span>
                   {tab.label}
@@ -296,7 +417,7 @@ export function InputPanel() {
           })}
         </div>
 
-        <div className="mt-5">
+        <div className={`mt-5 ${isResetShaking ? "clear-reset-shake" : ""}`}>
           {inputMode === "text" ? (
             <>
               <label htmlFor="klaritex-text-input" className="font-ui mb-2 block text-sm font-medium text-[var(--text-primary)]">
@@ -482,6 +603,42 @@ export function InputPanel() {
           }
           100% {
             transform: scale(1);
+          }
+        }
+
+        .clear-reset-shake {
+          animation: clearResetShake 320ms ease;
+        }
+
+        .tab-icon-rotate {
+          animation: tabIconRotate 400ms ease;
+        }
+
+        @keyframes clearResetShake {
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          20% {
+            transform: translateX(-5px);
+          }
+          40% {
+            transform: translateX(5px);
+          }
+          60% {
+            transform: translateX(-3px);
+          }
+          80% {
+            transform: translateX(3px);
+          }
+        }
+
+        @keyframes tabIconRotate {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
           }
         }
       `}</style>
