@@ -6,9 +6,9 @@ interface ExposureCheckProps {
 }
 
 const statusStyles: Record<CommitmentElement["status"], string> = {
-  clear: "text-[var(--clear-color)]",
-  broad: "text-[var(--broad-color)]",
-  missing: "text-[var(--missing-color)]"
+  clear: "k-status-clear",
+  broad: "k-status-broad",
+  missing: "k-status-missing"
 };
 
 export function ExposureCheck({ elements }: ExposureCheckProps) {
@@ -34,7 +34,7 @@ export function ExposureCheck({ elements }: ExposureCheckProps) {
             <li key={`${item.name}-${item.status}`} className="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4">
               <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
                 <p className="font-ui text-sm font-medium text-[var(--text-primary)]">{item.name}</p>
-                <p className={`font-mono-ui inline-flex items-center gap-2 text-xs uppercase tracking-wide ${statusStyles[item.status]}`}>
+                <p className={`font-mono-ui module-status-badge inline-flex items-center gap-2 rounded-full border border-transparent px-2.5 py-1 text-xs uppercase tracking-wide ${statusStyles[item.status]}`}>
                   <span className={`h-2.5 w-2.5 rounded-full ${
                     item.status === "clear"
                       ? "bg-[var(--clear-color)]"
