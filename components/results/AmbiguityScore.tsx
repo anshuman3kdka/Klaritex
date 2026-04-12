@@ -11,6 +11,11 @@ interface AmbiguityScoreProps {
 
 const COUNTER_DURATION_MS = 1200;
 const COUNTER_INTERVAL_MS = 30;
+const tierBadgeClassMap: Record<AmbiguityTier, string> = {
+  1: "k-tier-badge--1",
+  2: "k-tier-badge--2",
+  3: "k-tier-badge--3"
+};
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 
@@ -22,6 +27,10 @@ export function AmbiguityScore({ ambiguityScore, rawPenaltyScore, tier, animatio
   const [showTierBadge, setShowTierBadge] = useState(false);
   const scorePercent = (animatedScore / 10) * 100;
   const tierText = tier ? `Tier ${tier}` : "—";
+  const tierBadgeClass = tier ? tierBadgeClassMap[tier] : "border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)]";
+  const tierBadgeAnimation = tier === 3
+    ? "kTierBadgeSpringIn 300ms ease-out both, kTierBadgeBreath 2.5s ease-in-out infinite 300ms"
+    : "kTierBadgeSpringIn 300ms ease-out both";
 
   useEffect(() => {
     if (!hasScore) {
@@ -69,8 +78,8 @@ export function AmbiguityScore({ ambiguityScore, rawPenaltyScore, tier, animatio
           </p>
           {showTierBadge ? (
             <p
-              className="k-badge mt-2 border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
-              style={{ animation: "kTierBadgeSpringIn 300ms ease-out both" }}
+              className={`k-tier-badge mt-2 ${tierBadgeClass}`}
+              style={{ animation: tierBadgeAnimation }}
             >
               {tierText}
             </p>

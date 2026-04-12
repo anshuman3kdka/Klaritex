@@ -94,6 +94,45 @@ body {
   text-transform: uppercase;
 }
 
+.k-tier-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  padding: 4px 10px;
+  font-family: "DM Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.k-tier-badge--summary {
+  padding: 5px 12px;
+  font-size: 14px;
+}
+
+.k-tier-badge--1 {
+  color: var(--tier1-color);
+  border-color: rgba(45, 122, 79, 0.5);
+  background: rgba(45, 122, 79, 0.15);
+  box-shadow: 0 0 12px rgba(45, 122, 79, 0.25);
+}
+
+.k-tier-badge--2 {
+  color: var(--tier2-color);
+  border-color: rgba(184, 134, 11, 0.5);
+  background: rgba(184, 134, 11, 0.15);
+  box-shadow: 0 0 12px rgba(184, 134, 11, 0.25);
+}
+
+.k-tier-badge--3 {
+  color: var(--tier3-color);
+  border-color: rgba(155, 44, 44, 0.5);
+  background: rgba(155, 44, 44, 0.15);
+  box-shadow: 0 0 12px rgba(155, 44, 44, 0.3);
+  animation: kTierBadgeBreath 2.5s ease-in-out infinite;
+}
+
 .k-status-clear {
   color: var(--clear-color);
   border-color: color-mix(in oklab, var(--clear-color) 55%, #000 45%);
@@ -217,6 +256,16 @@ body {
   }
 }
 
+@keyframes kTierBadgeBreath {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(155, 44, 44, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(155, 44, 44, 0.45);
+  }
+}
+
 @keyframes kResultModuleFadeUp {
   0% {
     opacity: 0;
@@ -242,7 +291,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .k-entrance-fade-down,
   .k-entrance-scale-in,
-  .k-skeleton-shimmer {
+  .k-skeleton-shimmer,
+  .k-tier-badge--3 {
     animation: none !important;
     transform: none !important;
     opacity: 1 !important;
