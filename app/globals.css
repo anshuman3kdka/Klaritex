@@ -139,6 +139,21 @@ body {
   animation: kPulseLine 1.35s ease-in-out infinite;
 }
 
+
+.k-skeleton-shimmer {
+  background: linear-gradient(90deg, #0f1829 0%, #162035 50%, #0f1829 100%);
+  background-size: 200% 100%;
+  animation: kSkeletonSweep 1.8s linear infinite;
+}
+
+@keyframes kSkeletonSweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
 @keyframes kPulseLine {
   0% {
     background-position: 200% 0;
@@ -195,13 +210,19 @@ body {
   .k-entrance-scale-in {
     animation: kEntranceScaleIn 400ms ease-out both;
   }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
   .k-entrance-fade-down,
-  .k-entrance-scale-in {
+  .k-entrance-scale-in,
+  .k-skeleton-shimmer {
     animation: none !important;
     transform: none !important;
     opacity: 1 !important;
+  }
+
+  .k-skeleton-shimmer {
+    background-position: 0 0 !important;
   }
 }
