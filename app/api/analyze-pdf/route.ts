@@ -29,6 +29,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Mode must be 'quick' or 'deep'." }, { status: 400 });
   }
 
+  // 10MB limit to prevent Memory Exhaustion DoS
+  if (file.size > 10 * 1024 * 1024) {
+    return NextResponse.json({ error: "File too large. Maximum size is 10MB." }, { status: 413 });
+  }
+
   try {
     const arrayBuffer = await file.arrayBuffer();
     const pdfText = await extractPdfText(Buffer.from(arrayBuffer));
