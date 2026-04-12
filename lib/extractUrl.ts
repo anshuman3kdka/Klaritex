@@ -48,6 +48,10 @@ function isSafeUrl(urlString: string): boolean {
 
     if (hostname.startsWith("[") && hostname.endsWith("]")) {
       const ipv6 = hostname.slice(1, -1);
+
+      // Cover the entire 10.0.0.0/8 block mapped in IPv6
+      const isClassA = /^(?:::ffff:|::|0:0:0:0:0:ffff:|0:0:0:0:0:0:)a[0-f]{2}:/i.test(ipv6);
+
       if (
         ipv6 === "::" ||
         ipv6 === "0:0:0:0:0:0:0:0" ||
@@ -58,21 +62,18 @@ function isSafeUrl(urlString: string): boolean {
         ipv6.startsWith("fe80") ||
         ipv6.includes("127.0.0.1") ||
         ipv6.startsWith("::ffff:7f") ||
-        ipv6.startsWith("::ffff:a00:") ||
         ipv6.startsWith("::ffff:a9fe:") ||
         ipv6.startsWith("::ffff:c0a8:") ||
         ipv6.startsWith("::7f") ||
-        ipv6.startsWith("::a00:") ||
         ipv6.startsWith("::a9fe:") ||
         ipv6.startsWith("::c0a8:") ||
         ipv6.startsWith("0:0:0:0:0:ffff:7f") ||
-        ipv6.startsWith("0:0:0:0:0:ffff:a00:") ||
         ipv6.startsWith("0:0:0:0:0:ffff:a9fe:") ||
         ipv6.startsWith("0:0:0:0:0:ffff:c0a8:") ||
         ipv6.startsWith("0:0:0:0:0:0:7f") ||
-        ipv6.startsWith("0:0:0:0:0:0:a00:") ||
         ipv6.startsWith("0:0:0:0:0:0:a9fe:") ||
-        ipv6.startsWith("0:0:0:0:0:0:c0a8:")
+        ipv6.startsWith("0:0:0:0:0:0:c0a8:") ||
+        isClassA
       ) {
         return false;
       }
