@@ -3,7 +3,7 @@ import { InputPanel } from "@/components/analyzer/InputPanel";
 export default function HomePage() {
   return (
     <div className="h-[100dvh] flex flex-col bg-[var(--bg-primary)]">
-      <header className="shrink-0 border-b border-[var(--border)] bg-[var(--bg-surface)]/70">
+      <header className="k-entrance-fade-down shrink-0 border-b border-[var(--border)] bg-[var(--bg-surface)]/70">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-3 items-center gap-4 px-4 py-5 sm:px-6">
           <div>
             <a
@@ -30,7 +30,7 @@ export default function HomePage() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 py-8 sm:px-6 sm:py-12">
-        <section className="k-header mx-auto mb-8 w-full max-w-3xl rounded-xl px-4 py-8 text-center sm:py-10">
+        <section className="k-header k-entrance-fade-down mx-auto mb-8 w-full max-w-3xl rounded-xl px-4 py-8 text-center sm:py-10">
           <p className="font-ui text-sm text-[var(--text-secondary)] sm:text-base">
             Language Exposed. Accountability Scored.
           </p>
