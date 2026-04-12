@@ -48,6 +48,7 @@ function isSafeUrl(urlString: string): boolean {
 
     if (hostname.startsWith("[") && hostname.endsWith("]")) {
       const ipv6 = hostname.slice(1, -1);
+
       if (
         ipv6 === "::" ||
         ipv6 === "0:0:0:0:0:0:0:0" ||
@@ -55,11 +56,32 @@ function isSafeUrl(urlString: string): boolean {
         ipv6 === "0:0:0:0:0:0:0:1" ||
         ipv6.startsWith("fd") ||
         ipv6.startsWith("fc") ||
-        ipv6.startsWith("fe80") ||
-        ipv6.includes("127.0.0.1") ||
-        ipv6.startsWith("::ffff:7f")
+        ipv6.startsWith("fe80")
       ) {
         return false;
+      }
+
+      // Handle IPv4-mapped (::ffff:XXYY:ZZWW) and IPv4-compatible (::XXYY:ZZWW) addresses.
+      // Node.js normalizes both ::ffff:w.x.y.z and ::w.x.y.z to these canonical hex forms.
+      // Parse the embedded IPv4 hex groups into octets and apply the same range checks.
+      const ipv4InIpv6 = ipv6.match(
+        /^::(?:ffff:)?([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i
+      );
+      if (ipv4InIpv6) {
+        const high = parseInt(ipv4InIpv6[1]!, 16);
+        const low = parseInt(ipv4InIpv6[2]!, 16);
+        const p1 = (high >> 8) & 0xff;
+        const p2 = high & 0xff;
+        if (
+          p1 === 0 || // 0.0.0.0/8
+          p1 === 10 || // 10.0.0.0/8
+          p1 === 127 || // 127.0.0.0/8
+          (p1 === 172 && p2 >= 16 && p2 <= 31) || // 172.16.0.0/12
+          (p1 === 192 && p2 === 168) || // 192.168.0.0/16
+          (p1 === 169 && p2 === 254) // 169.254.0.0/16
+        ) {
+          return false;
+        }
       }
     }
 
