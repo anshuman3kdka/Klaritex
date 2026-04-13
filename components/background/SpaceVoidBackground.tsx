@@ -27,6 +27,9 @@ export function SpaceVoidBackground() {
   const layerTwoRef = useRef<HTMLDivElement | null>(null);
   const layerThreeRef = useRef<HTMLDivElement | null>(null);
   const nebulaRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const setNebulaRef = (index: number) => (element: HTMLDivElement | null) => {
+    nebulaRefs.current[index] = element;
+  };
 
   const starsSmall = useMemo(() => createStars(90, 0.6, 1.5, 0.18, 0.42, "small"), []);
   const starsMedium = useMemo(() => createStars(55, 1.2, 2.4, 0.35, 0.65, "medium"), []);
@@ -112,9 +115,9 @@ export function SpaceVoidBackground() {
 
   return (
     <div ref={rootRef} aria-hidden="true" className="space-void-bg pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <div className="space-void-nebula nebula-one" ref={(element) => (nebulaRefs.current[0] = element)} />
-      <div className="space-void-nebula nebula-two" ref={(element) => (nebulaRefs.current[1] = element)} />
-      <div className="space-void-nebula nebula-three" ref={(element) => (nebulaRefs.current[2] = element)} />
+      <div className="space-void-nebula nebula-one" ref={setNebulaRef(0)} />
+      <div className="space-void-nebula nebula-two" ref={setNebulaRef(1)} />
+      <div className="space-void-nebula nebula-three" ref={setNebulaRef(2)} />
 
       <div ref={layerOneRef} className="space-void-layer">
         {starsSmall.map((star) => (
