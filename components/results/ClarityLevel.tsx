@@ -30,7 +30,7 @@ const clarityCopy: Record<number, { label: string; description: string }> = {
 export function ClarityLevel({ clarityLevel }: ClarityLevelProps) {
   if (typeof clarityLevel !== "number") {
     return (
-      <CollapsibleCard title="Module 2 · Clarity Level">
+      <CollapsibleCard title="Module 2 · Clarity Level" moduleId="module-2">
         <p className="font-ui rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       </CollapsibleCard>
     );
@@ -39,7 +39,7 @@ export function ClarityLevel({ clarityLevel }: ClarityLevelProps) {
   const boundedLevel = Math.min(5, Math.max(1, Math.round(clarityLevel)));
 
   return (
-    <CollapsibleCard title="Module 2 · Clarity Level">
+    <CollapsibleCard title="Module 2 · Clarity Level" moduleId="module-2">
       <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4">
         <p className="font-ui text-sm font-semibold text-[var(--text-primary)]">
           Level {boundedLevel} · {clarityCopy[boundedLevel].label}

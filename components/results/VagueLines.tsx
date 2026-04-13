@@ -12,7 +12,7 @@ export function VagueLines({ vagueLines }: VagueLinesProps) {
   const hasData = Array.isArray(vagueLines);
 
   return (
-    <CollapsibleCard title="Module 5 · Identify Vague Lines">
+    <CollapsibleCard title="Module 5 · Identify Vague Lines" moduleId="module-5">
       {!hasData ? (
         <p className="font-ui rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       ) : lines.length === 0 ? (

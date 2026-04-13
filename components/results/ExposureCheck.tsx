@@ -19,7 +19,7 @@ export function ExposureCheck({ elements }: ExposureCheckProps) {
   const total = items.length || 1;
 
   return (
-    <CollapsibleCard title="Module 3 · Exposure Check">
+    <CollapsibleCard title="Module 3 · Exposure Check" moduleId="module-3">
       <p className="font-ui text-sm text-[var(--text-secondary)]">
         This module lists what is clearly committed versus what stays unclear or missing.
       </p>

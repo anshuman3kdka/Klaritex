@@ -8,7 +8,7 @@ export function UnanchoredClaims({ unanchoredClaimsCount }: UnanchoredClaimsProp
   const count = typeof unanchoredClaimsCount === "number" ? Math.max(0, unanchoredClaimsCount) : null;
 
   return (
-    <CollapsibleCard title="Module 4 · Unanchored Claims">
+    <CollapsibleCard title="Module 4 · Unanchored Claims" moduleId="module-4">
       {count === null ? (
         <p className="font-ui rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       ) : count === 0 ? (
