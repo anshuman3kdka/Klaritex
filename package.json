@@ -20,10 +20,13 @@
     "react-dom": "18.3.1"
   },
   "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/gsap": "^1.20.2",
     "@types/node": "^20",
     "@types/pdf-parse": "^1.1.4",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/three": "^0.179.0",
     "autoprefixer": "^10.4.19",
     "eslint": "^8",
     "eslint-config-next": "15.5.9",
