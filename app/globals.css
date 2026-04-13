@@ -184,21 +184,21 @@ body {
 }
 
 .k-status-testable {
-  color: #0d101a;
-  border-color: color-mix(in oklab, var(--gold-primary) 65%, #000 35%);
-  background: var(--gold-primary);
+  color: #c9a84c;
+  border: 1px solid #c9a84c;
+  background: rgba(201, 168, 76, 0.2);
 }
 
 .k-status-contested {
-  color: var(--tier2-color);
-  border-color: color-mix(in oklab, var(--tier2-color) 58%, #000 42%);
-  background: color-mix(in oklab, var(--tier2-color) 16%, transparent);
+  color: #b8860b;
+  border: 1px solid #b8860b;
+  background: rgba(184, 134, 11, 0.15);
 }
 
 .k-status-untestable {
-  color: #8a8f9c;
-  border-color: #3a4156;
-  background: rgba(138, 143, 156, 0.12);
+  color: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(80, 80, 80, 0.2);
 }
 
 .k-gold-loader {
@@ -394,4 +394,57 @@ body {
     transform: none;
     box-shadow: none;
   }
+}
+
+
+.k-breakdown-status-testable {
+  color: #c9a84c;
+  border: 1px solid #c9a84c;
+  background: rgba(201, 168, 76, 0.2);
+}
+
+.k-breakdown-status-contested {
+  color: #b8860b;
+  border: 1px solid #b8860b;
+  background: rgba(184, 134, 11, 0.15);
+}
+
+.k-breakdown-status-untestable {
+  color: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(80, 80, 80, 0.2);
+}
+
+.breakdown-badge {
+  white-space: nowrap;
+  overflow: visible;
+  line-height: 1.2;
+  min-width: max-content;
+}
+
+.k-row-stress-testable {
+  opacity: 1;
+}
+
+.k-row-stress-contested {
+  opacity: 0.82;
+}
+
+.k-row-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: #c9a84c;
+  clip-path: inset(0 0 100% 0);
+  opacity: 0;
+}
+
+.k-row-accent[data-active='true'] {
+  opacity: 1;
+}
+
+.k-verdict-char {
+  opacity: 0;
 }

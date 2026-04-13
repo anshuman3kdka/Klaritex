@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { gsap } from "gsap";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { CommitmentElement, ElementStatus } from "@/lib/types";
 import { CollapsibleCard } from "./CollapsibleCard";
@@ -38,16 +39,16 @@ const statusStyles: Record<ElementStatus, string> = {
 
 const stressStyles: Record<StressLabel, { row: string; badge: string }> = {
   Testable: {
-    row: "border-l-2 border-[var(--border-accent)] opacity-100",
-    badge: "k-status-testable"
+    row: "k-row-stress-testable",
+    badge: "k-breakdown-status-testable"
   },
   Contested: {
-    row: "bg-[var(--tier2-color)]/8 opacity-80",
-    badge: "k-status-contested"
+    row: "k-row-stress-contested",
+    badge: "k-breakdown-status-contested"
   },
   Untestable: {
     row: "k-row-stress-untestable",
-    badge: "k-status-untestable"
+    badge: "k-breakdown-status-untestable"
   }
 };
 
@@ -79,37 +80,10 @@ function getStressVerdict(testableCount: number): string {
   return "This statement is accountability-proof. Nothing can be verified.";
 }
 
-function useTypewriter(text: string, speed: number): string {
-  const [visibleText, setVisibleText] = useState("");
-
-  useEffect(() => {
-    if (!text) {
-      setVisibleText("");
-      return;
-    }
-
-    setVisibleText("");
-    let currentIndex = 0;
-    const interval = window.setInterval(() => {
-      currentIndex += 1;
-      setVisibleText(text.slice(0, currentIndex));
-
-      if (currentIndex >= text.length) {
-        window.clearInterval(interval);
-      }
-    }, speed);
-
-    return () => {
-      window.clearInterval(interval);
-    };
-  }, [speed, text]);
-
-  return visibleText;
-}
-
 export function CommitmentBreakdown({ elements, defaultExpanded = false }: CommitmentBreakdownProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("breakdown");
-  const [stressActivationTick, setStressActivationTick] = useState(0);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const verdictRef = useRef<HTMLParagraphElement>(null);
 
   const elementMap = useMemo(
     () => new Map((elements ?? []).map((element) => [element.name, element])),
@@ -127,15 +101,138 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
   );
 
   const verdictText = getStressVerdict(stressTestableCount);
-  const typedVerdict = useTypewriter(viewMode === "stress" ? verdictText : "", 30);
+
+  const animateVerdict = useCallback((delaySeconds = 0) => {
+    if (!verdictRef.current || viewMode !== "stress") {
+      return;
+    }
+
+    const characters = verdictRef.current.querySelectorAll(".k-verdict-char");
+    gsap.set(characters, { opacity: 0 });
+    gsap.to(characters, {
+      opacity: 1,
+      stagger: 0.028,
+      duration: 0.01,
+      ease: "none",
+      delay: delaySeconds
+    });
+  }, [viewMode]);
+
+  const animateTableReveal = useCallback((isModeTransition = false) => {
+    if (!rootRef.current) {
+      return;
+    }
+
+    const rows = rootRef.current.querySelectorAll<HTMLTableRowElement>(".breakdown-row");
+    const badges = rootRef.current.querySelectorAll<HTMLElement>(".breakdown-badge");
+    const accentBars = rootRef.current.querySelectorAll<HTMLElement>(".k-row-accent[data-active='true']");
+
+    gsap.killTweensOf(rows);
+    gsap.killTweensOf(badges);
+    gsap.killTweensOf(accentBars);
+
+    const timeline = gsap.timeline();
+
+    if (isModeTransition) {
+      timeline.to(rows, {
+        opacity: 0.3,
+        duration: 0.2,
+        ease: "power1.out"
+      });
+    }
+
+    timeline.from(rows, {
+      opacity: 0,
+      y: 16,
+      duration: 0.45,
+      stagger: 0.09,
+      ease: "power2.out",
+      delay: 0.15
+    });
+
+    timeline.from(
+      badges,
+      {
+        opacity: 0,
+        scale: 0.7,
+        duration: 0.25,
+        stagger: 0.09,
+        ease: "back.out(2)",
+        delay: 0.06
+      },
+      "<"
+    );
+
+    timeline.fromTo(
+      accentBars,
+      { clipPath: "inset(0 0 100% 0)" },
+      {
+        clipPath: "inset(0 0 0% 0)",
+        duration: 0.3,
+        stagger: 0.09,
+        ease: "power2.out"
+      },
+      "<"
+    );
+
+    if (viewMode === "stress") {
+      rows.forEach((row) => {
+        const stressClass = row.dataset.stressClass;
+
+        if (stressClass === "Testable") {
+          gsap.fromTo(
+            row,
+            { backgroundColor: "rgba(45,122,79,0.25)", opacity: 1, filter: "grayscale(0%)" },
+            { backgroundColor: "rgba(45,122,79,0)", duration: 0.45, ease: "power2.out", delay: 0.35 }
+          );
+          return;
+        }
+
+        if (stressClass === "Contested") {
+          gsap.fromTo(
+            row,
+            { backgroundColor: "rgba(184,134,11,0.25)", opacity: 0.92, filter: "grayscale(0%)" },
+            { backgroundColor: "rgba(184,134,11,0)", duration: 0.45, ease: "power2.out", delay: 0.35 }
+          );
+          return;
+        }
+
+        gsap.to(row, {
+          filter: "grayscale(50%)",
+          opacity: 0.35,
+          duration: 0.4,
+          ease: "power2.out",
+          delay: 0.3
+        });
+      });
+
+      animateVerdict(1.25);
+    }
+  }, [animateVerdict, viewMode]);
+
+  useEffect(() => {
+    const handleModuleReveal = (event: Event) => {
+      const customEvent = event as CustomEvent<{ moduleId?: string }>;
+      if (customEvent.detail?.moduleId !== "module-10") {
+        return;
+      }
+
+      animateTableReveal(false);
+    };
+
+    document.addEventListener("moduleRevealed", handleModuleReveal);
+    return () => {
+      document.removeEventListener("moduleRevealed", handleModuleReveal);
+    };
+  }, [animateTableReveal]);
+
+  useEffect(() => {
+    animateTableReveal(true);
+  }, [animateTableReveal]);
 
   const handleViewChange = (nextView: ViewMode) => {
     if (nextView === viewMode) {
       return;
-    }
-
-    if (nextView === "stress") {
-      setStressActivationTick((previous) => previous + 1);
     }
 
     setViewMode(nextView);
@@ -177,65 +274,79 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
         </div>
       }
     >
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse text-sm">
-          <thead>
-            <tr className="font-mono-ui border-b border-[var(--border)] text-left text-xs uppercase tracking-wide text-[var(--text-secondary)]">
-              <th className="pb-2 pr-3">Component</th>
-              <th className="pb-2 pr-3">Question</th>
-              <th className="pb-2 pr-3">Extracted Value</th>
-              <th className="pb-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orderedElements.map((name) => {
-              const element = elementMap.get(name);
-              const status: ElementStatus | null = element?.status ?? null;
-              const extractedValue = element?.status === "missing" ? "—" : element?.notes || "—";
-              const stressLabel = getStressLabel(status);
-              const isStressMode = viewMode === "stress";
-              const rowClasses = `k-commitment-row border-b border-[var(--border)]/40 align-top ${
-                isStressMode
-                  ? `${stressStyles[stressLabel].row} ${stressActivationTick > 0 ? `k-row-enter-${stressLabel.toLowerCase()}` : ""}`
-                  : "odd:bg-[var(--bg-surface)] even:bg-[var(--bg-elevated)]"
-              }`;
+      <div ref={rootRef}>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse text-sm">
+            <thead>
+              <tr className="font-mono-ui border-b border-[var(--border)] text-left text-xs uppercase tracking-wide text-[var(--text-secondary)]">
+                <th className="pb-2 pr-3">Component</th>
+                <th className="pb-2 pr-3">Question</th>
+                <th className="pb-2 pr-3">Extracted Value</th>
+                <th className="pb-2">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orderedElements.map((name) => {
+                const element = elementMap.get(name);
+                const status: ElementStatus | null = element?.status ?? null;
+                const extractedValue = element?.status === "missing" ? "—" : element?.notes || "—";
+                const stressLabel = getStressLabel(status);
+                const isStressMode = viewMode === "stress";
+                const rowClasses = `breakdown-row k-commitment-row border-b border-[var(--border)]/40 align-top ${
+                  isStressMode
+                    ? stressStyles[stressLabel].row
+                    : "odd:bg-[var(--bg-surface)] even:bg-[var(--bg-elevated)]"
+                }`;
 
-              return (
-                <tr key={name} className={rowClasses}>
-                  <td className="font-ui py-3 pr-3 font-medium text-[var(--text-primary)]">{name}</td>
-                  <td className="font-ui py-3 pr-3 text-[var(--text-secondary)]">{questionByElement[name]}</td>
-                  <td className="font-ui py-3 pr-3 text-[var(--text-primary)]">{extractedValue}</td>
-                  <td className="py-3">
-                    {status ? (
+                return (
+                  <tr key={name} className={rowClasses} data-stress-class={stressLabel}>
+                    <td className="font-ui relative py-3 pr-3 pl-3 font-medium text-[var(--text-primary)]">
                       <span
-                        className={`k-badge module-status-badge ${
-                          viewMode === "stress" ? stressStyles[stressLabel].badge : statusStyles[status]
-                        }`}
-                      >
-                        {viewMode === "stress" ? stressLabel : statusLabel[status]}
-                      </span>
-                    ) : (
-                      <span
-                        className={
-                          viewMode === "stress"
-                            ? "k-badge module-status-badge k-status-untestable"
-                            : "font-ui text-[var(--text-secondary)]"
-                        }
-                      >
-                        {viewMode === "stress" ? "Untestable" : "—"}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                        className="k-row-accent"
+                        data-active={isStressMode && stressLabel === "Testable" ? "true" : "false"}
+                      />
+                      {name}
+                    </td>
+                    <td className="font-ui py-3 pr-3 text-[var(--text-secondary)]">{questionByElement[name]}</td>
+                    <td className="font-ui py-3 pr-3 text-[var(--text-primary)]">{extractedValue}</td>
+                    <td className="py-3">
+                      {status ? (
+                        <span
+                          className={`k-badge module-status-badge breakdown-badge ${
+                            viewMode === "stress" ? stressStyles[stressLabel].badge : statusStyles[status]
+                          }`}
+                        >
+                          {viewMode === "stress" ? stressLabel : statusLabel[status]}
+                        </span>
+                      ) : (
+                        <span
+                          className={`breakdown-badge ${
+                            viewMode === "stress"
+                              ? "k-badge module-status-badge k-breakdown-status-untestable"
+                              : "font-ui text-[var(--text-secondary)]"
+                          }`}
+                        >
+                          {viewMode === "stress" ? "Untestable" : "—"}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {viewMode === "stress" ? (
+          <p ref={verdictRef} className="font-display mt-4 text-sm italic text-[var(--text-gold)]" aria-label={verdictText}>
+            {verdictText.split("").map((character, index) => (
+              <span key={`${character}-${index}`} className="k-verdict-char">
+                {character}
+              </span>
+            ))}
+          </p>
+        ) : null}
       </div>
-
-      {viewMode === "stress" ? (
-        <p className="font-display mt-4 text-sm italic text-[var(--text-gold)]">{typedVerdict}</p>
-      ) : null}
     </CollapsibleCard>
   );
 }
