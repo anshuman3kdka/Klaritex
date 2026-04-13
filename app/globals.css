@@ -78,6 +78,7 @@ body {
   border: 1px solid rgba(201, 168, 76, 0.15);
   border-radius: 0.9rem;
   background: var(--bg-surface);
+  overflow: hidden;
   transition: border-color 200ms ease, background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
 
@@ -398,21 +399,21 @@ body {
 
 
 .k-breakdown-status-testable {
-  color: #c9a84c;
-  border: 1px solid #c9a84c;
-  background: rgba(201, 168, 76, 0.2);
+  color: var(--clear-color);
+  border: 1px solid color-mix(in oklab, var(--clear-color) 60%, #000 40%);
+  background: color-mix(in oklab, var(--clear-color) 16%, transparent);
 }
 
 .k-breakdown-status-contested {
-  color: #b8860b;
-  border: 1px solid #b8860b;
-  background: rgba(184, 134, 11, 0.15);
+  color: var(--broad-color);
+  border: 1px solid color-mix(in oklab, var(--broad-color) 58%, #000 42%);
+  background: color-mix(in oklab, var(--broad-color) 16%, transparent);
 }
 
 .k-breakdown-status-untestable {
-  color: rgba(255, 255, 255, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(80, 80, 80, 0.2);
+  color: rgba(232, 237, 245, 0.45);
+  border: 1px solid rgba(138, 155, 181, 0.35);
+  background: rgba(138, 155, 181, 0.12);
 }
 
 .breakdown-badge {
@@ -427,7 +428,7 @@ body {
 }
 
 .k-row-stress-contested {
-  opacity: 0.82;
+  opacity: 1;
 }
 
 .k-row-accent {
