@@ -31,7 +31,8 @@
     "tailwindcss": "^3.4.6",
     "typescript": "^5",
     "@types/d3": "^7.4.3",
-    "@types/three": "^0.179.0"
+    "@types/three": "^0.179.0",
+    "@types/gsap": "^1.20.2"
   },
   "description": "> **For Codex / AI Build Agent:** This repository contains a complete technical specification split across multiple README files. Read ALL of them before writing a single line of code. They are the source of truth. Do not infer, invent, or fill gaps — if something is unspecified, ask before proceeding.",
   "main": "postcss.config.js",
