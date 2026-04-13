@@ -141,6 +141,10 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
       });
     }
 
+    if (viewMode !== "stress") {
+      gsap.set(rows, { opacity: 1, filter: "grayscale(0%)", backgroundColor: "transparent" });
+    }
+
     timeline.from(rows, {
       opacity: 0,
       y: 16,
@@ -198,8 +202,8 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
         }
 
         gsap.to(row, {
-          filter: "grayscale(50%)",
-          opacity: 0.35,
+          filter: "grayscale(70%)",
+          opacity: 0.45,
           duration: 0.4,
           ease: "power2.out",
           delay: 0.3

@@ -36,7 +36,7 @@ const RADIUS = 92;
 
 export function ExposureCheck({ elements }: ExposureCheckProps) {
   const [activeTooltip, setActiveTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
-  const polygonClipCircleRef = useRef<SVGCircleElement | null>(null);
+  const polygonRef = useRef<SVGPolygonElement | null>(null);
   const pointRefs = useRef<(SVGCircleElement | null)[]>([]);
   const barSegmentRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -92,39 +92,31 @@ export function ExposureCheck({ elements }: ExposureCheckProps) {
     });
   }, [items]);
 
-  const polygonPath = useMemo(() => {
-    const line = d3.lineRadial<{ angle: number; radius: number }>()
-      .angle((point) => point.angle)
-      .radius((point) => point.radius)
-      .curve(d3.curveLinearClosed);
-
-    const radialData = items.map((item, index) => ({
-      angle: -Math.PI / 2 + index * ((Math.PI * 2) / orderedElements.length),
-      radius: RADIUS * statusDistance[item.status]
-    }));
-
-    return line(radialData) ?? "";
-  }, [items]);
+  const polygonPoints = useMemo(() => {
+    return chartData.map((point) => `${point.x},${point.y}`).join(" ");
+  }, [chartData]);
 
   useEffect(() => {
     const runAnimations = () => {
       const pointNodes = pointRefs.current.filter(Boolean);
       const segmentNodes = barSegmentRefs.current.filter(Boolean);
-
-      if (polygonClipCircleRef.current) {
-        gsap.set(polygonClipCircleRef.current, { attr: { r: 0 } });
-      }
+      const polygonNode = polygonRef.current;
 
       gsap.set(pointNodes, { scale: 0, transformOrigin: "50% 50%" });
       gsap.set(segmentNodes, { width: "0%" });
+      if (polygonNode) {
+        const totalLength = polygonNode.getTotalLength();
+        gsap.set(polygonNode, { strokeDasharray: totalLength, strokeDashoffset: totalLength, opacity: 0.2 });
+      }
 
       const timeline = gsap.timeline();
 
-      if (polygonClipCircleRef.current) {
-        timeline.to(polygonClipCircleRef.current, {
-          attr: { r: RADIUS },
-          duration: 0.9,
-          ease: "back.out(1.2)"
+      if (polygonNode) {
+        timeline.to(polygonNode, {
+          strokeDashoffset: 0,
+          opacity: 1,
+          duration: 0.65,
+          ease: "power2.out"
         });
       }
 
@@ -206,15 +198,14 @@ export function ExposureCheck({ elements }: ExposureCheckProps) {
             );
           })}
 
-          <defs>
-            <clipPath id="exposure-radar-clip">
-              <circle ref={polygonClipCircleRef} cx={CENTER} cy={CENTER} r={0} />
-            </clipPath>
-          </defs>
-
-          <g transform={`translate(${CENTER}, ${CENTER})`} clipPath="url(#exposure-radar-clip)">
-            <path d={polygonPath} fill={polygonStyle.fill} stroke={polygonStyle.stroke} strokeWidth={2} />
-          </g>
+          <polygon
+            ref={polygonRef}
+            points={polygonPoints}
+            fill={polygonStyle.fill}
+            stroke={polygonStyle.stroke}
+            strokeWidth={2}
+            strokeLinejoin="round"
+          />
 
           {chartData.map((point, index) => (
             <circle

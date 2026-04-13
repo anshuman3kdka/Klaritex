@@ -27,10 +27,10 @@ const tierColorMap: Record<AmbiguityTier, string> = {
 };
 
 const SVG_WIDTH = 280;
-const SVG_HEIGHT = 140;
+const SVG_HEIGHT = 160;
 const ARC_CENTER_X = SVG_WIDTH / 2;
-const ARC_CENTER_Y = SVG_HEIGHT;
-const ARC_RADIUS = 108;
+const ARC_CENTER_Y = SVG_HEIGHT - 18;
+const ARC_RADIUS = 102;
 
 const scoreToAngle = (score: number) => -Math.PI + (Math.max(0, Math.min(10, score)) / 10) * Math.PI;
 
@@ -47,7 +47,7 @@ export function AmbiguityScore({
   const [animatedScore, setAnimatedScore] = useState(0);
   const [displayColor, setDisplayColor] = useState(NEUTRAL_SCORE_COLOR);
   const [arcReveal, setArcReveal] = useState(0);
-  const [needleAngle, setNeedleAngle] = useState(-180);
+  const [needleAngle, setNeedleAngle] = useState(-Math.PI);
   const [showTierBadge, setShowTierBadge] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [animationTrigger, setAnimationTrigger] = useState(0);
@@ -113,7 +113,7 @@ export function AmbiguityScore({
       setAnimatedScore(0);
       setDisplayColor(NEUTRAL_SCORE_COLOR);
       setArcReveal(0);
-      setNeedleAngle(-180);
+      setNeedleAngle(-Math.PI);
       setShowTierBadge(false);
       return;
     }
@@ -121,10 +121,10 @@ export function AmbiguityScore({
     setAnimatedScore(0);
     setDisplayColor(NEUTRAL_SCORE_COLOR);
     setArcReveal(0);
-    setNeedleAngle(-180);
+    setNeedleAngle(-Math.PI);
     setShowTierBadge(false);
 
-    const counterState = { value: 0, color: NEUTRAL_SCORE_COLOR, arcDraw: 0, needle: -180 };
+    const counterState = { value: 0, color: NEUTRAL_SCORE_COLOR, arcDraw: 0, needle: -Math.PI };
     const ease = gsap.parseEase("expo.out");
     const startTime = performance.now();
 
@@ -161,9 +161,9 @@ export function AmbiguityScore({
     }, 0);
 
     timeline.to(counterState, {
-      needle: (scoreNeedleRad * 180) / Math.PI,
+      needle: scoreNeedleRad,
       onUpdate: () => setNeedleAngle(counterState.needle)
-    }, 0);
+    }, 0.06);
 
     return () => {
       gsap.ticker.remove(tickCounter);
@@ -250,12 +250,12 @@ export function AmbiguityScore({
               <line
                 x1={ARC_CENTER_X}
                 y1={ARC_CENTER_Y}
-                x2={ARC_CENTER_X + Math.cos((-Math.PI / 2)) * (ARC_RADIUS - 18)}
-                y2={ARC_CENTER_Y + Math.sin((-Math.PI / 2)) * (ARC_RADIUS - 18)}
+                x2={ARC_CENTER_X + Math.cos(needleAngle) * (ARC_RADIUS - 18)}
+                y2={ARC_CENTER_Y + Math.sin(needleAngle) * (ARC_RADIUS - 18)}
                 stroke="#c9a84c"
                 strokeWidth={2}
                 strokeLinecap="round"
-                transform={`rotate(${needleAngle} ${ARC_CENTER_X} ${ARC_CENTER_Y})`}
+                style={{ transition: "x2 220ms cubic-bezier(0.22, 1, 0.36, 1), y2 220ms cubic-bezier(0.22, 1, 0.36, 1)" }}
               />
               <circle cx={ARC_CENTER_X} cy={ARC_CENTER_Y} r={3.5} fill="#c9a84c" />
               <text
