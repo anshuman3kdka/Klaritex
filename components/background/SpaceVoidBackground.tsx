@@ -112,9 +112,24 @@ export function SpaceVoidBackground() {
 
   return (
     <div ref={rootRef} aria-hidden="true" className="space-void-bg pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <div className="space-void-nebula nebula-one" ref={(element) => (nebulaRefs.current[0] = element)} />
-      <div className="space-void-nebula nebula-two" ref={(element) => (nebulaRefs.current[1] = element)} />
-      <div className="space-void-nebula nebula-three" ref={(element) => (nebulaRefs.current[2] = element)} />
+      <div
+        className="space-void-nebula nebula-one"
+        ref={(element) => {
+          nebulaRefs.current[0] = element;
+        }}
+      />
+      <div
+        className="space-void-nebula nebula-two"
+        ref={(element) => {
+          nebulaRefs.current[1] = element;
+        }}
+      />
+      <div
+        className="space-void-nebula nebula-three"
+        ref={(element) => {
+          nebulaRefs.current[2] = element;
+        }}
+      />
 
       <div ref={layerOneRef} className="space-void-layer">
         {starsSmall.map((star) => (

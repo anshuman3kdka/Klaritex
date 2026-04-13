@@ -17,13 +17,14 @@ export function useCounter({ target, durationMs, delayMs = 0, start, easing = li
 
   useEffect(() => {
     if (!start) {
-      setValue(0);
       return;
     }
 
     if (durationMs <= 0) {
-      setValue(target);
-      return;
+      const immediateId = window.requestAnimationFrame(() => {
+        setValue(target);
+      });
+      return () => window.cancelAnimationFrame(immediateId);
     }
 
     let frameId = 0;
@@ -57,5 +58,5 @@ export function useCounter({ target, durationMs, delayMs = 0, start, easing = li
     };
   }, [delayMs, durationMs, easing, start, target]);
 
-  return value;
+  return start ? value : 0;
 }
