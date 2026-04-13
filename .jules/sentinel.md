@@ -17,3 +17,8 @@
 **Vulnerability:** The application was vulnerable to SSRF bypasses via IPv4-mapped IPv6 internal network addresses (e.g., `[::ffff:192.168.1.1]`). The application attempted to block `127.0.0.1` and `::ffff:7f...` but Node.js `URL` constructor automatically normalizes these mapped addresses into their hex string equivalents (e.g., `[::ffff:c0a8:101]`), which bypassed the existing partial regex and exact string matching checks.
 **Learning:** Standard decimal IP regex checks are insufficient when dealing with Node.js URL parsing of IPv6 inputs. Node will silently convert embedded IPv4 addresses into hex-mapped IPv6 addresses, which can still be used to route traffic to internal private IPs if the underlying network stack supports it.
 **Prevention:** Implement comprehensive regex blocklists that catch the normalized hex equivalents of all private/internal IPv4 ranges (e.g., 10.x.x.x, 172.16.x.x, 192.168.x.x, 127.x.x.x, 169.254.x.x, 0.x.x.x) within the `::ffff:` mapped space, ensuring checks are run *after* the `URL` constructor has normalized the hostname.
+
+## 2026-04-12 - Memory Exhaustion DoS via Unbounded File Uploads
+**Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
+**Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
+**Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
