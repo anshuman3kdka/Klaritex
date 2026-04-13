@@ -60,7 +60,17 @@ export default function HomePage() {
             </a>
           </div>
           <p className="font-ui text-xs text-[var(--text-secondary)] sm:text-sm">
-            &copy;Anshuman3kdka &middot; Built between lectures
+            &copy;
+            <a
+              href="https://anshuman3kdka.in"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Anshuman3kdka (opens in a new tab)"
+              className="transition-colors hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 rounded-sm"
+            >
+              Anshuman3kdka
+            </a>{" "}
+            &middot; Built between lectures
           </p>
         </div>
       </footer>
