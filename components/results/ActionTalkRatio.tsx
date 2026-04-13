@@ -103,7 +103,7 @@ export function ActionTalkRatio({ actionRatio, talkRatio, ratioLabel }: ActionTa
   const labelText = useMemo(() => ratioLabel || "—", [ratioLabel]);
 
   return (
-    <CollapsibleCard title="Module 7 · Action vs Talk Ratio">
+    <CollapsibleCard title="Module 7 · Action vs Talk Ratio" moduleId="module-7">
       {!hasRatios ? (
         <p className="font-ui rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       ) : (

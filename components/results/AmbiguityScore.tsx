@@ -7,6 +7,7 @@ interface AmbiguityScoreProps {
   rawPenaltyScore?: number;
   tier?: AmbiguityTier;
   animationKey?: number;
+  defaultExpanded?: boolean;
 }
 
 const COUNTER_DURATION_MS = 1200;
@@ -19,7 +20,13 @@ const tierBadgeClassMap: Record<AmbiguityTier, string> = {
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 
-export function AmbiguityScore({ ambiguityScore, rawPenaltyScore, tier, animationKey = 0 }: AmbiguityScoreProps) {
+export function AmbiguityScore({
+  ambiguityScore,
+  rawPenaltyScore,
+  tier,
+  animationKey = 0,
+  defaultExpanded = false,
+}: AmbiguityScoreProps) {
   const hasScore = typeof ambiguityScore === "number";
   const hasRawPenalty = typeof rawPenaltyScore === "number";
   const normalizedScore = useMemo(() => (hasScore ? Math.min(10, Math.max(0, ambiguityScore)) : 0), [ambiguityScore, hasScore]);
@@ -61,7 +68,7 @@ export function AmbiguityScore({ ambiguityScore, rawPenaltyScore, tier, animatio
   }, [animationKey, hasScore, normalizedScore]);
 
   return (
-    <CollapsibleCard title="Module 1 · Ambiguity Score">
+    <CollapsibleCard title="Module 1 · Ambiguity Score" moduleId="module-1" defaultExpanded={defaultExpanded}>
       {!hasScore ? (
         <p className="font-ui rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       ) : (

@@ -9,7 +9,7 @@ export function LowestAnchors({ lowestAnchors }: LowestAnchorsProps) {
   const anchors = lowestAnchors?.slice(0, 3);
 
   return (
-    <CollapsibleCard title="Module 6 · Lowest Structural Anchors">
+    <CollapsibleCard title="Module 6 · Lowest Structural Anchors" moduleId="module-6">
       {!anchors ? (
         <p className="font-ui rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       ) : anchors.length === 0 ? (

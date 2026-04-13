@@ -7,6 +7,7 @@ import { CollapsibleCard } from "./CollapsibleCard";
 
 interface CommitmentBreakdownProps {
   elements?: CommitmentElement[];
+  defaultExpanded?: boolean;
 }
 
 type ViewMode = "breakdown" | "stress";
@@ -106,7 +107,7 @@ function useTypewriter(text: string, speed: number): string {
   return visibleText;
 }
 
-export function CommitmentBreakdown({ elements }: CommitmentBreakdownProps) {
+export function CommitmentBreakdown({ elements, defaultExpanded = false }: CommitmentBreakdownProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("breakdown");
   const [stressActivationTick, setStressActivationTick] = useState(0);
 
@@ -143,6 +144,8 @@ export function CommitmentBreakdown({ elements }: CommitmentBreakdownProps) {
   return (
     <CollapsibleCard
       title="Module 10 · Commitment Breakdown"
+      moduleId="module-10"
+      defaultExpanded={defaultExpanded}
       headerAction={
         <div className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-primary)]/45 p-1">
           <button

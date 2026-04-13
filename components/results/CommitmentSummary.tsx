@@ -29,6 +29,7 @@ export function CommitmentSummary({ commitmentSummary }: CommitmentSummaryProps)
   return (
     <CollapsibleCard
       title="Module 8 · Summary of Commitments"
+      moduleId="module-8"
       headerAction={
         <button
           type="button"

@@ -74,7 +74,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
 
       {result ? (
         <section
-          key={resultKey}
+          key={`${resultKey}-${animationKey}`}
           className="mx-auto mt-6 w-full max-w-3xl space-y-4"
           style={{ opacity: isLoading ? 0 : 1, transition: "opacity 400ms ease" }}
         >
@@ -93,6 +93,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
               rawPenaltyScore={result.rawPenaltyScore}
               tier={result.tier}
               animationKey={animationKey}
+              defaultExpanded
             />
           </ScrollRevealCard>
 
@@ -129,7 +130,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
           </ScrollRevealCard>
 
           <ScrollRevealCard>
-            <CommitmentBreakdown elements={result.elements} />
+            <CommitmentBreakdown elements={result.elements} defaultExpanded />
           </ScrollRevealCard>
 
           <ScrollRevealCard>

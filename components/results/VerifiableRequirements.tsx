@@ -8,7 +8,7 @@ export function VerifiableRequirements({ verifiableRequirements }: VerifiableReq
   const requirements = verifiableRequirements ?? null;
 
   return (
-    <CollapsibleCard title="Module 11 · Verifiable Requirements">
+    <CollapsibleCard title="Module 11 · Verifiable Requirements" moduleId="module-11">
       {!requirements ? (
         <p className="font-ui rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       ) : requirements.length === 0 ? (
