@@ -25,9 +25,72 @@
 }
 
 body {
-  background: var(--bg-primary);
+  background: radial-gradient(circle at 50% 42%, #050508 0%, #000000 72%);
   color: var(--text-primary);
   font-family: "Inter", sans-serif;
+}
+
+.space-void-bg {
+  background: radial-gradient(circle at 50% 42%, #050508 0%, #000000 72%);
+}
+
+.space-void-layer {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.void-star {
+  position: absolute;
+  display: block;
+  border-radius: 9999px;
+  will-change: opacity, transform;
+  transform: translateZ(0);
+}
+
+.void-star-small {
+  background: rgba(180, 195, 255, 0.5);
+}
+
+.void-star-medium {
+  background: rgba(208, 222, 255, 0.72);
+}
+
+.void-star-large {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 8px rgba(217, 224, 255, 0.45);
+}
+
+.space-void-nebula {
+  position: absolute;
+  width: 42vw;
+  height: 42vw;
+  min-width: 280px;
+  min-height: 280px;
+  border-radius: 9999px;
+  filter: blur(84px);
+  opacity: 0.16;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.nebula-one {
+  top: -10%;
+  left: -8%;
+  background: radial-gradient(circle, rgba(76, 59, 145, 0.65) 0%, rgba(29, 35, 97, 0.12) 70%, transparent 100%);
+}
+
+.nebula-two {
+  top: 32%;
+  right: -6%;
+  background: radial-gradient(circle, rgba(53, 70, 138, 0.55) 0%, rgba(32, 41, 86, 0.12) 68%, transparent 100%);
+}
+
+.nebula-three {
+  bottom: -20%;
+  left: 28%;
+  background: radial-gradient(circle, rgba(68, 45, 122, 0.52) 0%, rgba(19, 27, 64, 0.1) 72%, transparent 100%);
 }
 
 .font-display {

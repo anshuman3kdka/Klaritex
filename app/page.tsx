@@ -1,9 +1,12 @@
 import { InputPanel } from "@/components/analyzer/InputPanel";
+import { SpaceVoidBackground } from "@/components/background/SpaceVoidBackground";
 
 export default function HomePage() {
   return (
-    <div className="h-[100dvh] flex flex-col bg-[var(--bg-primary)]">
-      <header className="k-entrance-fade-down shrink-0 border-b border-[var(--border)] bg-[var(--bg-surface)]/70">
+    <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--bg-primary)]">
+      <SpaceVoidBackground />
+
+      <header className="k-entrance-fade-down relative z-10 shrink-0 border-b border-[var(--border)] bg-[var(--bg-surface)]/70">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-3 items-center gap-4 px-4 py-5 sm:px-6">
           <div>
             <a
@@ -29,7 +32,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 py-8 sm:px-6 sm:py-12">
+      <main className="relative z-10 flex-1 overflow-y-auto px-4 py-8 sm:px-6 sm:py-12">
         <section className="k-header k-entrance-fade-down mx-auto mb-8 w-full max-w-3xl rounded-xl px-4 py-8 text-center sm:py-10">
           <p className="font-ui text-sm text-[var(--text-secondary)] sm:text-base">
             Language Exposed. Accountability Scored.
@@ -39,7 +42,7 @@ export default function HomePage() {
         <InputPanel />
       </main>
 
-      <footer className="shrink-0 border-t border-[var(--border)] bg-[var(--bg-surface)]/50">
+      <footer className="relative z-10 shrink-0 border-t border-[var(--border)] bg-[var(--bg-surface)]/50">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-8 sm:px-6">
           <div className="flex items-center gap-8">
             <a
