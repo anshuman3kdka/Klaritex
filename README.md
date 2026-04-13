@@ -83,3 +83,28 @@ You are building Klaritex from scratch. The deliverable is a **production-ready 
 - Do not change the scoring logic in `README_Engine.md` — it is a fixed rubric
 - The Gemini API key is stored in Vercel environment variables as `KLARITEX` — never hardcode it
 - All AI analysis must go through the backend API route — never call Gemini directly from the client
+
+---
+
+## Screenshot Setup (for future UI change previews)
+
+I installed Playwright and added a screenshot command so we can capture visual changes directly from this repo.
+
+### One-time setup already completed
+- `playwright` added to dev dependencies
+- Chromium browser binaries installed for headless screenshots
+
+### How to take a screenshot
+1. Start the app: `npm run dev`
+2. In another terminal run: `npm run screenshot -- http://127.0.0.1:3000 screenshots/homepage.png`
+3. The image will be saved into the `screenshots/` folder (or whatever path you pass)
+
+### Command format
+```bash
+npm run screenshot -- <url> <output-file>
+```
+
+Example:
+```bash
+npm run screenshot -- http://127.0.0.1:3000 screenshots/change-1.png
+```
