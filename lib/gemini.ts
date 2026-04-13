@@ -62,7 +62,7 @@ export async function analyzeText(text: string, mode: AnalysisMode): Promise<str
     systemInstruction: SYSTEM_PROMPT,
     generationConfig: {
       temperature: 0,
-      maxOutputTokens: 2048
+      maxOutputTokens: mode === "deep" ? 8192 : 2048
     }
   });
 
