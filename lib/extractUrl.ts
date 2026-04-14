@@ -14,7 +14,7 @@ function normalizeWhitespace(text: string): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
-function isBlockedIpv4(p1: number, p2: number): boolean {
+function isBlockedIpv4Prefix(p1: number, p2: number): boolean {
   return (
     p1 === 0 || // 0.0.0.0/8
     p1 === 10 || // 10.0.0.0/8
@@ -46,7 +46,7 @@ function isSafeUrl(urlString: string): boolean {
     if (match) {
       const p1 = parseInt(match[1]!, 10);
       const p2 = parseInt(match[2]!, 10);
-      if (isBlockedIpv4(p1, p2)) {
+      if (isBlockedIpv4Prefix(p1, p2)) {
         return false;
       }
     }
@@ -67,12 +67,12 @@ function isSafeUrl(urlString: string): boolean {
 
       // Handle IPv4-compatible IPv6 addresses: ::a.b.c.d
       // Node.js normalizes ::a.b.c.d → ::(a*256+b):(c*256+d) in hex.
-      const compatMatch = ipv6.match(/^::([0-9a-f]{1,4}):[0-9a-f]{1,4}$/);
+      const compatMatch = ipv6.match(/^::([0-9a-f]{1,4})(?::[0-9a-f]{1,4})?$/);
       if (compatMatch) {
         const high = parseInt(compatMatch[1]!, 16);
         const p1 = (high >> 8) & 0xff;
         const p2 = high & 0xff;
-        if (isBlockedIpv4(p1, p2)) {
+        if (isBlockedIpv4Prefix(p1, p2)) {
           return false;
         }
       }
@@ -89,7 +89,7 @@ function isSafeUrl(urlString: string): boolean {
           p1 > 255 || p2 > 255 ||
           parseInt(dottedMatch[3]!, 10) > 255 ||
           parseInt(dottedMatch[4]!, 10) > 255 ||
-          isBlockedIpv4(p1, p2)
+          isBlockedIpv4Prefix(p1, p2)
         ) {
           return false;
         }
@@ -106,7 +106,7 @@ function isSafeUrl(urlString: string): boolean {
         const high = parseInt(hexMatch[1]!, 16);
         const p1 = (high >> 8) & 0xff;
         const p2 = high & 0xff;
-        if (isBlockedIpv4(p1, p2)) {
+        if (isBlockedIpv4Prefix(p1, p2)) {
           return false;
         }
       }
