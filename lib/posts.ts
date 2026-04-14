@@ -26,14 +26,20 @@ function normalizeMeta(data: Record<string, unknown>, filename: string): PostMet
   const title = typeof data.title === "string" ? data.title : slug;
   const excerpt = typeof data.excerpt === "string" ? data.excerpt : "";
   const published = data.published === true;
-  // js-yaml may parse unquoted YYYY-MM-DD as a Date object; coerce to ISO string
+  // js-yaml may parse unquoted YYYY-MM-DD as a Date object (local midnight).
+  // Read back local components to avoid UTC off-by-one in non-UTC environments.
   let date: string;
   if (data.date instanceof Date) {
-    date = data.date.toISOString().slice(0, 10);
+    const d = data.date;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    date = `${y}-${m}-${day}`;
   } else if (typeof data.date === "string" && data.date) {
     date = data.date;
   } else {
-    date = new Date().toISOString().slice(0, 10);
+    // Sentinel: missing-date posts sort to the bottom.
+    date = "1970-01-01";
   }
   return { title, date, slug, excerpt, published };
 }
