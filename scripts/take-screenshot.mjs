@@ -12,7 +12,8 @@ const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 
 try {
-  await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 });
+  await page.goto(url, { waitUntil: 'load', timeout: 60_000 });
+  await page.waitForSelector('body', { state: 'visible', timeout: 60_000 });
   await page.screenshot({ path: outputPath, fullPage: true });
   console.log(`Saved screenshot to ${outputPath}`);
 } finally {

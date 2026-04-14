@@ -88,16 +88,20 @@ You are building Klaritex from scratch. The deliverable is a **production-ready 
 
 ## Screenshot Setup (for future UI change previews)
 
-I installed Playwright and added a screenshot command so we can capture visual changes directly from this repo.
+This repo includes Playwright and a screenshot command so visual changes can be captured directly from the repository.
 
-### One-time setup already completed
-- `playwright` added to dev dependencies
-- Chromium browser binaries installed for headless screenshots
+### One-time setup
+- `playwright` is already listed in `devDependencies`
+- On a fresh clone, install the browser binaries before taking screenshots:
+  ```bash
+  npx playwright install chromium
+  ```
 
 ### How to take a screenshot
 1. Start the app: `npm run dev`
-2. In another terminal run: `npm run screenshot -- http://127.0.0.1:3000 screenshots/homepage.png`
-3. The image will be saved into the `screenshots/` folder (or whatever path you pass)
+2. If you have not installed Playwright browsers on this machine yet, run: `npx playwright install chromium`
+3. In another terminal run: `npm run screenshot -- http://127.0.0.1:3000 screenshots/homepage.png`
+4. The image will be saved into the `screenshots/` folder (or whatever path you pass)
 
 ### Command format
 ```bash

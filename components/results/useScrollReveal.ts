@@ -19,7 +19,6 @@ export function useScrollReveal<T extends HTMLElement>(ref: RefObject<T | null>)
     }
 
     if (prefersReducedMotion()) {
-      setIsVisible(true);
       return;
     }
 
