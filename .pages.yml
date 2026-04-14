@@ -1,0 +1,34 @@
+media:
+  input: public/media
+  output: /media
+
+content:
+  - name: posts
+    label: Blog Posts
+    type: collection
+    path: content/posts
+    view:
+      fields: [title, date, published]
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: date
+        label: Date
+        type: date
+        required: true
+      - name: slug
+        label: Slug
+        type: string
+        required: true
+      - name: excerpt
+        label: Excerpt
+        type: text
+      - name: published
+        label: Published
+        type: boolean
+        default: false
+      - name: body
+        label: Body
+        type: rich-text
