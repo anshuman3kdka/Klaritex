@@ -32,3 +32,26 @@ content:
       - name: body
         label: Body
         type: rich-text
+  - name: api-config
+    label: API Settings
+    type: file
+    path: content/settings/api-config.json
+    fields:
+      - name: quick_provider
+        label: "⚡ Quick Mode Provider"
+        type: select
+        required: true
+        options:
+          - value: groq
+            label: "Groq (faster, free tier)"
+          - value: gemini
+            label: "Gemini (Google)"
+      - name: deep_provider
+        label: "🔍 Deep Mode Provider"
+        type: select
+        required: true
+        options:
+          - value: groq
+            label: "Groq (faster, free tier)"
+          - value: gemini
+            label: "Gemini (Google)"
