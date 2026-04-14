@@ -3,7 +3,7 @@
 import { gsap } from "gsap";
 import { RefObject, useEffect, useRef } from "react";
 
-export function useGSAPAccordion(isOpen: boolean, contentRef: RefObject<HTMLDivElement>) {
+export function useGSAPAccordion(isOpen: boolean, contentRef: RefObject<HTMLDivElement | null>) {
   const isFirstRenderRef = useRef(true);
 
   useEffect(() => {
@@ -54,4 +54,3 @@ export function useGSAPAccordion(isOpen: boolean, contentRef: RefObject<HTMLDivE
     });
   }, [isOpen, contentRef]);
 }
-

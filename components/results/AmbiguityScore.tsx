@@ -52,6 +52,7 @@ export function AmbiguityScore({
   const [showTooltip, setShowTooltip] = useState(false);
   const [animationTrigger, setAnimationTrigger] = useState(0);
   const [hasBeenRevealed, setHasBeenRevealed] = useState(defaultExpanded);
+  const [scorePathLength, setScorePathLength] = useState(0);
   const scorePathRef = useRef<SVGPathElement | null>(null);
 
   const tierText = tier ? `Tier ${tier}` : "—";
@@ -92,6 +93,15 @@ export function AmbiguityScore({
   }, []);
 
   useEffect(() => {
+    const path = scorePathRef.current;
+    if (!path) {
+      return;
+    }
+
+    setScorePathLength(path.getTotalLength());
+  }, [fullArcPath]);
+
+  useEffect(() => {
     const handleModuleReveal = (event: Event) => {
       const customEvent = event as CustomEvent<{ moduleId?: string }>;
       if (customEvent.detail?.moduleId !== "module-1") {
@@ -109,20 +119,20 @@ export function AmbiguityScore({
   }, []);
 
   useEffect(() => {
-    if (!hasScore || !hasBeenRevealed) {
+    const resetVisualState = () => {
       setAnimatedScore(0);
       setDisplayColor(NEUTRAL_SCORE_COLOR);
       setArcReveal(0);
       setNeedleAngle(-Math.PI);
       setShowTierBadge(false);
-      return;
+    };
+
+    if (!hasScore || !hasBeenRevealed) {
+      const resetId = window.setTimeout(resetVisualState, 0);
+      return () => window.clearTimeout(resetId);
     }
 
-    setAnimatedScore(0);
-    setDisplayColor(NEUTRAL_SCORE_COLOR);
-    setArcReveal(0);
-    setNeedleAngle(-Math.PI);
-    setShowTierBadge(false);
+    const resetId = window.setTimeout(resetVisualState, 0);
 
     const counterState = { value: 0, color: NEUTRAL_SCORE_COLOR, arcDraw: 0, needle: -Math.PI };
     const ease = gsap.parseEase("expo.out");
@@ -166,31 +176,28 @@ export function AmbiguityScore({
     }, 0.06);
 
     return () => {
+      window.clearTimeout(resetId);
       gsap.ticker.remove(tickCounter);
       timeline.kill();
     };
   }, [animationKey, animationTrigger, hasBeenRevealed, hasScore, normalizedScore, scoreNeedleRad, tierColor]);
 
-  const computedDashArray = () => {
-    const path = scorePathRef.current;
-    if (!path) {
+  const computedDashArray = useMemo(() => {
+    if (!scorePathLength) {
       return undefined;
     }
 
-    const fullLength = path.getTotalLength();
-    const visibleLength = Math.max(fullLength * scoreSegmentLength, 0.0001);
-    return `${visibleLength} ${fullLength}`;
-  };
+    const visibleLength = Math.max(scorePathLength * scoreSegmentLength, 0.0001);
+    return `${visibleLength} ${scorePathLength}`;
+  }, [scorePathLength, scoreSegmentLength]);
 
-  const computedDashOffset = () => {
-    const path = scorePathRef.current;
-    if (!path) {
+  const computedDashOffset = useMemo(() => {
+    if (!scorePathLength) {
       return undefined;
     }
 
-    const fullLength = path.getTotalLength();
-    return fullLength * scoreSegmentLength * (1 - arcReveal);
-  };
+    return scorePathLength * scoreSegmentLength * (1 - arcReveal);
+  }, [arcReveal, scorePathLength, scoreSegmentLength]);
 
   return (
     <CollapsibleCard title="Module 1 · Ambiguity Score" moduleId="module-1" defaultExpanded={defaultExpanded}>
@@ -230,8 +237,8 @@ export function AmbiguityScore({
                 strokeWidth={8}
                 strokeLinecap="round"
                 style={{
-                  strokeDasharray: computedDashArray(),
-                  strokeDashoffset: computedDashOffset(),
+                  strokeDasharray: computedDashArray,
+                  strokeDashoffset: computedDashOffset,
                 }}
               />
               {boundaryTicks.map((tick) => (

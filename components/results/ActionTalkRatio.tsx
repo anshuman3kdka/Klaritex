@@ -29,9 +29,11 @@ export function ActionTalkRatio({ actionRatio, talkRatio, ratioLabel }: ActionTa
 
   useEffect(() => {
     if (!hasRatios) {
-      setHasStarted(false);
-      setShowLabel(false);
-      return;
+      const resetId = window.setTimeout(() => {
+        setHasStarted(false);
+        setShowLabel(false);
+      }, 0);
+      return () => window.clearTimeout(resetId);
     }
 
     if (typeof window === "undefined") {
@@ -39,9 +41,11 @@ export function ActionTalkRatio({ actionRatio, talkRatio, ratioLabel }: ActionTa
     }
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setHasStarted(true);
-      setShowLabel(true);
-      return;
+      const reducedMotionId = window.setTimeout(() => {
+        setHasStarted(true);
+        setShowLabel(true);
+      }, 0);
+      return () => window.clearTimeout(reducedMotionId);
     }
 
     const currentBar = barRef.current;
@@ -50,8 +54,10 @@ export function ActionTalkRatio({ actionRatio, talkRatio, ratioLabel }: ActionTa
     }
 
     if (typeof window.IntersectionObserver !== "function") {
-      setHasStarted(true);
-      return;
+      const fallbackId = window.setTimeout(() => {
+        setHasStarted(true);
+      }, 0);
+      return () => window.clearTimeout(fallbackId);
     }
 
     const observer = new IntersectionObserver(
@@ -71,7 +77,6 @@ export function ActionTalkRatio({ actionRatio, talkRatio, ratioLabel }: ActionTa
 
   useEffect(() => {
     if (!hasStarted) {
-      setShowLabel(false);
       return;
     }
 
@@ -101,6 +106,7 @@ export function ActionTalkRatio({ actionRatio, talkRatio, ratioLabel }: ActionTa
   const talkDisplay = hasStarted ? animatedTalk : 0;
 
   const labelText = useMemo(() => ratioLabel || "—", [ratioLabel]);
+  const isLabelVisible = hasStarted && showLabel;
 
   return (
     <CollapsibleCard title="Module 7 · Action vs Talk Ratio" moduleId="module-7">
@@ -139,7 +145,7 @@ export function ActionTalkRatio({ actionRatio, talkRatio, ratioLabel }: ActionTa
 
           <p
             className="font-mono-ui mt-3 inline-flex rounded-sm border border-[var(--gold-muted)]/70 bg-[var(--gold-primary)]/14 px-3 py-1 text-xs uppercase tracking-[0.15em] text-[var(--text-gold)] transition-opacity"
-            style={{ opacity: showLabel ? 1 : 0, transitionDuration: `${LABEL_FADE_MS}ms` }}
+            style={{ opacity: isLabelVisible ? 1 : 0, transitionDuration: `${LABEL_FADE_MS}ms` }}
           >
             {labelText}
           </p>
