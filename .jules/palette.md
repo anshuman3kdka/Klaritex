@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Dynamic Validation Accessibility
+**Learning:** Forms with dynamic validation errors need to be explicitly connected to the input element so screen readers can announce them correctly. Relying just on visual proximity is a major accessibility failure.
+**Action:** Always use `aria-invalid` on inputs with errors. Use `aria-describedby` to link the input to both its helper text and any error messages (by adding IDs to those texts). Ensure the error message container has `role="alert"` so it gets announced immediately when it appears.
