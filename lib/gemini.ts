@@ -1,9 +1,11 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
 import { SYSTEM_PROMPT } from "@/lib/prompts";
 import type { AnalysisMode } from "@/lib/types";
+import { getProviderForMode } from "@/lib/ai-config";
 
-const GEMINI_API_KEY_ENV_NAMES = ["Klaritex", "KLARITEX", "GEMINI_API_KEY"] as const;
+// ─── Input sanitization ──────────────────────────────────────────────────────
 
 export function sanitizeInput(text: string): string {
   return text
@@ -13,58 +15,132 @@ export function sanitizeInput(text: string): string {
     .trim();
 }
 
-function getConfiguredGeminiApiKey(): string {
-  for (const envName of GEMINI_API_KEY_ENV_NAMES) {
-    const value = process.env[envName]?.trim();
+// ─── Error classification ─────────────────────────────────────────────────────
 
-    if (value) {
-      return value;
-    }
-  }
-
-  throw new Error("Missing Gemini API key. Configure KLARITEX (or GEMINI_API_KEY) on the server.");
-}
-
+/** @deprecated Use isProviderUnavailableError for provider-agnostic classification. */
 export function isGeminiUnavailableErrorMessage(message: string): boolean {
-  const lowerMessage = message.toLowerCase();
-
+  const m = message.toLowerCase();
   return (
-    lowerMessage.includes("missing gemini api key") ||
-    lowerMessage.includes("unavailable") ||
-    lowerMessage.includes("quota") ||
-    lowerMessage.includes("429")
+    m.includes("missing gemini api key") ||
+    m.includes("unavailable") ||
+    m.includes("quota") ||
+    m.includes("429")
   );
 }
 
-export function getGeminiModel(mode: AnalysisMode) {
-  const apiKey = getConfiguredGeminiApiKey();
-  const genAI = new GoogleGenerativeAI(apiKey);
-
-  return genAI.getGenerativeModel({
-    model: mode === "deep" ? "gemini-3-flash-preview" : "gemini-3.1-flash-lite-preview"
-  });
+export function isProviderUnavailableError(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("missing gemini api key") ||
+    m.includes("missing groq api key") ||
+    m.includes("missing api key") ||
+    m.includes("unavailable") ||
+    m.includes("quota") ||
+    m.includes("429") ||
+    m.includes("rate_limit")
+  );
 }
 
-export async function analyzeText(text: string, mode: AnalysisMode): Promise<string> {
-  const model = getGeminiModel(mode);
+// ─── Gemini provider ──────────────────────────────────────────────────────────
+
+const GEMINI_KEY_NAMES = ["Klaritex", "KLARITEX", "GEMINI_API_KEY"] as const;
+
+function getGeminiKey(): string {
+  for (const name of GEMINI_KEY_NAMES) {
+    const v = process.env[name]?.trim();
+    if (v) return v;
+  }
+  throw new Error("Missing Gemini API key. Configure KLARITEX on the server.");
+}
+
+let _geminiClient: GoogleGenerativeAI | undefined;
+function getGeminiClient(): GoogleGenerativeAI {
+  if (!_geminiClient) {
+    _geminiClient = new GoogleGenerativeAI(getGeminiKey());
+  }
+  return _geminiClient;
+}
+
+async function analyzeWithGemini(text: string, mode: AnalysisMode): Promise<string> {
+  const model = getGeminiClient().getGenerativeModel({
+    model: mode === "deep" ? "gemini-1.5-pro" : "gemini-1.5-flash",
+  });
   const promptText =
     mode === "deep"
       ? `Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
       : `Analyze the following text (quick mode — be concise):\n\n${text}`;
 
   const result = await model.generateContent({
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: promptText }]
-      }
-    ],
+    contents: [{ role: "user", parts: [{ text: promptText }] }],
     systemInstruction: SYSTEM_PROMPT,
     generationConfig: {
       temperature: 0,
-      maxOutputTokens: mode === "deep" ? 8192 : 2048
-    }
+      maxOutputTokens: mode === "deep" ? 8192 : 2048,
+    },
   });
-
   return result.response.text();
+}
+
+// ─── Groq provider ────────────────────────────────────────────────────────────
+
+const GROQ_KEY_NAMES = ["Klaritex_groq", "KLARITEX_GROQ", "GROQ_API_KEY"] as const;
+
+function getGroqKey(): string {
+  for (const name of GROQ_KEY_NAMES) {
+    const v = process.env[name]?.trim();
+    if (v) return v;
+  }
+  throw new Error(
+    "Missing Groq API key. Configure one of: Klaritex_groq, KLARITEX_GROQ, GROQ_API_KEY."
+  );
+}
+
+let _groqClient: Groq | undefined;
+function getGroqClient(): Groq {
+  if (!_groqClient) {
+    _groqClient = new Groq({ apiKey: getGroqKey() });
+  }
+  return _groqClient;
+}
+
+async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string> {
+  const model = mode === "deep" ? "openai/gpt-oss-120b" : "qwen/qwen3-32b";
+  const promptText =
+    mode === "deep"
+      ? `Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
+      : `Analyze the following text (quick mode — be concise):\n\n${text}`;
+
+  const completion = await getGroqClient().chat.completions.create({
+    model,
+    messages: [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: promptText },
+    ],
+    temperature: 0,
+    max_tokens: mode === "deep" ? 8192 : 2048,
+  });
+  return completion.choices[0]?.message?.content ?? "";
+}
+
+// ─── Public entry point ───────────────────────────────────────────────────────
+
+export async function analyzeText(text: string, mode: AnalysisMode): Promise<string> {
+  const primary = getProviderForMode(mode);
+  const fallback = primary === "gemini" ? "groq" : "gemini";
+
+  try {
+    return await (primary === "gemini" ? analyzeWithGemini(text, mode) : analyzeWithGroq(text, mode));
+  } catch (primaryErr) {
+    const msg = primaryErr instanceof Error ? primaryErr.message.toLowerCase() : "";
+    if (msg.includes("missing") && msg.includes("api key")) {
+      try {
+        return await (fallback === "gemini"
+          ? analyzeWithGemini(text, mode)
+          : analyzeWithGroq(text, mode));
+      } catch {
+        throw primaryErr;
+      }
+    }
+    throw primaryErr;
+  }
 }
