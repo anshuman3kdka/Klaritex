@@ -24,7 +24,8 @@ function isSafeUrl(urlString: string): boolean {
     if (
       hostname === "localhost" ||
       hostname.endsWith(".localhost") ||
-      hostname.endsWith(".local")
+      hostname.endsWith(".local") ||
+      hostname.endsWith(".")
     ) {
       return false;
     }
@@ -58,6 +59,25 @@ function isSafeUrl(urlString: string): boolean {
         ipv6.startsWith("fe80")
       ) {
         return false;
+      }
+
+      // Handle IPv4-compatible IPv6 addresses: ::a.b.c.d
+      // Node.js normalizes ::a.b.c.d → ::(a*256+b):(c*256+d) in hex.
+      const compatMatch = ipv6.match(/^::([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+      if (compatMatch) {
+        const high = parseInt(compatMatch[1]!, 16);
+        const p1 = (high >> 8) & 0xff;
+        const p2 = high & 0xff;
+        if (
+          p1 === 0 ||
+          p1 === 10 ||
+          p1 === 127 ||
+          (p1 === 172 && p2 >= 16 && p2 <= 31) ||
+          (p1 === 192 && p2 === 168) ||
+          (p1 === 169 && p2 === 254)
+        ) {
+          return false;
+        }
       }
 
       // Handle IPv4-mapped IPv6 in dotted-decimal form: ::ffff:a.b.c.d

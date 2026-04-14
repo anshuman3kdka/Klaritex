@@ -22,3 +22,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2025-02-17 - SSRF Bypasses via IPv4-Compatible IPv6 and Trailing Dots
+**Vulnerability:** The application was vulnerable to SSRF bypasses when parsing URLs for internal requests. Specifically, trailing dots on domain names (e.g., `localhost.`) bypassed strict string matching, and IPv4-compatible IPv6 addresses (e.g., `::127.0.0.1` and `[::127.0.0.1]`) bypassed dotted-decimal checks as Node.js normalizes them into hex format (e.g., `[::7f00:1]`).
+**Learning:** Node.js URL normalization handles IPv6 IP translations uniquely. IPv4-mapped IPv6 (`::ffff:127.0.0.1`) and IPv4-compatible IPv6 (`::127.0.0.1`) are both converted. Second, Node.js preserves trailing dots on domain names (like `localhost.`) inside the `url.hostname` property, enabling SSRF bypasses via hostname string matching validation checks.
+**Prevention:** Always validate hostnames ignoring trailing dots or block URLs with trailing dots entirely. In regex validation for SSRF, account for IPv4-compatible IPv6 (`::[hex]:[hex]`) matching alongside standard IPv4-mapped IPv6 blocklisting logic.
