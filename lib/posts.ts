@@ -18,6 +18,26 @@ export interface Post extends PostMeta {
   contentHtml: string;
 }
 
+function normalizeMeta(data: Record<string, unknown>, filename: string): PostMeta {
+  const slug =
+    typeof data.slug === "string" && data.slug
+      ? data.slug
+      : filename.replace(/\.md$/, "");
+  const title = typeof data.title === "string" ? data.title : slug;
+  const excerpt = typeof data.excerpt === "string" ? data.excerpt : "";
+  const published = data.published === true;
+  // js-yaml may parse unquoted YYYY-MM-DD as a Date object; coerce to ISO string
+  let date: string;
+  if (data.date instanceof Date) {
+    date = data.date.toISOString().slice(0, 10);
+  } else if (typeof data.date === "string" && data.date) {
+    date = data.date;
+  } else {
+    date = new Date().toISOString().slice(0, 10);
+  }
+  return { title, date, slug, excerpt, published };
+}
+
 export function getAllPostMeta(): PostMeta[] {
   if (!fs.existsSync(POSTS_DIR)) return [];
   const files = fs.readdirSync(POSTS_DIR).filter((f) => f.endsWith(".md"));
@@ -25,24 +45,37 @@ export function getAllPostMeta(): PostMeta[] {
     .map((filename) => {
       const raw = fs.readFileSync(path.join(POSTS_DIR, filename), "utf8");
       const { data } = matter(raw);
-      return data as PostMeta;
+      return normalizeMeta(data as Record<string, unknown>, filename);
     })
     .filter((p) => p.published)
-    .sort((a, b) => (a.date < b.date ? 1 : -1));
+    .sort((a, b) => {
+      if (a.date === b.date) return 0;
+      return a.date < b.date ? 1 : -1;
+    });
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   if (!fs.existsSync(POSTS_DIR)) return null;
+  // Attempt direct filename resolution first (slug == basename without extension)
+  const candidate = path.join(POSTS_DIR, `${slug}.md`);
+  if (fs.existsSync(candidate)) {
+    const raw = fs.readFileSync(candidate, "utf8");
+    const { data, content } = matter(raw);
+    const meta = normalizeMeta(data as Record<string, unknown>, `${slug}.md`);
+    if (meta.published && meta.slug === slug) {
+      const processed = await remark().use(html).process(content);
+      return { ...meta, contentHtml: processed.toString() };
+    }
+  }
+  // Fall back to a linear scan for posts whose slug differs from their filename
   const files = fs.readdirSync(POSTS_DIR).filter((f) => f.endsWith(".md"));
   for (const filename of files) {
     const raw = fs.readFileSync(path.join(POSTS_DIR, filename), "utf8");
     const { data, content } = matter(raw);
-    if (data.slug === slug && data.published) {
+    const meta = normalizeMeta(data as Record<string, unknown>, filename);
+    if (meta.slug === slug && meta.published) {
       const processed = await remark().use(html).process(content);
-      return {
-        ...(data as PostMeta),
-        contentHtml: processed.toString(),
-      };
+      return { ...meta, contentHtml: processed.toString() };
     }
   }
   return null;
