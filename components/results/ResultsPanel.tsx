@@ -55,8 +55,10 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
 
   useEffect(() => {
     if (isLoading) {
-      setShowSkeleton(true);
-      return;
+      const showId = window.setTimeout(() => {
+        setShowSkeleton(true);
+      }, 0);
+      return () => window.clearTimeout(showId);
     }
 
     const timer = window.setTimeout(() => setShowSkeleton(false), 300);
@@ -65,8 +67,11 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
 
   useEffect(() => {
     if (result) {
-      setAnimationKey((current) => current + 1);
-      setActiveModuleIndex(0);
+      const animationId = window.setTimeout(() => {
+        setAnimationKey((current) => current + 1);
+        setActiveModuleIndex(0);
+      }, 0);
+      return () => window.clearTimeout(animationId);
     }
   }, [result]);
 

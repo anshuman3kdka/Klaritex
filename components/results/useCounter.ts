@@ -17,33 +17,38 @@ export function useCounter({ target, durationMs, delayMs = 0, start, easing = li
 
   useEffect(() => {
     if (!start) {
-      setValue(0);
-      return;
+      const resetId = window.requestAnimationFrame(() => {
+        setValue(0);
+      });
+      return () => window.cancelAnimationFrame(resetId);
     }
 
     if (durationMs <= 0) {
-      setValue(target);
-      return;
+      const immediateId = window.requestAnimationFrame(() => {
+        setValue(target);
+      });
+      return () => window.cancelAnimationFrame(immediateId);
     }
 
     let frameId = 0;
     let timeoutId: number | null = null;
-    const startedAt = performance.now();
-
-    const tick = () => {
-      const now = performance.now();
-      const elapsed = now - startedAt;
-      const progress = Math.min(elapsed / durationMs, 1);
-      setValue(target * easing(progress));
-
-      if (progress < 1) {
-        frameId = window.requestAnimationFrame(tick);
-      } else {
-        setValue(target);
-      }
-    };
 
     timeoutId = window.setTimeout(() => {
+      const startedAt = performance.now();
+
+      const tick = () => {
+        const now = performance.now();
+        const elapsed = now - startedAt;
+        const progress = Math.min(elapsed / durationMs, 1);
+        setValue(target * easing(progress));
+
+        if (progress < 1) {
+          frameId = window.requestAnimationFrame(tick);
+        } else {
+          setValue(target);
+        }
+      };
+
       frameId = window.requestAnimationFrame(tick);
     }, delayMs);
 
@@ -57,5 +62,5 @@ export function useCounter({ target, durationMs, delayMs = 0, start, easing = li
     };
   }, [delayMs, durationMs, easing, start, target]);
 
-  return value;
+  return start ? value : 0;
 }
