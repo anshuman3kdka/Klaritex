@@ -1,4 +1,4 @@
 {
-  "quick_provider": "groq",
+  "quick_provider": "gemini",
   "deep_provider": "gemini"
 }
