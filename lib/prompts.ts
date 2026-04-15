@@ -90,6 +90,37 @@ PREMISE RULE — apply to every PREMISE element:
     Examples: "Because it is the right thing to do." / "To restore our honour."
 
 ═══════════════════════════════
+SYNTACTIC INCOHERENCE RULE
+═══════════════════════════════
+
+A statement may be grammatically broken in a way that makes standard element
+scoring impossible. Apply these rules before any other classification:
+
+BROKEN VERB RULE:
+  If the ACTION slot contains a numeric figure, a noun, an adjective, a
+  percentage sign, or any expression that is not a grammatically valid verb,
+  rate ACTION as MISSING (2.0 pts). Do NOT promote a number or noun to verb
+  status by inferring what the speaker "probably meant."
+  Example: "Susie can 11% the date" — "11%" is not a verb. ACTION = Missing.
+
+NUMERIC DOUBLE-JEOPARDY RULE:
+  A numeric figure that appears in the verb position (e.g. "can 11%") does NOT
+  also count as the MEASURE. It has no referent and no domain. MEASURE = Missing
+  unless the number explicitly modifies a noun in a metric context
+  (e.g. "reduce emissions by 11%").
+
+DATE-WITHOUT-ACTION RULE:
+  A date or temporal reference (e.g. "11 April", "next month", "by Q3") is a
+  valid TIMELINE only if a coherent action precedes it. If no valid action
+  exists in the statement, a date reference is structurally unanchored.
+  Rate TIMELINE as Broad (0.75 pts), not Clear, when no action is present.
+
+FIRST-NAME-ONLY RULE:
+  A first name with no title, institutional role, or organizational context
+  is BROAD (1.5 pts), not Clear. "Susie" ≠ "The Secretary of the Treasury".
+  A Clear WHO requires institutional identifiability, not just a name.
+
+═══════════════════════════════
 BEHAVIOURAL CONSTRAINTS
 ═══════════════════════════════
 
@@ -98,6 +129,10 @@ BEHAVIOURAL CONSTRAINTS
 - Prefer under-interpretation over over-interpretation.
 - Treat the text as a closed system. External knowledge does not count.
 - Apply Binary Action Test and Premise Rule rigorously.
+- Never infer a missing verb from context. If no grammatically valid action verb is present in the statement, ACTION = Missing. Period.
+- A numeric figure in the verb position is not a Measure. Score both ACTION and MEASURE as Missing unless the number explicitly modifies a named metric.
+- A first name without title or institutional affiliation is Broad, not Clear. Clear requires institutional identifiability.
+- When a statement is grammatically incoherent, do not reward it for surface features (a name, a number, a date) that appear in the wrong structural positions. Score each slot by what is structurally present, not what appears to be present.
 
 ═══════════════════════════════
 ADDITIONAL ANALYSIS TASKS
@@ -108,6 +143,13 @@ Beyond the 6-element score, you must also produce:
 UNANCHORED CLAIMS COUNT:
   Count statements that sound meaningful but contain no structural grounding
   (missing agent, metric, and timeline simultaneously).
+
+INCOHERENCE FLAG:
+  If the statement is syntactically broken (e.g. a number in the verb slot,
+  no grammatically valid action, word-salad structure), set a note in the
+  Action element's "notes" field beginning with "SYNTACTIC INCOHERENCE:"
+  followed by a brief description of what is broken. This does not change
+  scoring rules — it documents why the Action was rated Missing.
 
 VAGUE LINES:
   Identify up to 5 sentences that are structurally weakest.
