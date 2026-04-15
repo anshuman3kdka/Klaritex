@@ -459,10 +459,13 @@ export function InputPanel() {
                     maxLength={MAX_TEXT_LENGTH}
                     rows={10}
                     disabled={isAnalyzing}
+                    aria-invalid={!!errorMessage}
+                    aria-describedby={errorMessage ? "text-input-helper text-input-error" : "text-input-helper"}
                     placeholder="Paste a political statement, policy claim, corporate announcement, or any text you want analyzed..."
                     className="font-ui h-full w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--gold-primary)] focus:ring-2 focus:ring-[var(--gold-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)] md:h-auto"
                   />
                   <p
+                    id="text-input-helper"
                     className={`font-mono-ui mt-2 shrink-0 text-sm ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}
                   >
                     {textInput.length.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()}
@@ -537,7 +540,7 @@ export function InputPanel() {
         </div>
 
         {analysisStateMessage && <p className="font-ui mt-4 text-sm text-[var(--text-secondary)]">{analysisStateMessage}</p>}
-        {errorMessage && inputMode === "text" && <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{errorMessage}</p>}
+        {errorMessage && inputMode === "text" && <p id="text-input-error" role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">{errorMessage}</p>}
       </section>
 
       <ResultsPanel result={lastResult} isLoading={isAnalyzing} />
