@@ -63,7 +63,7 @@ function getGeminiClient(): GoogleGenerativeAI {
 
 async function analyzeWithGemini(text: string, mode: AnalysisMode): Promise<string> {
   const model = getGeminiClient().getGenerativeModel({
-    model: mode === "deep" ? "gemini-1.5-pro" : "gemini-1.5-flash",
+    model: mode === "deep" ? "gemini-3-flash-preview" : "gemini-3.1-flash-lite-preview",
   });
   const promptText =
     mode === "deep"
@@ -76,6 +76,7 @@ async function analyzeWithGemini(text: string, mode: AnalysisMode): Promise<stri
     generationConfig: {
       temperature: 0,
       maxOutputTokens: mode === "deep" ? 8192 : 2048,
+      responseMimeType: "application/json",
     },
   });
   return result.response.text();
@@ -116,6 +117,7 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: promptText },
     ],
+    response_format: { type: "json_object" },
     temperature: 0,
     max_tokens: mode === "deep" ? 8192 : 2048,
   });
