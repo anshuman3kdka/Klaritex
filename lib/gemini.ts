@@ -35,9 +35,16 @@ export function isProviderUnavailableError(message: string): boolean {
     m.includes("missing groq api key") ||
     m.includes("missing api key") ||
     m.includes("unavailable") ||
+    m.includes("service unavailable") ||
+    m.includes("model") ||
+    m.includes("not found") ||
+    m.includes("does not exist") ||
+    m.includes("decommissioned") ||
+    m.includes("unsupported") ||
     m.includes("quota") ||
     m.includes("429") ||
-    m.includes("rate_limit")
+    m.includes("rate_limit") ||
+    m.includes("rate limit")
   );
 }
 
@@ -105,23 +112,43 @@ function getGroqClient(): Groq {
 }
 
 async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string> {
-  const model = mode === "deep" ? "openai/gpt-oss-120b" : "qwen/qwen3-32b";
+  const modelCandidates =
+    mode === "deep"
+      ? ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile"]
+      : ["qwen/qwen3-32b"];
   const promptText =
     mode === "deep"
       ? `Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
       : `Analyze the following text (quick mode — be concise):\n\n${text}`;
 
-  const completion = await getGroqClient().chat.completions.create({
-    model,
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: promptText },
-    ],
-    response_format: { type: "json_object" },
-    temperature: 0,
-    max_tokens: mode === "deep" ? 8192 : 2048,
-  });
-  return completion.choices[0]?.message?.content ?? "";
+  let lastError: unknown;
+
+  for (const model of modelCandidates) {
+    try {
+      const completion = await getGroqClient().chat.completions.create({
+        model,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: promptText },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0,
+        max_tokens: mode === "deep" ? 8192 : 2048,
+      });
+      return completion.choices[0]?.message?.content ?? "";
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : "";
+      const shouldTryNextModel =
+        mode === "deep" && isProviderUnavailableError(message) && model !== modelCandidates.at(-1);
+
+      if (!shouldTryNextModel) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Groq deep models unavailable.");
 }
 
 // ─── Public entry point ───────────────────────────────────────────────────────
@@ -134,7 +161,7 @@ export async function analyzeText(text: string, mode: AnalysisMode): Promise<str
     return await (primary === "gemini" ? analyzeWithGemini(text, mode) : analyzeWithGroq(text, mode));
   } catch (primaryErr) {
     const msg = primaryErr instanceof Error ? primaryErr.message.toLowerCase() : "";
-    if (msg.includes("missing") && msg.includes("api key")) {
+    if (isProviderUnavailableError(msg)) {
       try {
         return await (fallback === "gemini"
           ? analyzeWithGemini(text, mode)
