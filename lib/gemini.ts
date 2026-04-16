@@ -80,8 +80,6 @@ async function analyzeWithGemini(text: string, mode: AnalysisMode): Promise<stri
   const result = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: promptText }] }],
     systemInstruction: SYSTEM_PROMPT,
-    // "High reasoning" equivalent in Gemini is a larger thinking budget.
-    thinkingConfig: { thinkingBudget: 24576 },
     generationConfig: {
       temperature: 0,
       topP: 0.5,
@@ -136,8 +134,8 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
         ],
         response_format: { type: "json_object" },
         reasoning_effort: "high",
-        temperature: 0,
         top_p: 0.5,
+        temperature: 0,
         max_tokens: mode === "deep" ? 8192 : 2048,
       });
       return completion.choices[0]?.message?.content ?? "";
