@@ -115,7 +115,7 @@ function getGroqClient(): Groq {
 async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string> {
   const modelCandidates =
     mode === "deep"
-      ? ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "moonshotai/kimi-k2-0905"]
+      ? ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile", "moonshotai/kimi-k2-0905"]
       : ["qwen/qwen3-32b", "llama-3.1-8b-instant", "gemma2-9b-it"];
   const promptText =
     mode === "deep"
