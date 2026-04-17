@@ -119,6 +119,13 @@ class GroqEmptyContentError extends Error {
   }
 }
 
+class GroqTruncatedResponseError extends Error {
+  constructor(model: string) {
+    super(`Groq model "${model}" returned a truncated response.`);
+    this.name = "GroqTruncatedResponseError";
+  }
+}
+
 // ─── Lightweight provider prewarm ────────────────────────────────────────────
 
 let _providersPrewarmed = false;
@@ -174,12 +181,13 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
   const sharedRequestOptions = {
     temperature: 0,
     top_p: 0.5,
-    max_tokens: mode === "deep" ? 16000 : 8192,
+    // Groq marks max_tokens as deprecated; use max_completion_tokens to target output length only.
+    max_completion_tokens: mode === "deep" ? 4096 : 2048,
   };
   const promptText =
     mode === "deep"
-      ? `Analyze the following text (deep mode — be thorough and detailed in notes and explanations). Keep reasoning effort low.\n\n${text}`
-      : `Analyze the following text (quick mode — be concise). Do not spend tokens on hidden reasoning; return only the final JSON response.\n\n${text}`;
+      ? `Analyze the following text (deep mode). Return strict JSON only. Keep all notes concise, avoid repeating long quotes, and keep explanations short so the output stays complete and valid.\n\n${text}`
+      : `Analyze the following text (quick mode). Return strict JSON only and keep every field concise to avoid truncation.\n\n${text}`;
 
   let lastError: unknown;
 
@@ -202,15 +210,21 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
         ...(capabilities.supports_reasoning_effort ? { reasoning_effort: "low" as const } : {}),
       });
       const content = completion.choices[0]?.message?.content;
+      const finishReason = completion.choices[0]?.finish_reason;
       if (!content || content.trim() === "") {
         throw new GroqEmptyContentError(model);
+      }
+      if (finishReason === "length") {
+        throw new GroqTruncatedResponseError(model);
       }
       return content;
     } catch (error) {
       lastError = error;
       const message = error instanceof Error ? error.message : "";
       const shouldTryNextModel =
-        (isProviderUnavailableError(message) || error instanceof GroqEmptyContentError) &&
+        (isProviderUnavailableError(message) ||
+          error instanceof GroqEmptyContentError ||
+          error instanceof GroqTruncatedResponseError) &&
         model !== modelCandidates.at(-1);
 
       if (!shouldTryNextModel) break;
