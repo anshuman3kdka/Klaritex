@@ -61,8 +61,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const rawResponse = await analyzeText(sanitizedText, mode);
-    const parsed = parseGeminiResponse(rawResponse);
+    let rawResponse = await analyzeText(sanitizedText, mode);
+    let parsed;
+    try {
+      parsed = parseGeminiResponse(rawResponse);
+    } catch {
+      // One retry helps recover from occasional truncated model JSON payloads.
+      rawResponse = await analyzeText(sanitizedText, mode);
+      parsed = parseGeminiResponse(rawResponse);
+    }
 
     return NextResponse.json(parsed, { status: 200 });
   } catch (error) {

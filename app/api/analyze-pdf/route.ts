@@ -69,8 +69,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "PDF contains no extractable text." }, { status: 422 });
     }
 
-    const rawResponse = await analyzeText(sanitizedText, mode);
-    const parsed = parseGeminiResponse(rawResponse);
+    let rawResponse = await analyzeText(sanitizedText, mode);
+    let parsed;
+    try {
+      parsed = parseGeminiResponse(rawResponse);
+    } catch {
+      // One retry helps recover from occasional truncated model JSON payloads.
+      rawResponse = await analyzeText(sanitizedText, mode);
+      parsed = parseGeminiResponse(rawResponse);
+    }
 
     return NextResponse.json(parsed, { status: 200 });
   } catch (error) {
