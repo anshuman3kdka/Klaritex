@@ -84,6 +84,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
   return (
     <div>
       <input
+        aria-invalid={!!activeErrorMessage}
         ref={inputRef}
         type="file"
         accept=".pdf,application/pdf"
@@ -114,9 +115,10 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
               : "border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:border-[var(--border-accent)]"
         }`}
         aria-label="Upload PDF"
+        aria-describedby={activeErrorMessage ? "pdf-desc pdf-error" : "pdf-desc"}
       >
         <p className="font-ui font-medium">Drag and drop a PDF here, or click to choose a file</p>
-        <p className="font-ui mt-1 text-xs text-[var(--text-secondary)]">PDF only · Maximum 5MB</p>
+        <p id="pdf-desc" className="font-ui mt-1 text-xs text-[var(--text-secondary)]">PDF only · Maximum 5MB</p>
 
         {value ? (
           <div className="mt-4 rounded-md border border-[var(--clear-color)]/40 bg-[var(--clear-color)]/15 p-3">
@@ -126,7 +128,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         ) : null}
       </div>
 
-      {activeErrorMessage ? <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
+      {activeErrorMessage ? <p id="pdf-error" role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
     </div>
   );
 }
