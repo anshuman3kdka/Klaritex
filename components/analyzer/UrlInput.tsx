@@ -23,6 +23,8 @@ export function UrlInput({ value, disabled = false, errorMessage, onChange }: Ur
         URL to analyze
       </label>
       <input
+        aria-invalid={!!errorMessage}
+        aria-describedby={errorMessage ? "url-description url-error" : "url-description"}
         id="klaritex-url-input"
         type="url"
         value={value}
@@ -32,10 +34,10 @@ export function UrlInput({ value, disabled = false, errorMessage, onChange }: Ur
         className="font-ui w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--gold-primary)] focus:ring-2 focus:ring-[var(--gold-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)]"
       />
 
-      <p className="font-ui mt-2 text-xs text-[var(--text-secondary)]">
+      <p id="url-description" className="font-ui mt-2 text-xs text-[var(--text-secondary)]">
         Klaritex analyzes the article&apos;s text only. It does not search the web or fact-check claims.
       </p>
-      {errorMessage ? <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{errorMessage}</p> : null}
+      {errorMessage ? <p id="url-error" role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">{errorMessage}</p> : null}
     </div>
   );
 }
