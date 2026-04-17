@@ -39,7 +39,7 @@ export function isProviderUnavailableError(message: string): boolean {
     m.includes("model not found") ||
     m.includes("model does not exist") ||
     m.includes("decommissioned model") ||
-    m.includes("model is decommissioned") ||
+    m.includes("is decommissioned") ||
     m.includes("unsupported model") ||
     m.includes("quota") ||
     m.includes("429") ||
