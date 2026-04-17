@@ -36,11 +36,11 @@ export function isProviderUnavailableError(message: string): boolean {
     m.includes("missing api key") ||
     m.includes("unavailable") ||
     m.includes("service unavailable") ||
-    m.includes("model") ||
-    m.includes("not found") ||
-    m.includes("does not exist") ||
-    m.includes("decommissioned") ||
-    m.includes("unsupported") ||
+    m.includes("model not found") ||
+    m.includes("model does not exist") ||
+    m.includes("decommissioned model") ||
+    m.includes("is decommissioned") ||
+    m.includes("unsupported model") ||
     m.includes("quota") ||
     m.includes("429") ||
     m.includes("rate_limit") ||
@@ -74,14 +74,15 @@ async function analyzeWithGemini(text: string, mode: AnalysisMode): Promise<stri
   });
   const promptText =
     mode === "deep"
-      ? `Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
-      : `Analyze the following text (quick mode — be concise):\n\n${text}`;
+      ? `Use high reasoning effort internally. Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
+      : `Use high reasoning effort internally. Analyze the following text (quick mode — be concise):\n\n${text}`;
 
   const result = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: promptText }] }],
     systemInstruction: SYSTEM_PROMPT,
     generationConfig: {
       temperature: 0,
+      topP: 0.5,
       maxOutputTokens: mode === "deep" ? 8192 : 2048,
       responseMimeType: "application/json",
     },
@@ -114,8 +115,8 @@ function getGroqClient(): Groq {
 async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string> {
   const modelCandidates =
     mode === "deep"
-      ? ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile"]
-      : ["qwen/qwen3-32b"];
+      ? ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile", "moonshotai/kimi-k2-0905"]
+      : ["qwen/qwen3-32b", "llama-3.1-8b-instant", "gemma2-9b-it"];
   const promptText =
     mode === "deep"
       ? `Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
@@ -132,7 +133,9 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
           { role: "user", content: promptText },
         ],
         response_format: { type: "json_object" },
+        reasoning_effort: "high",
         temperature: 0,
+        top_p: 0.5,
         max_tokens: mode === "deep" ? 8192 : 2048,
       });
       return completion.choices[0]?.message?.content ?? "";
@@ -140,15 +143,13 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
       lastError = error;
       const message = error instanceof Error ? error.message : "";
       const shouldTryNextModel =
-        mode === "deep" && isProviderUnavailableError(message) && model !== modelCandidates.at(-1);
+        isProviderUnavailableError(message) && model !== modelCandidates.at(-1);
 
-      if (!shouldTryNextModel) {
-        throw error;
-      }
+      if (!shouldTryNextModel) break;
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error("Groq deep models unavailable.");
+  throw lastError instanceof Error ? lastError : new Error(`Groq ${mode} models unavailable.`);
 }
 
 // ─── Public entry point ───────────────────────────────────────────────────────
