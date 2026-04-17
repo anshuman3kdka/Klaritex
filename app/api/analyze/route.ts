@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { analyzeText, isProviderUnavailableError, sanitizeInput } from "@/lib/gemini";
 import { parseGeminiResponse } from "@/lib/parseResponse";
+import { checkRateLimit } from "@/lib/rateLimit";
 import type { AnalysisMode } from "@/lib/types";
 
 interface AnalyzeRequestBody {
@@ -14,6 +15,16 @@ function isValidMode(value: unknown): value is AnalysisMode {
 }
 
 export async function POST(request: Request) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const { allowed } = await checkRateLimit(ip);
+
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429 }
+    );
+  }
+
   let body: AnalyzeRequestBody;
 
   try {

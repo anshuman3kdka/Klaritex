@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { extractUrlText, UrlExtractionError } from "@/lib/extractUrl";
 import { analyzeText, isProviderUnavailableError, sanitizeInput } from "@/lib/gemini";
 import { parseGeminiResponse } from "@/lib/parseResponse";
+import { checkRateLimit } from "@/lib/rateLimit";
 import type { AnalysisMode } from "@/lib/types";
 
 interface AnalyzeUrlRequestBody {
@@ -24,6 +25,16 @@ function isValidUrl(value: string): boolean {
 }
 
 export async function POST(request: Request) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const { allowed } = await checkRateLimit(ip);
+
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429 }
+    );
+  }
+
   let body: AnalyzeUrlRequestBody;
 
   try {
