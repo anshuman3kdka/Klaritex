@@ -150,7 +150,7 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
   }
 
   if (lastUnavailableError) {
-    throw new Error(`Groq models unavailable: ${lastUnavailableError}`);
+    throw new Error(lastUnavailableError);
   }
 
   throw new Error(`No Groq model candidates configured for mode: ${mode}`);
