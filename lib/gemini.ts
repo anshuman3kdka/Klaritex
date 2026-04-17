@@ -181,7 +181,8 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
   const sharedRequestOptions = {
     temperature: 0,
     top_p: 0.5,
-    max_tokens: mode === "deep" ? 16000 : 8192,
+    // Groq marks max_tokens as deprecated; use max_completion_tokens to target output length only.
+    max_completion_tokens: mode === "deep" ? 4096 : 2048,
   };
   const promptText =
     mode === "deep"
