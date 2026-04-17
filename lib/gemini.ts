@@ -112,6 +112,13 @@ function getGroqClient(): Groq {
   return _groqClient;
 }
 
+class GroqEmptyContentError extends Error {
+  constructor(model: string) {
+    super(`Groq model "${model}" returned empty content.`);
+    this.name = "GroqEmptyContentError";
+  }
+}
+
 // ─── Lightweight provider prewarm ────────────────────────────────────────────
 
 let _providersPrewarmed = false;
@@ -196,14 +203,14 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
       });
       const content = completion.choices[0]?.message?.content;
       if (!content || content.trim() === "") {
-        throw new Error("model returned empty content");
+        throw new GroqEmptyContentError(model);
       }
       return content;
     } catch (error) {
       lastError = error;
       const message = error instanceof Error ? error.message : "";
       const shouldTryNextModel =
-        (isProviderUnavailableError(message) || message.toLowerCase().includes("empty content")) &&
+        (isProviderUnavailableError(message) || error instanceof GroqEmptyContentError) &&
         model !== modelCandidates.at(-1);
 
       if (!shouldTryNextModel) break;
