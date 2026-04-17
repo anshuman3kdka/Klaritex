@@ -15,6 +15,14 @@ function isValidMode(value: unknown): value is AnalysisMode {
 }
 
 export async function POST(request: Request) {
+  // Content-Length can be absent or spoofed by clients, so this is only a fast-path guard.
+  const contentLengthHeader = request.headers.get("content-length");
+  const contentLength = Number(contentLengthHeader);
+
+  if (contentLengthHeader !== null && Number.isFinite(contentLength) && contentLength > 51200) {
+    return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
+  }
+
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
   const { allowed } = await checkRateLimit(ip);
 
