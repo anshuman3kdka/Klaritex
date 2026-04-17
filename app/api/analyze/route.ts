@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { analyzeText, isProviderUnavailableError, sanitizeInput } from "@/lib/gemini";
-import { parseGeminiResponse } from "@/lib/parseResponse";
+import { analyzeWithParseRetry } from "@/lib/analyzeWithParseRetry";
+import { isProviderUnavailableError, sanitizeInput } from "@/lib/gemini";
 import { checkRateLimit } from "@/lib/rateLimit";
 import type { AnalysisMode } from "@/lib/types";
 
@@ -61,8 +61,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const rawResponse = await analyzeText(sanitizedText, mode);
-    const parsed = parseGeminiResponse(rawResponse);
+    const parsed = await analyzeWithParseRetry(sanitizedText, mode);
 
     return NextResponse.json(parsed, { status: 200 });
   } catch (error) {

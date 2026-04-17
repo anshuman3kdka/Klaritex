@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
+import { analyzeWithParseRetry } from "@/lib/analyzeWithParseRetry";
 import { extractUrlText, UrlExtractionError } from "@/lib/extractUrl";
-import { analyzeText, isProviderUnavailableError, sanitizeInput } from "@/lib/gemini";
-import { parseGeminiResponse } from "@/lib/parseResponse";
+import { isProviderUnavailableError, sanitizeInput } from "@/lib/gemini";
 import { checkRateLimit } from "@/lib/rateLimit";
 import type { AnalysisMode } from "@/lib/types";
 
@@ -72,8 +72,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Could not fetch content from URL." }, { status: 422 });
     }
 
-    const rawResponse = await analyzeText(sanitizedText, mode);
-    const parsed = parseGeminiResponse(rawResponse);
+    const parsed = await analyzeWithParseRetry(sanitizedText, mode);
 
     return NextResponse.json(parsed, { status: 200 });
   } catch (error) {

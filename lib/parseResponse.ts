@@ -4,15 +4,32 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+function cleanModelResponse(raw: string): string {
+  return raw
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+}
+
+function tryParseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    const firstBrace = text.indexOf("{");
+    const lastBrace = text.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      const candidate = text.slice(firstBrace, lastBrace + 1);
+      return JSON.parse(candidate);
+    }
+    throw new Error("JSON payload not found in model response.");
+  }
+}
+
 export function parseGeminiResponse(raw: string): AnalysisResult {
   try {
-    const cleaned = raw
-      .replace(/^```json\s*/i, "")
-      .replace(/^```\s*/i, "")
-      .replace(/\s*```$/i, "")
-      .trim();
-
-    const parsed: unknown = JSON.parse(cleaned);
+    const cleaned = cleanModelResponse(raw);
+    const parsed: unknown = tryParseJson(cleaned);
 
     if (!isObject(parsed)) {
       throw new Error("Invalid Gemini response shape.");
