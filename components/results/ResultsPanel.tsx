@@ -1,11 +1,8 @@
 import { ActionTalkRatio } from "@/components/results/ActionTalkRatio";
 import { AmbiguityExplanation } from "@/components/results/AmbiguityExplanation";
-import { AmbiguityScore } from "@/components/results/AmbiguityScore";
 import { ClarityLevel } from "@/components/results/ClarityLevel";
 import { CommitmentBreakdown } from "@/components/results/CommitmentBreakdown";
 import { CommitmentSummary } from "@/components/results/CommitmentSummary";
-import { DecorativeThreeBackground } from "@/components/results/DecorativeThreeBackground";
-import { ExposureCheck } from "@/components/results/ExposureCheck";
 import { LowestAnchors } from "@/components/results/LowestAnchors";
 import { ScoreSummaryBar } from "@/components/results/ScoreSummaryBar";
 import { ScrollRevealCard } from "@/components/results/ScrollRevealCard";
@@ -15,6 +12,7 @@ import { VerifiableRequirements } from "@/components/results/VerifiableRequireme
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 import { APP_CONFIG } from "@/lib/config";
 import type { AnalysisResult } from "@/lib/types";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
@@ -38,6 +36,40 @@ const SKELETON_LINE_PATTERNS = [
   ["77%", "57%", "69%"],
   ["81%", "64%", "72%"],
 ];
+
+const DYNAMIC_COMPONENT_SKELETON_INDICES = {
+  ambiguityScore: 1,
+  exposureCheck: 3,
+} as const;
+
+const DynamicAmbiguityScore = dynamic(
+  () => import("@/components/results/AmbiguityScore").then((module) => module.AmbiguityScore),
+  {
+    loading: () => (
+      <SkeletonCard
+        minHeight={SKELETON_CARD_HEIGHTS[DYNAMIC_COMPONENT_SKELETON_INDICES.ambiguityScore]}
+        lineWidths={SKELETON_LINE_PATTERNS[DYNAMIC_COMPONENT_SKELETON_INDICES.ambiguityScore]}
+      />
+    ),
+  },
+);
+
+const DynamicExposureCheck = dynamic(
+  () => import("@/components/results/ExposureCheck").then((module) => module.ExposureCheck),
+  {
+    loading: () => (
+      <SkeletonCard
+        minHeight={SKELETON_CARD_HEIGHTS[DYNAMIC_COMPONENT_SKELETON_INDICES.exposureCheck]}
+        lineWidths={SKELETON_LINE_PATTERNS[DYNAMIC_COMPONENT_SKELETON_INDICES.exposureCheck]}
+      />
+    ),
+  },
+);
+
+const DynamicDecorativeThreeBackground = dynamic(
+  () => import("@/components/results/DecorativeThreeBackground").then((module) => module.DecorativeThreeBackground),
+  { loading: () => null },
+);
 
 function ModuleLayer({ index, setActiveModuleIndex, children }: { index: number; setActiveModuleIndex: (index: number) => void; children: ReactNode }) {
   return (
@@ -96,7 +128,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
           className="relative mx-auto mt-6 w-full max-w-3xl overflow-hidden rounded-xl"
           style={{ opacity: isLoading ? 0 : 1, transition: "opacity 400ms ease" }}
         >
-          <DecorativeThreeBackground
+          <DynamicDecorativeThreeBackground
             tier={result.tier}
             activeModuleIndex={activeModuleIndex}
             isEnabled={APP_CONFIG.enableResultsThreeBackground}
@@ -114,7 +146,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
 
             <ModuleLayer index={1} setActiveModuleIndex={setActiveModuleIndex}>
               <ScrollRevealCard>
-                <AmbiguityScore
+                <DynamicAmbiguityScore
                   ambiguityScore={result.ambiguityScore}
                   rawPenaltyScore={result.rawPenaltyScore}
                   tier={result.tier}
@@ -132,7 +164,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
 
             <ModuleLayer index={3} setActiveModuleIndex={setActiveModuleIndex}>
               <ScrollRevealCard>
-                <ExposureCheck elements={result.elements} />
+                <DynamicExposureCheck elements={result.elements} />
               </ScrollRevealCard>
             </ModuleLayer>
 
