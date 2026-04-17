@@ -123,6 +123,7 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
     mode === "deep"
       ? `Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
       : `Analyze the following text (quick mode — be concise):\n\n${text}`;
+  let lastUnavailableError = "";
 
   for (const model of modelCandidates) {
     try {
@@ -140,17 +141,19 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
       return completion.choices[0]?.message?.content ?? "";
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
-      const shouldTryNextModel =
-        isProviderUnavailableError(message) && model !== modelCandidates.at(-1);
-
-      if (shouldTryNextModel) {
+      if (isProviderUnavailableError(message)) {
+        lastUnavailableError = message || `Groq model unavailable: ${model}`;
         continue;
       }
       throw error;
     }
   }
 
-  throw new Error("Groq models unavailable.");
+  if (lastUnavailableError) {
+    throw new Error(`Groq models unavailable: ${lastUnavailableError}`);
+  }
+
+  throw new Error(`No Groq model candidates configured for mode: ${mode}`);
 }
 
 // ─── Public entry point ───────────────────────────────────────────────────────
