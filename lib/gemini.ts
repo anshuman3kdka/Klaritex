@@ -133,7 +133,7 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
           { role: "user", content: promptText },
         ],
         response_format: { type: "json_object" },
-        ...(mode === "deep" ? ({ reasoning_effort: "high", top_p: 0.5 } as const) : {}),
+        ...(mode === "deep" ? { reasoning_effort: "high", top_p: 0.5 } : {}),
         temperature: 0,
         max_tokens: mode === "deep" ? 8192 : 2048,
       });
