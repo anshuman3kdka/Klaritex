@@ -36,11 +36,11 @@ export function isProviderUnavailableError(message: string): boolean {
     m.includes("missing api key") ||
     m.includes("unavailable") ||
     m.includes("service unavailable") ||
-    m.includes("model") ||
-    m.includes("not found") ||
-    m.includes("does not exist") ||
-    m.includes("decommissioned") ||
-    m.includes("unsupported") ||
+    m.includes("model not found") ||
+    m.includes("model does not exist") ||
+    m.includes("decommissioned model") ||
+    m.includes("model is decommissioned") ||
+    m.includes("unsupported model") ||
     m.includes("quota") ||
     m.includes("429") ||
     m.includes("rate_limit") ||
@@ -122,8 +122,6 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
       ? `Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
       : `Analyze the following text (quick mode — be concise):\n\n${text}`;
 
-  let lastError: unknown;
-
   for (const model of modelCandidates) {
     try {
       const completion = await getGroqClient().chat.completions.create({
@@ -140,18 +138,16 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
       });
       return completion.choices[0]?.message?.content ?? "";
     } catch (error) {
-      lastError = error;
       const message = error instanceof Error ? error.message : "";
       const shouldTryNextModel =
         isProviderUnavailableError(message) && model !== modelCandidates.at(-1);
 
-      if (!shouldTryNextModel) {
-        throw error;
-      }
+      if (shouldTryNextModel) continue;
+      throw error;
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error("Groq deep models unavailable.");
+  throw new Error(`Groq ${mode} models unavailable.`);
 }
 
 // ─── Public entry point ───────────────────────────────────────────────────────
