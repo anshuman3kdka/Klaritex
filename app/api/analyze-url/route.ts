@@ -6,6 +6,8 @@ import { parseGeminiResponse } from "@/lib/parseResponse";
 import { checkRateLimit } from "@/lib/rateLimit";
 import type { AnalysisMode } from "@/lib/types";
 
+export const maxDuration = 60;
+
 interface AnalyzeUrlRequestBody {
   url?: unknown;
   mode?: unknown;

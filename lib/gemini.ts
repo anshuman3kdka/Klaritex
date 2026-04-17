@@ -140,14 +140,13 @@ prewarmProviderClients();
 async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string> {
   const modelCandidates =
     mode === "deep"
-      ? ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile", "moonshotai/kimi-k2-0905"]
+      ? ["openai/gpt-oss-120b", "llama-3.3-70b-versatile", "moonshotai/kimi-k2-0905"]
       : ["qwen/qwen3-32b", "llama-3.1-8b-instant", "gemma2-9b-it"];
   const modelCapabilities: Record<
     string,
     { supports_reasoning_effort: boolean; supports_json_response_format: boolean }
   > = {
     "openai/gpt-oss-120b": { supports_reasoning_effort: true, supports_json_response_format: true },
-    "openai/gpt-oss-20b": { supports_reasoning_effort: true, supports_json_response_format: true },
     "llama-3.3-70b-versatile": {
       supports_reasoning_effort: false,
       supports_json_response_format: true,
@@ -168,12 +167,12 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
   const sharedRequestOptions = {
     temperature: 0,
     top_p: 0.5,
-    max_tokens: mode === "deep" ? 8192 : 2048,
+    max_tokens: mode === "deep" ? 16000 : 8192,
   };
   const promptText =
     mode === "deep"
-      ? `Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
-      : `Analyze the following text (quick mode — be concise):\n\n${text}`;
+      ? `Analyze the following text (deep mode — be thorough and detailed in notes and explanations). Keep reasoning effort low.\n\n${text}`
+      : `Analyze the following text (quick mode — be concise). Do not spend tokens on hidden reasoning; return only the final JSON response.\n\n${text}`;
 
   let lastError: unknown;
 
@@ -193,14 +192,19 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
         ...(capabilities.supports_json_response_format
           ? { response_format: { type: "json_object" as const } }
           : {}),
-        ...(capabilities.supports_reasoning_effort ? { reasoning_effort: "high" as const } : {}),
+        ...(capabilities.supports_reasoning_effort ? { reasoning_effort: "low" as const } : {}),
       });
-      return completion.choices[0]?.message?.content ?? "";
+      const content = completion.choices[0]?.message?.content;
+      if (!content || content.trim() === "") {
+        throw new Error("model returned empty content");
+      }
+      return content;
     } catch (error) {
       lastError = error;
       const message = error instanceof Error ? error.message : "";
       const shouldTryNextModel =
-        isProviderUnavailableError(message) && model !== modelCandidates.at(-1);
+        (isProviderUnavailableError(message) || message.toLowerCase().includes("empty content")) &&
+        model !== modelCandidates.at(-1);
 
       if (!shouldTryNextModel) break;
     }

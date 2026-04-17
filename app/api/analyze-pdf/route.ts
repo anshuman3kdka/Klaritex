@@ -6,6 +6,8 @@ import { parseGeminiResponse } from "@/lib/parseResponse";
 import { checkRateLimit } from "@/lib/rateLimit";
 import type { AnalysisMode } from "@/lib/types";
 
+export const maxDuration = 60;
+
 function isValidMode(value: unknown): value is AnalysisMode {
   return value === "quick" || value === "deep";
 }
