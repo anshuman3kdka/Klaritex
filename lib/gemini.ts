@@ -30,17 +30,19 @@ export function isGeminiUnavailableErrorMessage(message: string): boolean {
 
 export function isProviderUnavailableError(message: string): boolean {
   const m = message.toLowerCase();
+  const modelUnavailable =
+    m.includes("model") &&
+    (m.includes("not found") ||
+      m.includes("does not exist") ||
+      m.includes("unsupported") ||
+      m.includes("decommissioned"));
   return (
     m.includes("missing gemini api key") ||
     m.includes("missing groq api key") ||
     m.includes("missing api key") ||
     m.includes("unavailable") ||
     m.includes("service unavailable") ||
-    m.includes("model") ||
-    m.includes("not found") ||
-    m.includes("does not exist") ||
-    m.includes("decommissioned") ||
-    m.includes("unsupported") ||
+    modelUnavailable ||
     m.includes("quota") ||
     m.includes("429") ||
     m.includes("rate_limit") ||
@@ -82,7 +84,7 @@ async function analyzeWithGemini(text: string, mode: AnalysisMode): Promise<stri
     systemInstruction: SYSTEM_PROMPT,
     generationConfig: {
       temperature: 0,
-      topP: 0.5,
+      ...(mode === "deep" ? { topP: 0.5 } : {}),
       maxOutputTokens: mode === "deep" ? 8192 : 2048,
       responseMimeType: "application/json",
     },
@@ -122,8 +124,6 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
       ? `Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
       : `Analyze the following text (quick mode — be concise):\n\n${text}`;
 
-  let lastError: unknown;
-
   for (const model of modelCandidates) {
     try {
       const completion = await getGroqClient().chat.completions.create({
@@ -133,25 +133,24 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
           { role: "user", content: promptText },
         ],
         response_format: { type: "json_object" },
-        reasoning_effort: "high",
-        top_p: 0.5,
+        ...(mode === "deep" ? ({ reasoning_effort: "high", top_p: 0.5 } as const) : {}),
         temperature: 0,
         max_tokens: mode === "deep" ? 8192 : 2048,
       });
       return completion.choices[0]?.message?.content ?? "";
     } catch (error) {
-      lastError = error;
       const message = error instanceof Error ? error.message : "";
       const shouldTryNextModel =
         isProviderUnavailableError(message) && model !== modelCandidates.at(-1);
 
-      if (!shouldTryNextModel) {
-        throw error;
+      if (shouldTryNextModel) {
+        continue;
       }
+      throw error;
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error("Groq deep models unavailable.");
+  throw new Error("Groq models unavailable.");
 }
 
 // ─── Public entry point ───────────────────────────────────────────────────────
