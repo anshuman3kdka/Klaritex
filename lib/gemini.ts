@@ -112,6 +112,31 @@ function getGroqClient(): Groq {
   return _groqClient;
 }
 
+// ─── Lightweight provider prewarm ────────────────────────────────────────────
+
+let _providersPrewarmed = false;
+
+function prewarmProviderClients(): void {
+  if (_providersPrewarmed) return;
+  _providersPrewarmed = true;
+
+  // Validate env keys and initialize SDK clients only; no analysis/API requests.
+  try {
+    getGeminiClient();
+  } catch {
+    // Keep existing runtime fallback behavior unchanged.
+  }
+
+  try {
+    getGroqClient();
+  } catch {
+    // Keep existing runtime fallback behavior unchanged.
+  }
+}
+
+// Best-effort module-load prewarm for server environments.
+prewarmProviderClients();
+
 async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string> {
   const modelCandidates =
     mode === "deep"
@@ -187,6 +212,9 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
 // ─── Public entry point ───────────────────────────────────────────────────────
 
 export async function analyzeText(text: string, mode: AnalysisMode): Promise<string> {
+  // Ensure first boot cycle also attempts prewarm in runtimes that defer module init.
+  prewarmProviderClients();
+
   const primary = getProviderForMode(mode);
   const fallback = primary === "gemini" ? "groq" : "gemini";
 
