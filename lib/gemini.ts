@@ -142,7 +142,7 @@ async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       if (isProviderUnavailableError(message)) {
-        lastUnavailableError = message || `Groq model unavailable: ${model}`;
+        lastUnavailableError = message;
         continue;
       }
       throw error;
