@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import type { AnalysisMode } from "@/lib/types";
 
-export type AIProvider = "gemini" | "groq";
+export type AIProvider = "gemini";
 
 interface AIConfig {
   quick_provider: AIProvider;
@@ -22,7 +22,7 @@ let cachedConfig: AIConfig = DEFAULT_CONFIG;
 let cacheExpiresAt = 0;
 
 function isValidProvider(v: unknown): v is AIProvider {
-  return v === "gemini" || v === "groq";
+  return v === "gemini";
 }
 
 function parseAIConfig(raw: string): AIConfig {

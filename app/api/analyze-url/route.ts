@@ -94,13 +94,6 @@ export async function POST(request: Request) {
         );
       }
 
-      if (message.toLowerCase().includes("missing groq api key")) {
-        return NextResponse.json(
-          { error: "Groq API key is not configured on the server." },
-          { status: 503 }
-        );
-      }
-
       return NextResponse.json({ error: "AI service unavailable." }, { status: 503 });
     }
 

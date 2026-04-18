@@ -1,9 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import Groq from "groq-sdk";
 
 import { SYSTEM_PROMPT } from "@/lib/prompts";
 import type { AnalysisMode } from "@/lib/types";
-import { getProviderForMode } from "@/lib/ai-config";
 
 // ─── Input sanitization ──────────────────────────────────────────────────────
 
@@ -32,7 +30,6 @@ export function isProviderUnavailableError(message: string): boolean {
   const m = message.toLowerCase();
   return (
     m.includes("missing gemini api key") ||
-    m.includes("missing groq api key") ||
     m.includes("missing api key") ||
     m.includes("unavailable") ||
     m.includes("service unavailable") ||
@@ -90,42 +87,6 @@ async function analyzeWithGemini(text: string, mode: AnalysisMode): Promise<stri
   return result.response.text();
 }
 
-// ─── Groq provider ────────────────────────────────────────────────────────────
-
-const GROQ_KEY_NAMES = ["Klaritex_groq", "KLARITEX_GROQ", "GROQ_API_KEY"] as const;
-
-function getGroqKey(): string {
-  for (const name of GROQ_KEY_NAMES) {
-    const v = process.env[name]?.trim();
-    if (v) return v;
-  }
-  throw new Error(
-    "Missing Groq API key. Configure one of: Klaritex_groq, KLARITEX_GROQ, GROQ_API_KEY."
-  );
-}
-
-let _groqClient: Groq | undefined;
-function getGroqClient(): Groq {
-  if (!_groqClient) {
-    _groqClient = new Groq({ apiKey: getGroqKey() });
-  }
-  return _groqClient;
-}
-
-class GroqEmptyContentError extends Error {
-  constructor(model: string) {
-    super(`Groq model "${model}" returned empty content.`);
-    this.name = "GroqEmptyContentError";
-  }
-}
-
-class GroqTruncatedResponseError extends Error {
-  constructor(model: string) {
-    super(`Groq model "${model}" returned a truncated response.`);
-    this.name = "GroqTruncatedResponseError";
-  }
-}
-
 // ─── Lightweight provider prewarm ────────────────────────────────────────────
 
 let _providersPrewarmed = false;
@@ -138,101 +99,12 @@ function prewarmProviderClients(): void {
   try {
     getGeminiClient();
   } catch {
-    // Keep existing runtime fallback behavior unchanged.
-  }
-
-  try {
-    getGroqClient();
-  } catch {
-    // Keep existing runtime fallback behavior unchanged.
+    // Keep existing runtime behavior unchanged.
   }
 }
 
 // Best-effort module-load prewarm for server environments.
 prewarmProviderClients();
-
-async function analyzeWithGroq(text: string, mode: AnalysisMode): Promise<string> {
-  const modelCandidates =
-    mode === "deep"
-      ? ["openai/gpt-oss-120b", "llama-3.3-70b-versatile", "moonshotai/kimi-k2-0905"]
-      : ["qwen/qwen3-32b", "llama-3.1-8b-instant", "gemma2-9b-it"];
-  const modelCapabilities: Record<
-    string,
-    { supports_reasoning_effort: boolean; supports_json_response_format: boolean }
-  > = {
-    "openai/gpt-oss-120b": { supports_reasoning_effort: true, supports_json_response_format: true },
-    "llama-3.3-70b-versatile": {
-      supports_reasoning_effort: false,
-      supports_json_response_format: true,
-    },
-    "moonshotai/kimi-k2-0905": {
-      supports_reasoning_effort: false,
-      supports_json_response_format: true,
-    },
-    "qwen/qwen3-32b": { supports_reasoning_effort: false, supports_json_response_format: true },
-    "llama-3.1-8b-instant": {
-      supports_reasoning_effort: false,
-      supports_json_response_format: true,
-    },
-    "gemma2-9b-it": { supports_reasoning_effort: false, supports_json_response_format: true },
-  };
-
-  // Some Groq models reject unsupported request fields with hard API errors, so we only send per-model supported options to preserve fallback behavior.
-  const sharedRequestOptions = {
-    temperature: 0,
-    top_p: 0.5,
-    // Groq marks max_tokens as deprecated; use max_completion_tokens to target output length only.
-    max_completion_tokens: mode === "deep" ? 4096 : 2048,
-  };
-  const promptText =
-    mode === "deep"
-      ? `Analyze the following text (deep mode). Return strict JSON only. Keep all notes concise, avoid repeating long quotes, and keep explanations short so the output stays complete and valid.\n\n${text}`
-      : `Analyze the following text (quick mode). Return strict JSON only and keep every field concise to avoid truncation.\n\n${text}`;
-
-  let lastError: unknown;
-
-  for (const model of modelCandidates) {
-    try {
-      const capabilities = modelCapabilities[model] ?? {
-        supports_reasoning_effort: false,
-        supports_json_response_format: false,
-      };
-      const completion = await getGroqClient().chat.completions.create({
-        model,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: promptText },
-        ],
-        ...sharedRequestOptions,
-        ...(capabilities.supports_json_response_format
-          ? { response_format: { type: "json_object" as const } }
-          : {}),
-        ...(capabilities.supports_reasoning_effort ? { reasoning_effort: "low" as const } : {}),
-      });
-      const content = completion.choices[0]?.message?.content;
-      const finishReason = completion.choices[0]?.finish_reason;
-      if (!content || content.trim() === "") {
-        throw new GroqEmptyContentError(model);
-      }
-      if (finishReason === "length") {
-        throw new GroqTruncatedResponseError(model);
-      }
-      return content;
-    } catch (error) {
-      lastError = error;
-      const message = error instanceof Error ? error.message : "";
-      const shouldTryNextModel =
-        (isProviderUnavailableError(message) ||
-          error instanceof GroqEmptyContentError ||
-          error instanceof GroqTruncatedResponseError) &&
-        model !== modelCandidates.at(-1);
-
-      if (!shouldTryNextModel) break;
-    }
-  }
-
-  throw lastError instanceof Error ? lastError : new Error(`Groq ${mode} models unavailable.`);
-}
 
 // ─── Public entry point ───────────────────────────────────────────────────────
 
@@ -240,22 +112,5 @@ export async function analyzeText(text: string, mode: AnalysisMode): Promise<str
   // Ensure first boot cycle also attempts prewarm in runtimes that defer module init.
   prewarmProviderClients();
 
-  const primary = getProviderForMode(mode);
-  const fallback = primary === "gemini" ? "groq" : "gemini";
-
-  try {
-    return await (primary === "gemini" ? analyzeWithGemini(text, mode) : analyzeWithGroq(text, mode));
-  } catch (primaryErr) {
-    const msg = primaryErr instanceof Error ? primaryErr.message.toLowerCase() : "";
-    if (isProviderUnavailableError(msg)) {
-      try {
-        return await (fallback === "gemini"
-          ? analyzeWithGemini(text, mode)
-          : analyzeWithGroq(text, mode));
-      } catch {
-        throw primaryErr;
-      }
-    }
-    throw primaryErr;
-  }
+  return analyzeWithGemini(text, mode);
 }
