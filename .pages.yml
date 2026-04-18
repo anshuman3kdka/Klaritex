@@ -43,8 +43,6 @@ content:
         required: true
         options:
           values:
-            - value: groq
-              label: "Groq (faster, free tier)"
             - value: gemini
               label: "Gemini (Google)"
       - name: deep_provider
@@ -53,7 +51,5 @@ content:
         required: true
         options:
           values:
-            - value: groq
-              label: "Groq (faster, free tier)"
             - value: gemini
               label: "Gemini (Google)"
