@@ -88,7 +88,6 @@ async function generateWithGemini(
   const model = getGeminiClient().getGenerativeModel({
     model: mode === "deep" ? "gemini-3-flash-preview" : "gemini-3.1-flash-lite-preview",
   });
-
   const generationConfig: Record<string, unknown> = {
     temperature: 0,
     topP: 0.5,
