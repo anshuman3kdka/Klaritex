@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-import { SYSTEM_PROMPT } from "@/lib/prompts";
+import { SYSTEM_PROMPT, VERIFICATION_PROMPT } from "@/lib/prompts";
 import type { AnalysisMode } from "@/lib/types";
 
 // ─── Input sanitization ──────────────────────────────────────────────────────
@@ -79,15 +79,15 @@ function getMaxOutputTokens(mode: AnalysisMode, attempt: number): number {
   return attempt === 1 ? 2048 : 3072;
 }
 
-async function analyzeWithGemini(text: string, mode: AnalysisMode, attempt: number): Promise<string> {
+async function generateWithGemini(
+  userText: string,
+  mode: AnalysisMode,
+  attempt: number,
+  systemInstruction: string
+): Promise<string> {
   const model = getGeminiClient().getGenerativeModel({
     model: mode === "deep" ? "gemini-3-flash-preview" : "gemini-3.1-flash-lite-preview",
   });
-  const promptText =
-    mode === "deep"
-      ? `Use maximum internal reasoning budget. Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
-      : `Use minimal internal reasoning budget. Analyze the following text (quick mode — be concise):\n\n${text}`;
-
   const generationConfig: Record<string, unknown> = {
     temperature: 0,
     topP: 0.5,
@@ -100,8 +100,8 @@ async function analyzeWithGemini(text: string, mode: AnalysisMode, attempt: numb
   };
 
   const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: promptText }] }],
-    systemInstruction: SYSTEM_PROMPT,
+    contents: [{ role: "user", parts: [{ text: userText }] }],
+    systemInstruction,
     generationConfig,
   });
   return result.response.text();
@@ -132,5 +132,31 @@ export async function analyzeText(text: string, mode: AnalysisMode, attempt = 1)
   // Ensure first boot cycle also attempts prewarm in runtimes that defer module init.
   prewarmProviderClients();
 
-  return analyzeWithGemini(text, mode, attempt);
+  const promptText =
+    mode === "deep"
+      ? `Use maximum internal reasoning budget. Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
+      : `Use minimal internal reasoning budget. Analyze the following text (quick mode — be concise):\n\n${text}`;
+
+  return generateWithGemini(promptText, mode, attempt, SYSTEM_PROMPT);
+}
+
+export async function verifyAnalysis(
+  originalText: string,
+  draftJson: string,
+  mode: AnalysisMode,
+  attempt = 1
+): Promise<string> {
+  prewarmProviderClients();
+
+  const verifierInput = [
+    "ORIGINAL_TEXT:",
+    originalText,
+    "",
+    "DRAFT_JSON:",
+    draftJson,
+    "",
+    "Return corrected final JSON only.",
+  ].join("\n");
+
+  return generateWithGemini(verifierInput, mode, attempt, VERIFICATION_PROMPT);
 }

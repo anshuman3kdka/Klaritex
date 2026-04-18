@@ -1,4 +1,4 @@
-import { analyzeText } from "./gemini";
+import { analyzeText, verifyAnalysis } from "./gemini";
 import { parseGeminiResponse } from "./parseResponse";
 import type { AnalysisMode, AnalysisResult } from "./types";
 
@@ -12,7 +12,15 @@ export async function analyzeWithParseRetry(
     const rawResponse = await analyzeText(sanitizedText, mode, attempt);
 
     try {
-      return parseGeminiResponse(rawResponse);
+      const initialParsed = parseGeminiResponse(rawResponse);
+
+      try {
+        const verifiedResponse = await verifyAnalysis(sanitizedText, rawResponse, mode, attempt);
+        return parseGeminiResponse(verifiedResponse);
+      } catch {
+        // If verification fails, still return the first valid parsed result.
+        return initialParsed;
+      }
     } catch (error) {
       lastParseError = error;
     }
