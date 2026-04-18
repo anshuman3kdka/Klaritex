@@ -6,7 +6,9 @@ import { ModeToggle } from "@/components/analyzer/ModeToggle";
 import { PdfUpload } from "@/components/analyzer/PdfUpload";
 import { UrlInput, isValidHttpUrl } from "@/components/analyzer/UrlInput";
 import { ResultsPanel } from "@/components/results/ResultsPanel";
+import { generateAnalysisPdf } from "@/lib/report/generateAnalysisPdf";
 import type { AnalysisMode, AnalysisResult, InputMode } from "@/lib/types";
+import type { ReportInputSource } from "@/lib/report/generateAnalysisPdf";
 import type { CSSProperties, ReactNode } from "react";
 
 const MAX_TEXT_LENGTH = 10_000;
@@ -130,7 +132,10 @@ export function InputPanel() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [lastResult, setLastResult] = useState<AnalysisResult | null>(null);
+  const [lastSource, setLastSource] = useState<ReportInputSource | null>(null);
+  const [lastProcessingMode, setLastProcessingMode] = useState<AnalysisMode>("quick");
   const [analyzeButtonState, setAnalyzeButtonState] = useState<AnalyzeButtonState>("idle-disabled");
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [activeIndicatorStyle, setActiveIndicatorStyle] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
   const [hoverIndicatorStyle, setHoverIndicatorStyle] = useState<{ left: number; width: number; visible: boolean }>({
     left: 0,
@@ -293,6 +298,13 @@ export function InputPanel() {
       }
 
       setLastResult(payload as AnalysisResult);
+      setLastSource({
+        mode: inputMode,
+        text: inputMode === "text" ? textInput.trim() : undefined,
+        url: inputMode === "url" ? urlInput.trim() : undefined,
+        fileName: inputMode === "pdf" ? pdfFile?.name : undefined,
+      });
+      setLastProcessingMode(processingMode);
       analysisSucceeded = true;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Analysis failed.";
@@ -300,6 +312,24 @@ export function InputPanel() {
     } finally {
       setIsAnalyzing(false);
       setAnalyzeButtonState(analysisSucceeded ? "complete" : hasInput ? "idle-active" : "idle-disabled");
+    }
+  }
+
+  async function handleDownloadPdf() {
+    if (!lastResult || !lastSource) {
+      return;
+    }
+
+    setIsGeneratingPdf(true);
+
+    try {
+      generateAnalysisPdf({
+        result: lastResult,
+        source: lastSource,
+        processingMode: lastProcessingMode,
+      });
+    } finally {
+      setIsGeneratingPdf(false);
     }
   }
 
@@ -551,6 +581,35 @@ export function InputPanel() {
         </div>
 
         {analysisStateMessage && <p className="font-ui mt-4 text-sm text-[var(--text-secondary)]">{analysisStateMessage}</p>}
+        {lastResult && lastSource ? (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={isGeneratingPdf}
+              className="font-ui inline-flex items-center gap-2 rounded-lg border border-[var(--gold-primary)]/70 bg-[var(--bg-secondary)] px-4 py-2 text-sm font-medium text-[var(--text-primary)] transition hover:border-[var(--gold-primary)] hover:bg-[var(--bg-elevated)] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span aria-hidden>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </span>
+              {isGeneratingPdf ? "Preparing PDF..." : "Download PDF Report"}
+            </button>
+          </div>
+        ) : null}
         {errorMessage && inputMode === "text" && <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{errorMessage}</p>}
       </section>
 
