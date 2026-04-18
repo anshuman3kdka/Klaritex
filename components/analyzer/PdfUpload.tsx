@@ -89,6 +89,8 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         accept=".pdf,application/pdf"
         onChange={handleInputChange}
         disabled={disabled}
+        aria-invalid={!!activeErrorMessage}
+        aria-describedby={`pdf-desc${activeErrorMessage ? " pdf-error" : ""}`}
         className="sr-only"
         id="klaritex-pdf-upload"
       />
@@ -99,6 +101,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         onDragLeave={handleDragLeave}
         onClick={() => inputRef.current?.click()}
         role="button"
+        aria-describedby={`pdf-desc${activeErrorMessage ? " pdf-error" : ""}`}
         tabIndex={disabled ? -1 : 0}
         onKeyDown={(event) => {
           if (!disabled && (event.key === "Enter" || event.key === " ")) {
@@ -116,7 +119,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         aria-label="Upload PDF"
       >
         <p className="font-ui font-medium">Drag and drop a PDF here, or click to choose a file</p>
-        <p className="font-ui mt-1 text-xs text-[var(--text-secondary)]">PDF only · Maximum 5MB</p>
+        <p id="pdf-desc" className="font-ui mt-1 text-xs text-[var(--text-secondary)]">PDF only · Maximum 5MB</p>
 
         {value ? (
           <div className="mt-4 rounded-md border border-[var(--clear-color)]/40 bg-[var(--clear-color)]/15 p-3">
@@ -126,7 +129,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         ) : null}
       </div>
 
-      {activeErrorMessage ? <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
+      {activeErrorMessage ? <p id="pdf-error" role="alert" className="font-ui mt-2 text-sm text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
     </div>
   );
 }
