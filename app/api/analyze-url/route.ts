@@ -36,7 +36,13 @@ export async function POST(request: Request) {
   }
 
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-  const { allowed } = await checkRateLimit(ip);
+  let allowed = true;
+
+  try {
+    ({ allowed } = await checkRateLimit(ip));
+  } catch {
+    allowed = true;
+  }
 
   if (!allowed) {
     return NextResponse.json(

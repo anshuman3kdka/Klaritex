@@ -4,23 +4,44 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
+let ratelimit: Ratelimit | null = null;
 
-const ratelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(10, "60 s"),
-});
+function getRatelimit(): Ratelimit | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
+    return null;
+  }
+
+  if (!ratelimit) {
+    const redis = new Redis({ url, token });
+    ratelimit = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(10, "60 s"),
+    });
+  }
+
+  return ratelimit;
+}
 
 export async function checkRateLimit(
   identifier: string
 ): Promise<{ allowed: boolean; remaining: number }> {
-  const { success, remaining } = await ratelimit.limit(identifier);
+  const rateLimiter = getRatelimit();
 
-  return {
-    allowed: success,
-    remaining,
-  };
+  if (!rateLimiter) {
+    return { allowed: true, remaining: 999 };
+  }
+
+  try {
+    const { success, remaining } = await rateLimiter.limit(identifier);
+
+    return {
+      allowed: success,
+      remaining,
+    };
+  } catch {
+    return { allowed: true, remaining: 999 };
+  }
 }
