@@ -54,6 +54,9 @@ function getGeminiKey(): string {
     const v = process.env[name]?.trim();
     if (v) return v;
   }
+  console.error(
+    "ERROR: No Gemini API key found. Checked env vars: Klaritex, KLARITEX, GEMINI_API_KEY"
+  );
   throw new Error("Missing Gemini API key. Configure KLARITEX on the server.");
 }
 
