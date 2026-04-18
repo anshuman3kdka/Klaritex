@@ -219,7 +219,12 @@ export function AmbiguityScore({
                 {tooltipText}
               </div>
             ) : null}
-            <svg width={SVG_WIDTH} height={SVG_HEIGHT} viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} role="img" aria-label={tooltipText}>
+            <svg
+              className="block w-full h-auto"
+              viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+              role="img"
+              aria-label={tooltipText}
+            >
               <path
                 d={fullArcPath}
                 transform={`translate(${ARC_CENTER_X}, ${ARC_CENTER_Y})`}
