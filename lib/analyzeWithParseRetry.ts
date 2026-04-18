@@ -7,8 +7,9 @@ export async function analyzeWithParseRetry(
   mode: AnalysisMode
 ): Promise<AnalysisResult> {
   let lastParseError: unknown;
+  const maxAttempts = mode === "deep" ? 2 : 3;
 
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const rawResponse = await analyzeText(sanitizedText, mode, attempt);
 
     try {

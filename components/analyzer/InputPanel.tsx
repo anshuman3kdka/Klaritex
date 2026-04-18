@@ -111,14 +111,37 @@ function normalizeErrorMessage(message: string, mode: InputMode): string {
 
 async function readApiPayload(response: Response): Promise<AnalysisResult | { error?: string }> {
   const rawBody = await response.text();
+  const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+  const isJson = contentType.includes("application/json");
 
   if (!rawBody.trim()) {
     throw new Error("The server returned an empty response. Please try again.");
   }
 
+  if (!isJson) {
+    const lower = rawBody.toLowerCase();
+
+    if (lower.includes("504") || lower.includes("timed out") || lower.includes("gateway timeout")) {
+      return { error: "Deep analysis took too long on the server. Please retry with shorter text." };
+    }
+
+    if (lower.includes("502") || lower.includes("bad gateway")) {
+      return { error: "AI service is temporarily unavailable. Please try again in a moment." };
+    }
+
+    if (!response.ok) {
+      return { error: `Server error (${response.status}). Please try again.` };
+    }
+
+    throw new Error("The server returned an unexpected response format. Please try again.");
+  }
+
   try {
     return JSON.parse(rawBody) as AnalysisResult | { error?: string };
   } catch {
+    if (!response.ok) {
+      return { error: `Server error (${response.status}). Please try again.` };
+    }
     throw new Error("The server returned an invalid response. Please try again.");
   }
 }

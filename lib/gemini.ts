@@ -73,6 +73,24 @@ function getThinkingBudget(mode: AnalysisMode): number {
   return mode === "deep" ? -1 : 0;
 }
 
+function getModelCandidates(mode: AnalysisMode): string[] {
+  if (mode === "deep") {
+    return [
+      process.env.GEMINI_DEEP_MODEL?.trim(),
+      "gemini-3-flash-preview",
+      "gemini-2.5-pro",
+      "gemini-2.5-flash",
+    ].filter((value): value is string => Boolean(value));
+  }
+
+  return [
+    process.env.GEMINI_QUICK_MODEL?.trim(),
+    "gemini-3.1-flash-lite-preview",
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
+  ].filter((value): value is string => Boolean(value));
+}
+
 function getMaxOutputTokens(mode: AnalysisMode, attempt: number): number {
   if (mode === "deep") {
     // Retry attempts progressively increase token room to reduce truncation risk.
@@ -83,31 +101,66 @@ function getMaxOutputTokens(mode: AnalysisMode, attempt: number): number {
 }
 
 async function analyzeWithGemini(text: string, mode: AnalysisMode, attempt: number): Promise<string> {
-  const model = getGeminiClient().getGenerativeModel({
-    model: mode === "deep" ? "gemini-3-flash-preview" : "gemini-3.1-flash-lite-preview",
-  });
   const promptText =
     mode === "deep"
       ? `Use maximum internal reasoning budget. Analyze the following text (deep mode — be thorough and detailed in notes and explanations):\n\n${text}`
       : `Use minimal internal reasoning budget. Analyze the following text (quick mode — be concise):\n\n${text}`;
 
-  const generationConfig: Record<string, unknown> = {
+  const baseGenerationConfig: Record<string, unknown> = {
     temperature: 0,
     topP: 0.5,
     maxOutputTokens: getMaxOutputTokens(mode, attempt),
     responseMimeType: "application/json",
-    // Supported by newer Gemini APIs; passed through as-is by the SDK.
-    thinkingConfig: {
-      thinkingBudget: getThinkingBudget(mode),
-    },
   };
 
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: promptText }] }],
-    systemInstruction: SYSTEM_PROMPT,
-    generationConfig,
-  });
-  return result.response.text();
+  const deepGenerationConfig: Record<string, unknown> =
+    mode === "deep"
+      ? {
+          ...baseGenerationConfig,
+          // Supported by newer Gemini APIs; passed through as-is by the SDK.
+          thinkingConfig: {
+            thinkingBudget: getThinkingBudget(mode),
+          },
+        }
+      : baseGenerationConfig;
+
+  const modelCandidates = getModelCandidates(mode);
+  let lastError: unknown;
+
+  for (const modelName of modelCandidates) {
+    const model = getGeminiClient().getGenerativeModel({ model: modelName });
+
+    try {
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: promptText }] }],
+        systemInstruction: SYSTEM_PROMPT,
+        generationConfig: deepGenerationConfig,
+      });
+      return result.response.text();
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message.toLowerCase() : "";
+
+      // Some models reject thinkingConfig. Retry once without it before falling back.
+      if (
+        mode === "deep" &&
+        (message.includes("thinking") || message.includes("generation_config") || message.includes("unknown field"))
+      ) {
+        try {
+          const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: promptText }] }],
+            systemInstruction: SYSTEM_PROMPT,
+            generationConfig: baseGenerationConfig,
+          });
+          return result.response.text();
+        } catch (innerError) {
+          lastError = innerError;
+        }
+      }
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Gemini request failed.");
 }
 
 // ─── Lightweight provider prewarm ────────────────────────────────────────────
