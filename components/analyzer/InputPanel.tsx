@@ -107,6 +107,20 @@ function normalizeErrorMessage(message: string, mode: InputMode): string {
   return message;
 }
 
+async function readApiPayload(response: Response): Promise<AnalysisResult | { error?: string }> {
+  const rawBody = await response.text();
+
+  if (!rawBody.trim()) {
+    throw new Error("The server returned an empty response. Please try again.");
+  }
+
+  try {
+    return JSON.parse(rawBody) as AnalysisResult | { error?: string };
+  } catch {
+    throw new Error("The server returned an invalid response. Please try again.");
+  }
+}
+
 export function InputPanel() {
   const [inputMode, setInputMode] = useState<InputMode>("text");
   const [processingMode, setProcessingMode] = useState<AnalysisMode>("quick");
@@ -271,7 +285,7 @@ export function InputPanel() {
         });
       }
 
-      const payload = (await response.json()) as AnalysisResult | { error?: string };
+      const payload = await readApiPayload(response);
 
       if (!response.ok) {
         const apiMessage = "error" in payload && payload.error ? payload.error : "Analysis failed.";
