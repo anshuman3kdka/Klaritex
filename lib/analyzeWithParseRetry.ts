@@ -6,13 +6,17 @@ export async function analyzeWithParseRetry(
   sanitizedText: string,
   mode: AnalysisMode
 ): Promise<AnalysisResult> {
-  let rawResponse = await analyzeText(sanitizedText, mode);
+  let lastParseError: unknown;
 
-  try {
-    return parseGeminiResponse(rawResponse);
-  } catch {
-    // One retry helps recover from occasional truncated model JSON payloads.
-    rawResponse = await analyzeText(sanitizedText, mode);
-    return parseGeminiResponse(rawResponse);
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const rawResponse = await analyzeText(sanitizedText, mode, attempt);
+
+    try {
+      return parseGeminiResponse(rawResponse);
+    } catch (error) {
+      lastParseError = error;
+    }
   }
+
+  throw new Error("Analysis parsing failed.", { cause: lastParseError });
 }
