@@ -26,6 +26,25 @@ const GOOD: [number, number, number] = [22, 163, 74];
 const WARNING: [number, number, number] = [217, 119, 6];
 const RISK: [number, number, number] = [220, 38, 38];
 
+const H1_SIZE = 12.5;
+const H2_SIZE = 11.8;
+const H3_SIZE = 11;
+const BODY_SIZE = 10.5;
+const CAPTION_SIZE = 9.5;
+const CHROME_TITLE_SIZE = 11;
+const CARD_TITLE_SIZE = H2_SIZE;
+const H1_LINE_HEIGHT = 5.7;
+const H2_LINE_HEIGHT = 5.7;
+const H3_LINE_HEIGHT = 5.7;
+const BODY_LINE_HEIGHT = 5.1;
+const CHROME_FOOTER_LINE_HEIGHT = 6;
+
+const HEADING_STYLES = {
+  1: { size: H1_SIZE, lineHeight: H1_LINE_HEIGHT, font: "bold" as const, color: INK },
+  2: { size: H2_SIZE, lineHeight: H2_LINE_HEIGHT, font: "bold" as const, color: INK },
+  3: { size: H3_SIZE, lineHeight: H3_LINE_HEIGHT, font: "bold" as const, color: INK },
+} as const;
+
 function modeLabel(mode: AnalysisMode): string {
   return mode === "deep" ? "Deep" : "Quick";
 }
@@ -56,7 +75,7 @@ function addPageChrome(doc: jsPDF, title: string, pageNumber?: number) {
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
+  doc.setFontSize(CHROME_TITLE_SIZE);
   doc.text(title, PAGE_MARGIN, 13.2);
 
   doc.setDrawColor(...GOLD);
@@ -69,12 +88,12 @@ function addPageChrome(doc: jsPDF, title: string, pageNumber?: number) {
 
   doc.setTextColor(107, 114, 128);
   doc.setFont("helvetica", "italic");
-  doc.setFontSize(9.5);
-  doc.text("Klaritex · Clarity Engine Framework", PAGE_MARGIN, PAGE_HEIGHT - 6);
+  doc.setFontSize(CAPTION_SIZE);
+  doc.text("Klaritex · Clarity Engine Framework", PAGE_MARGIN, PAGE_HEIGHT - CHROME_FOOTER_LINE_HEIGHT);
 
   if (pageNumber) {
     doc.setFont("helvetica", "normal");
-    doc.text(`Page ${pageNumber}`, PAGE_WIDTH - PAGE_MARGIN - 14, PAGE_HEIGHT - 6);
+    doc.text(`Page ${pageNumber}`, PAGE_WIDTH - PAGE_MARGIN - 14, PAGE_HEIGHT - CHROME_FOOTER_LINE_HEIGHT);
   }
 }
 
@@ -101,7 +120,7 @@ function writeCard(doc: jsPDF, y: number, title: string, pageTitle: string, page
 
   doc.setTextColor(...INK);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
+  doc.setFontSize(CARD_TITLE_SIZE);
   doc.text(title, PAGE_MARGIN + 4, y + 3.5);
 
   return y + 14;
@@ -115,7 +134,7 @@ function writeRichParagraph(
   pageNumberRef: { value: number },
   options?: { baseSize?: number }
 ): number {
-  const baseSize = options?.baseSize ?? 10.5;
+  const baseSize = options?.baseSize ?? BODY_SIZE;
   const rawLines = markdown.split(/\r?\n/);
 
   for (const rawLine of rawLines) {
@@ -132,12 +151,18 @@ function writeRichParagraph(
     let prefix = "";
     let content = line;
     let fontSize = baseSize;
-    let lineHeight = 5.1;
+    let lineHeight = BODY_LINE_HEIGHT;
+    let fontVariant: "bold" | "normal" = "normal";
+    let textColor = SUBTLE;
 
     if (headingMatch) {
       content = headingMatch[2];
-      fontSize = headingMatch[1].length === 1 ? 12.5 : headingMatch[1].length === 2 ? 11.8 : 11;
-      lineHeight = 5.7;
+      const level = headingMatch[1].length as 1 | 2 | 3;
+      const headingStyle = HEADING_STYLES[level];
+      fontSize = headingStyle.size;
+      lineHeight = headingStyle.lineHeight;
+      fontVariant = headingStyle.font;
+      textColor = headingStyle.color;
       y += 1;
     } else if (bulletMatch) {
       prefix = "• ";
@@ -160,8 +185,8 @@ function writeRichParagraph(
       }
 
       x += prefix ? 4 : 0;
-      doc.setFont("helvetica", headingMatch ? "bold" : "normal");
-      doc.setTextColor(...(headingMatch ? INK : SUBTLE));
+      doc.setFont("helvetica", fontVariant);
+      doc.setTextColor(...textColor);
       doc.setFontSize(fontSize);
       doc.text(wrappedLines[i], x, y);
 
