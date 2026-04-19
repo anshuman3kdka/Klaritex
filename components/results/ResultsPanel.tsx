@@ -125,7 +125,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
       {result ? (
         <section
           key={`${resultKey}-${animationKey}`}
-          className="relative mx-auto mt-6 w-full max-w-3xl overflow-hidden rounded-xl"
+          className="k-radius-primary relative mx-auto mt-6 w-full max-w-3xl overflow-hidden"
           style={{ opacity: isLoading ? 0 : 1, transition: "opacity 400ms ease" }}
         >
           <DynamicDecorativeThreeBackground

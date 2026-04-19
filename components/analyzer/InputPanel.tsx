@@ -28,8 +28,7 @@ const TABS: Array<{ value: InputMode; label: string; icon: ReactNode }> = [
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
+        className="k-icon-16"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -48,8 +47,7 @@ const TABS: Array<{ value: InputMode; label: string; icon: ReactNode }> = [
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
+        className="k-icon-16"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -71,8 +69,7 @@ const TABS: Array<{ value: InputMode; label: string; icon: ReactNode }> = [
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
+        className="k-icon-16"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -495,7 +492,7 @@ export function InputPanel() {
         <div className={`mt-5 ${isResetShaking ? "clear-reset-shake" : ""}`}>
           {inputMode === "text" ? (
             <>
-              <label htmlFor="klaritex-text-input" className="font-ui mb-2 block text-sm font-medium text-[var(--text-primary)]">
+              <label htmlFor="klaritex-text-input" className="font-ui k-text-heading mb-2 block">
                 Text to analyze
               </label>
               <div
@@ -527,7 +524,7 @@ export function InputPanel() {
                     rows={10}
                     disabled={isAnalyzing}
                     placeholder="Paste a political statement, policy claim, corporate announcement, or any text you want analyzed..."
-                    className="font-ui h-full w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--gold-primary)] focus:ring-2 focus:ring-[var(--gold-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)] md:h-auto"
+                    className="font-ui k-radius-primary k-border-ui k-text-body h-full w-full bg-[var(--bg-primary)] p-3 outline-none transition focus:border-[var(--gold-primary)] focus:ring-2 focus:ring-[var(--gold-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)] md:h-auto"
                   />
                   <p
                     className={`font-mono-ui mt-2 shrink-0 text-sm ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}
@@ -603,20 +600,19 @@ export function InputPanel() {
           </button>
         </div>
 
-        {analysisStateMessage && <p className="font-ui mt-4 text-sm text-[var(--text-secondary)]">{analysisStateMessage}</p>}
+        {analysisStateMessage && <p className="font-ui k-text-body mt-4 text-[var(--text-secondary)]">{analysisStateMessage}</p>}
         {lastResult && lastSource ? (
           <div className="mt-4">
             <button
               type="button"
               onClick={handleDownloadPdf}
               disabled={isGeneratingPdf}
-              className="font-ui inline-flex items-center gap-2 rounded-lg border border-[var(--gold-primary)]/70 bg-[var(--bg-secondary)] px-4 py-2 text-sm font-medium text-[var(--text-primary)] transition hover:border-[var(--gold-primary)] hover:bg-[var(--bg-elevated)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="font-ui k-radius-primary inline-flex items-center gap-2 border border-[var(--gold-primary)]/70 bg-[var(--bg-secondary)] px-4 py-2 text-sm font-medium text-[var(--text-primary)] transition hover:border-[var(--gold-primary)] hover:bg-[var(--bg-elevated)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <span aria-hidden>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
+                  className="k-icon-16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"

@@ -22,8 +22,7 @@ const MODE_OPTIONS: Array<{
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
+        className="k-icon-16"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -42,8 +41,7 @@ const MODE_OPTIONS: Array<{
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
+        className="k-icon-16"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -85,7 +83,7 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
 
   return (
     <div className="space-y-3">
-      <p className="font-ui text-sm font-medium text-[var(--text-primary)]">Processing Mode</p>
+      <p className="font-ui k-text-heading">Processing Mode</p>
       <div className="grid grid-cols-2 gap-2" role="radiogroup">
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
@@ -104,21 +102,21 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
                 }
               }}
               onClick={() => onChange(option.value)}
-              className={`rounded-lg border p-3 text-left transition-colors duration-150 active:bg-[var(--bg-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+              className={`k-radius-primary border p-3 text-left transition-colors duration-150 active:bg-[var(--bg-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
                 isTouchFlashing
                   ? "bg-[var(--bg-elevated)]"
                   : ""
               } ${
                 isActive
                   ? "border-[var(--border-accent)] border-l-4 bg-[var(--bg-elevated)]"
-                  : "border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)]"
+                  : "k-border-ui bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)]"
               } ${disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
             >
-              <p className="font-ui font-medium text-[var(--text-primary)] flex items-center gap-2">
+              <p className="font-ui k-text-heading flex items-center gap-2">
                 {option.icon}
                 {option.label}
               </p>
-              <p className="font-ui mt-1 text-sm text-[var(--text-secondary)]">{option.description}</p>
+              <p className="font-ui mt-1 k-text-helper">{option.description}</p>
             </button>
           );
         })}

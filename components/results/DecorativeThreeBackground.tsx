@@ -186,5 +186,5 @@ export function DecorativeThreeBackground({ tier, activeModuleIndex, isEnabled }
     return null;
   }
 
-  return <div ref={mountRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-xl" />;
+  return <div ref={mountRef} aria-hidden="true" className="k-radius-primary pointer-events-none absolute inset-0 z-0 overflow-hidden" />;
 }

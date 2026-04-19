@@ -42,7 +42,7 @@ export function ModuleAccordion({
   }, [isExpanded]);
 
   return (
-    <article className={`module-card flex flex-col ${className}`}>
+    <article className={`module-card k-radius-primary flex flex-col ${className}`}>
       <button
         type="button"
         onClick={() => setIsExpanded((current) => !current)}
@@ -50,13 +50,13 @@ export function ModuleAccordion({
         aria-expanded={isExpanded}
         aria-controls={contentId}
       >
-        <h3 className="k-module-label module-card-title flex-1">{title}</h3>
+        <h3 className="k-module-label module-card-title k-text-heading flex-1">{title}</h3>
 
         <div className="flex items-center gap-3">
           {headerAction ? <div onClick={(e) => e.stopPropagation()}>{headerAction}</div> : null}
           <svg
             ref={chevronRef}
-            className="h-4 w-4 text-[var(--text-secondary)]"
+            className="k-icon-16 text-[var(--text-secondary)]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -74,9 +74,8 @@ export function ModuleAccordion({
         data-module-id={moduleId}
         style={{ height: defaultExpanded ? "auto" : 0, opacity: defaultExpanded ? 1 : 0, overflow: "hidden" }}
       >
-        <div className="border-t border-[var(--border)] p-5 pt-4">{children}</div>
+        <div className="k-border-color border-t p-5 pt-4">{children}</div>
       </div>
     </article>
   );
 }
-

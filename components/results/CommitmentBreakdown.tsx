@@ -248,11 +248,11 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
       moduleId="module-10"
       defaultExpanded={defaultExpanded}
       headerAction={
-        <div className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-primary)]/45 p-1">
+        <div className="k-radius-secondary k-border-ui inline-flex items-center gap-1 bg-[var(--bg-primary)]/45 p-1">
           <button
             type="button"
             onClick={() => handleViewChange("breakdown")}
-            className={`font-ui rounded px-3 py-1.5 text-xs font-semibold transition-transform duration-100 ease-out transition-colors active:scale-[0.96] ${
+            className={`font-ui k-radius-secondary px-3 py-1.5 text-xs font-semibold transition-transform duration-100 ease-out transition-colors active:scale-[0.96] ${
               viewMode === "breakdown"
                 ? "bg-[var(--bg-elevated)] text-[var(--text-gold)]"
                 : "bg-transparent text-[var(--text-secondary)]"
@@ -265,7 +265,7 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
           <button
             type="button"
             onClick={() => handleViewChange("stress")}
-            className={`font-ui k-stress-toggle rounded px-3 py-1.5 text-xs font-semibold transition-transform duration-100 ease-out transition-colors active:scale-[0.96] ${
+            className={`font-ui k-stress-toggle k-radius-secondary px-3 py-1.5 text-xs font-semibold transition-transform duration-100 ease-out transition-colors active:scale-[0.96] ${
               viewMode === "stress"
                 ? "bg-[var(--gold-primary)]/18 text-[var(--text-gold)]"
                 : "bg-transparent text-[var(--text-secondary)]"
@@ -282,7 +282,7 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
         <div className="overflow-x-auto">
           <table className="min-w-full border-collapse text-sm">
             <thead>
-              <tr className="font-mono-ui border-b border-[var(--border)] text-left text-xs uppercase tracking-wide text-[var(--text-secondary)]">
+              <tr className="font-mono-ui border-b k-border-color text-left text-xs uppercase tracking-wide text-[var(--text-secondary)]">
                 <th className="pb-2 pr-3">Component</th>
                 <th className="pb-2 pr-3">Question</th>
                 <th className="pb-2 pr-3">Extracted Value</th>
