@@ -26,3 +26,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2025-02-17 - Path Traversal in Blog Post Routing
+**Vulnerability:** The application was susceptible to path traversal via the `getPostBySlug` function in `lib/posts.ts`. It directly combined the root posts directory path with the user-provided slug string without validating if the constructed path escaped the expected base directory (e.g., using `../`).
+**Learning:** Functions that map user input (like URL parameters/slugs) to server filesystem paths must strictly validate that the normalized absolute path stays within the intended directory boundaries. Direct string concatenation with user input, even with `path.join`, is unsafe without this explicit bounds checking.
+**Prevention:** Always validate that the normalized candidate path stays within the base directory. This can be securely achieved by computing `path.relative(BASE_DIR, candidate)` and verifying that the result is neither absolute nor begins with `..`.
