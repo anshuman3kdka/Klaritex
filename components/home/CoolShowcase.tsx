@@ -48,12 +48,12 @@ export function CoolShowcase() {
       <div className="k-card overflow-hidden border px-4 py-4 sm:px-6 sm:py-6">
         <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <div>
-            <p className="font-mono-ui text-xs uppercase tracking-[0.2em] text-[var(--text-secondary)]">New Playground</p>
+            <p className="font-mono-ui text-xs uppercase tracking-[0.2em] text-[var(--text-secondary)]">Preview Modes</p>
             <h2 className="mt-2 font-display text-2xl text-[var(--text-primary)] sm:text-3xl">
-              Turn plain text into a clarity dashboard in seconds.
+              Demo preview of Klaritex scoring modes.
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
-              Pick a vibe, drop your text below, and Klaritex highlights where language is specific vs slippery.
+              This card shows sample results only. Use the Analyze section below to run real analysis on your text.
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2">
