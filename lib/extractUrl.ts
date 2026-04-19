@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { lookup } from "node:dns/promises";
 import fetch from "node-fetch";
 
 const MAX_REDIRECT_HOPS = 2;
@@ -25,12 +26,41 @@ function isBlockedIpv4Prefix(p1: number, p2: number): boolean {
   );
 }
 
+function isBlockedIpAddress(address: string): boolean {
+  const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+  const match = address.match(ipv4Regex);
+  if (match) {
+    const octets = match.slice(1).map((part) => parseInt(part, 10));
+    if (octets.some((part) => part < 0 || part > 255)) {
+      return true;
+    }
+    return isBlockedIpv4Prefix(octets[0]!, octets[1]!);
+  }
+
+  const ipv6 = address.toLowerCase();
+  return (
+    ipv6 === "::" ||
+    ipv6 === "::1" ||
+    ipv6 === "0:0:0:0:0:0:0:0" ||
+    ipv6 === "0:0:0:0:0:0:0:1" ||
+    ipv6.startsWith("fd") ||
+    ipv6.startsWith("fc") ||
+    ipv6.startsWith("fe80")
+  );
+}
+
 function isSafeUrl(urlString: string): boolean {
   try {
     const url = new URL(urlString);
     if (url.protocol !== "http:" && url.protocol !== "https:") return false;
 
     const hostname = url.hostname.toLowerCase();
+    if (url.username || url.password) {
+      return false;
+    }
+    if (url.port && url.port !== "80" && url.port !== "443") {
+      return false;
+    }
 
     if (
       hostname === "localhost" ||
@@ -118,6 +148,21 @@ function isSafeUrl(urlString: string): boolean {
   }
 }
 
+async function assertPublicDnsResolution(urlString: string): Promise<void> {
+  const url = new URL(urlString);
+  const records = await lookup(url.hostname, { all: true });
+
+  if (!records.length) {
+    throw new UrlExtractionError("Could not fetch content from URL.");
+  }
+
+  for (const record of records) {
+    if (isBlockedIpAddress(record.address)) {
+      throw new UrlExtractionError("Could not fetch content from URL.");
+    }
+  }
+}
+
 async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
   let currentUrl = initialUrl;
 
@@ -125,11 +170,13 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
     if (!isSafeUrl(currentUrl)) {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
+    await assertPublicDnsResolution(currentUrl);
 
     const response = await fetch(currentUrl, {
       method: "GET",
       redirect: "manual",
-      size: 5 * 1024 * 1024 // 5MB limit to prevent memory exhaustion DoS
+      size: 5 * 1024 * 1024, // 5MB limit to prevent memory exhaustion DoS
+      signal: AbortSignal.timeout(8000),
     });
 
     const status = response.status;
@@ -151,6 +198,16 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
     }
 
     if (!response.ok) {
+      throw new UrlExtractionError("Could not fetch content from URL.");
+    }
+
+    const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+    const isSupportedContentType =
+      contentType.includes("text/html") ||
+      contentType.includes("application/xhtml+xml") ||
+      contentType.includes("text/plain");
+
+    if (!isSupportedContentType) {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
 

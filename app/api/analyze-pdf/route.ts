@@ -4,6 +4,7 @@ import { analyzeWithParseRetry } from "@/lib/analyzeWithParseRetry";
 import { extractPdfText } from "@/lib/extractPdf";
 import { isProviderUnavailableError, sanitizeInput } from "@/lib/gemini";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { getClientIdentifier } from "@/lib/requestSecurity";
 import type { AnalysisMode } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
   }
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const ip = getClientIdentifier(request);
   let allowed = true;
 
   try {
@@ -52,6 +53,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "PDF file is required." }, { status: 400 });
   }
 
+  if (file.type && file.type !== "application/pdf") {
+    return NextResponse.json({ error: "Invalid file type. PDF required." }, { status: 415 });
+  }
+
   if (!isValidMode(mode)) {
     return NextResponse.json({ error: "Mode must be 'quick' or 'deep'." }, { status: 400 });
   }
@@ -63,7 +68,14 @@ export async function POST(request: Request) {
 
   try {
     const arrayBuffer = await file.arrayBuffer();
-    const pdfText = await extractPdfText(Buffer.from(arrayBuffer));
+    const fileBuffer = Buffer.from(arrayBuffer);
+    const fileSignature = fileBuffer.subarray(0, 5).toString("utf8");
+
+    if (fileSignature !== "%PDF-") {
+      return NextResponse.json({ error: "Invalid PDF file." }, { status: 415 });
+    }
+
+    const pdfText = await extractPdfText(fileBuffer);
 
     if (!pdfText.trim()) {
       return NextResponse.json({ error: "PDF contains no extractable text." }, { status: 422 });

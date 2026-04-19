@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { analyzeWithParseRetry } from "@/lib/analyzeWithParseRetry";
 import { isProviderUnavailableError, sanitizeInput } from "@/lib/gemini";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { getClientIdentifier, isJsonRequest } from "@/lib/requestSecurity";
 import type { AnalysisMode } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -17,6 +18,10 @@ function isValidMode(value: unknown): value is AnalysisMode {
 }
 
 export async function POST(request: Request) {
+  if (!isJsonRequest(request)) {
+    return NextResponse.json({ error: "Content-Type must be application/json." }, { status: 415 });
+  }
+
   // Content-Length can be absent or spoofed by clients, so this is only a fast-path guard.
   const contentLengthHeader = request.headers.get("content-length");
   const contentLength = Number(contentLengthHeader);
@@ -25,7 +30,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
   }
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const ip = getClientIdentifier(request);
   let allowed = true;
 
   try {
@@ -54,6 +59,10 @@ export async function POST(request: Request) {
 
   if (typeof rawText !== "string") {
     return NextResponse.json({ error: "Text is required." }, { status: 400 });
+  }
+
+  if (rawText.length > 20000) {
+    return NextResponse.json({ error: "Text is too large. Maximum is 20,000 characters." }, { status: 413 });
   }
 
   if (!isValidMode(mode)) {

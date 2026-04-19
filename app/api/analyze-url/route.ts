@@ -4,6 +4,7 @@ import { analyzeWithParseRetry } from "@/lib/analyzeWithParseRetry";
 import { extractUrlText, UrlExtractionError } from "@/lib/extractUrl";
 import { isProviderUnavailableError, sanitizeInput } from "@/lib/gemini";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { getClientIdentifier, isJsonRequest } from "@/lib/requestSecurity";
 import type { AnalysisMode } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -27,6 +28,10 @@ function isValidUrl(value: string): boolean {
 }
 
 export async function POST(request: Request) {
+  if (!isJsonRequest(request)) {
+    return NextResponse.json({ error: "Content-Type must be application/json." }, { status: 415 });
+  }
+
   // Content-Length can be absent or spoofed by clients, so this is only a fast-path guard.
   const contentLengthHeader = request.headers.get("content-length");
   const contentLength = Number(contentLengthHeader);
@@ -35,7 +40,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
   }
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const ip = getClientIdentifier(request);
   let allowed = true;
 
   try {
