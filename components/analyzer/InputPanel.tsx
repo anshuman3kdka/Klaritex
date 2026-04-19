@@ -175,6 +175,7 @@ export function InputPanel() {
   const hasMountedRef = useRef(false);
 
   const isNearLimit = textInput.length >= WARNING_THRESHOLD;
+  const textHasError = inputMode === "text" && Boolean(errorMessage);
 
   const hasInput =
     (inputMode === "text" && textInput.trim().length > 0) ||
@@ -527,10 +528,15 @@ export function InputPanel() {
                     rows={10}
                     disabled={isAnalyzing}
                     placeholder="Paste a political statement, policy claim, corporate announcement, or any text you want analyzed..."
-                    className="font-ui k-radius-primary k-border-ui k-text-body h-full w-full bg-[var(--bg-primary)] p-3 outline-none transition focus:border-[var(--gold-primary)] focus:ring-2 focus:ring-[var(--gold-primary)]/20 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)] md:h-auto"
+                    aria-invalid={textHasError}
+                    className={`font-ui k-radius-primary k-text-body h-full w-full border bg-[var(--bg-primary)] p-3 outline-none transition-[border-color,box-shadow,background-color] duration-200 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)] md:h-auto ${
+                      textHasError
+                        ? "border-[var(--missing-color)] focus-visible:border-[var(--missing-color)] focus-visible:ring-2 focus-visible:ring-[var(--missing-color)]/35 focus-visible:shadow-[0_0_0_4px_rgba(220,76,100,0.16)]"
+                        : "k-border-ui focus-visible:border-[var(--gold-primary)] focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/25 focus-visible:shadow-[0_0_0_4px_rgba(201,168,76,0.14)]"
+                    }`}
                   />
                   <p
-                    className={`font-mono-ui mt-2 shrink-0 text-sm ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}
+                    className={`font-mono-ui mt-2 shrink-0 text-sm leading-5 ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}
                   >
                     {textInput.length.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()}
                     {isNearLimit && " (approaching limit)"}
@@ -632,7 +638,11 @@ export function InputPanel() {
             </button>
           </div>
         ) : null}
-        {errorMessage && inputMode === "text" && <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{errorMessage}</p>}
+        {inputMode === "text" ? (
+          <p className={`font-ui mt-2 min-h-5 text-sm leading-5 ${textHasError ? "text-[var(--missing-color)]" : "text-transparent"}`}>
+            {errorMessage ?? "Text looks good."}
+          </p>
+        ) : null}
       </section>
 
       <ResultsPanel result={lastResult} isLoading={isAnalyzing} />

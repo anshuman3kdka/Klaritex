@@ -80,6 +80,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
   }
 
   const activeErrorMessage = localError ?? errorMessage;
+  const hasError = Boolean(activeErrorMessage);
 
   return (
     <div>
@@ -106,17 +107,19 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
             inputRef.current?.click();
           }
         }}
-        className={`k-radius-primary cursor-pointer border border-dashed p-6 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+        className={`k-radius-primary cursor-pointer border border-dashed bg-[var(--bg-primary)] p-6 text-sm transition-[border-color,box-shadow,background-color,color] duration-200 focus-visible:outline-none ${
           disabled
             ? "cursor-not-allowed k-border-ui bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
+            : hasError
+              ? "border-[var(--missing-color)] text-[var(--text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--missing-color)]/35 focus-visible:shadow-[0_0_0_4px_rgba(220,76,100,0.16)]"
             : isDragActive
-              ? "border-[var(--border-accent)] bg-[var(--bg-elevated)] text-[var(--text-gold)]"
-              : "k-border-ui bg-[var(--bg-surface)] text-[var(--text-primary)] hover:border-[var(--border-accent)]"
+              ? "border-[var(--border-accent)] bg-[var(--bg-elevated)] text-[var(--text-gold)] focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/25 focus-visible:shadow-[0_0_0_4px_rgba(201,168,76,0.14)]"
+              : "k-border-ui text-[var(--text-primary)] hover:border-[var(--border-accent)] focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/25 focus-visible:shadow-[0_0_0_4px_rgba(201,168,76,0.14)]"
         }`}
         aria-label="Upload PDF"
       >
         <p className="font-ui k-text-heading">Drag and drop a PDF here, or click to choose a file</p>
-        <p className="font-ui k-text-helper mt-1">PDF only · Maximum 5MB</p>
+        <p className="font-ui k-text-helper mt-2 text-sm leading-5">PDF only · Maximum 5MB</p>
 
         {value ? (
           <div className="k-radius-secondary mt-4 border border-[var(--clear-color)]/40 bg-[var(--clear-color)]/15 p-3">
@@ -126,7 +129,9 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         ) : null}
       </div>
 
-      {activeErrorMessage ? <p className="font-ui k-text-body mt-2 text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
+      <p className={`font-ui mt-2 min-h-5 text-sm leading-5 ${hasError ? "text-[var(--missing-color)]" : "text-transparent"}`}>
+        {activeErrorMessage ?? "PDF selection ready."}
+      </p>
     </div>
   );
 }
