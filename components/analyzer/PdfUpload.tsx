@@ -106,27 +106,27 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
             inputRef.current?.click();
           }
         }}
-        className={`cursor-pointer rounded-lg border border-dashed p-6 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+        className={`k-radius-primary cursor-pointer border border-dashed p-6 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
           disabled
-            ? "cursor-not-allowed border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
+            ? "cursor-not-allowed k-border-ui bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
             : isDragActive
               ? "border-[var(--border-accent)] bg-[var(--bg-elevated)] text-[var(--text-gold)]"
-              : "border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:border-[var(--border-accent)]"
+              : "k-border-ui bg-[var(--bg-surface)] text-[var(--text-primary)] hover:border-[var(--border-accent)]"
         }`}
         aria-label="Upload PDF"
       >
-        <p className="font-ui font-medium">Drag and drop a PDF here, or click to choose a file</p>
-        <p className="font-ui mt-1 text-xs text-[var(--text-secondary)]">PDF only · Maximum 5MB</p>
+        <p className="font-ui k-text-heading">Drag and drop a PDF here, or click to choose a file</p>
+        <p className="font-ui k-text-helper mt-1">PDF only · Maximum 5MB</p>
 
         {value ? (
-          <div className="mt-4 rounded-md border border-[var(--clear-color)]/40 bg-[var(--clear-color)]/15 p-3">
-            <p className="font-ui text-sm font-medium text-[var(--clear-color)]">{value.name}</p>
-            <p className="font-ui text-xs text-[var(--clear-color)]">Ready to analyze</p>
+          <div className="k-radius-secondary mt-4 border border-[var(--clear-color)]/40 bg-[var(--clear-color)]/15 p-3">
+            <p className="font-ui k-text-heading text-[var(--clear-color)]">{value.name}</p>
+            <p className="font-ui k-text-helper text-[var(--clear-color)]">Ready to analyze</p>
           </div>
         ) : null}
       </div>
 
-      {activeErrorMessage ? <p className="font-ui mt-2 text-sm text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
+      {activeErrorMessage ? <p className="font-ui k-text-body mt-2 text-[var(--missing-color)]">{activeErrorMessage}</p> : null}
     </div>
   );
 }

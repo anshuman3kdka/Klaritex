@@ -19,6 +19,10 @@
   --clear-color: #2d7a4f;
   --broad-color: #b8860b;
   --missing-color: #9b2c2c;
+  --radius-primary: 0.75rem;
+  --radius-secondary: 0.5rem;
+  --ui-border-width: 1px;
+  --ui-border-opacity: 0.38;
 }
 
 body {
@@ -122,21 +126,21 @@ body {
 }
 
 .k-card {
-  border: 1px solid var(--border);
-  border-radius: 0.9rem;
+  border: var(--ui-border-width) solid color-mix(in oklab, var(--border) calc(var(--ui-border-opacity) * 100%), transparent);
+  border-radius: var(--radius-primary);
   background: var(--bg-surface);
 }
 
 .k-module-card {
-  border: 1px solid var(--border);
+  border: var(--ui-border-width) solid color-mix(in oklab, var(--border) calc(var(--ui-border-opacity) * 100%), transparent);
   border-left: 2px solid var(--border-accent);
-  border-radius: 0.9rem;
+  border-radius: var(--radius-primary);
   background: var(--bg-surface);
 }
 
 .module-card {
-  border: 1px solid rgba(201, 168, 76, 0.15);
-  border-radius: 0.9rem;
+  border: var(--ui-border-width) solid color-mix(in oklab, var(--border-accent) 26%, transparent);
+  border-radius: var(--radius-primary);
   background: var(--bg-surface);
   overflow: hidden;
   transition: border-color 200ms ease, background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
@@ -419,6 +423,57 @@ body {
 }
 
 @layer utilities {
+  .k-radius-primary {
+    border-radius: var(--radius-primary);
+  }
+
+  .k-radius-secondary {
+    border-radius: var(--radius-secondary);
+  }
+
+  .k-border-ui {
+    border-width: var(--ui-border-width);
+    border-style: solid;
+    border-color: color-mix(in oklab, var(--border) calc(var(--ui-border-opacity) * 100%), transparent);
+  }
+
+  .k-border-color {
+    border-color: color-mix(in oklab, var(--border) calc(var(--ui-border-opacity) * 100%), transparent);
+  }
+
+  .k-control-surface {
+    border-width: var(--ui-border-width);
+    border-style: solid;
+    border-color: color-mix(in oklab, var(--border) calc(var(--ui-border-opacity) * 100%), transparent);
+    border-radius: var(--radius-primary);
+    background: var(--bg-elevated);
+  }
+
+  .k-icon-16 {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+  }
+
+  .k-text-heading {
+    font-size: 0.875rem;
+    line-height: 1.4;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .k-text-body {
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--text-primary);
+  }
+
+  .k-text-helper {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+  }
+
   .k-entrance-fade-down {
     animation: kEntranceFadeDown 600ms ease-out both;
   }

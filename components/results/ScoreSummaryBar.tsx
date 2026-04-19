@@ -32,32 +32,32 @@ export function ScoreSummaryBar({ ambiguityScore, tier, tierOverride = false, ov
   return (
     <CollapsibleCard title="Score Summary" className={tier === 3 ? "border-[var(--tier3-color)]/55" : ""}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4">
+        <div className="k-radius-primary k-border-ui bg-[var(--bg-elevated)] p-4">
           <p className="k-module-label">Ambiguity Score</p>
           <p className="font-mono-ui mt-1 text-4xl leading-none text-[var(--text-gold)] sm:text-5xl">
             {hasScore ? ambiguityScore.toFixed(1) : "—"}
           </p>
         </div>
 
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4">
+        <div className="k-radius-primary k-border-ui bg-[var(--bg-elevated)] p-4">
           <p className="k-module-label">Tier Badge</p>
           {hasTier ? (
             <span className={`k-tier-badge k-tier-badge--summary mt-2 ${tierStyles[tier]}`}>
               {tierLabel[tier]}
             </span>
           ) : (
-            <p className="font-ui mt-2 text-sm text-[var(--text-secondary)]">—</p>
+            <p className="font-ui k-text-body mt-2 text-[var(--text-secondary)]">—</p>
           )}
         </div>
 
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4">
+        <div className="k-radius-primary k-border-ui bg-[var(--bg-elevated)] p-4">
           <p className="k-module-label">Override Notice</p>
           {tierOverride ? (
-            <p className="font-ui mt-2 rounded-md border border-[var(--tier3-color)]/55 bg-[var(--tier3-color)]/12 p-2 text-sm font-medium text-[var(--tier3-color)]">
+            <p className="font-ui k-radius-secondary mt-2 border border-[var(--tier3-color)]/55 bg-[var(--tier3-color)]/12 p-2 text-sm font-medium text-[var(--tier3-color)]">
               {overrideRule ? overrideRuleLabel[overrideRule] : "Override applied"}
             </p>
           ) : (
-            <p className="font-ui mt-2 text-sm text-[var(--text-secondary)]">No override applied</p>
+            <p className="font-ui k-text-body mt-2 text-[var(--text-secondary)]">No override applied</p>
           )}
         </div>
       </div>

@@ -35,18 +35,18 @@ export function CommitmentSummary({ commitmentSummary }: CommitmentSummaryProps)
           type="button"
           onClick={handleCopy}
           disabled={!summaryText}
-          className="font-ui rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-1.5 text-sm font-medium text-[var(--text-primary)] transition hover:border-[var(--border-accent)] hover:text-[var(--text-gold)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="font-ui k-radius-primary k-border-ui k-text-body bg-[var(--bg-elevated)] px-3 py-1.5 font-medium transition hover:border-[var(--border-accent)] hover:text-[var(--text-gold)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {copied ? "Copied" : "Copy"}
         </button>
       }
     >
       {!hasSummary ? (
-        <p className="font-ui rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
+        <p className="font-ui k-radius-primary k-border-ui border-dashed bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
       ) : summaryText ? (
-        <p className="font-ui rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-primary)]">{summaryText}</p>
+        <p className="font-ui k-radius-primary k-border-ui k-text-body bg-[var(--bg-elevated)] p-4">{summaryText}</p>
       ) : (
-        <p className="font-ui rounded-lg border border-[var(--broad-color)]/45 bg-[var(--broad-color)]/14 p-4 text-sm text-[var(--broad-color)]">
+        <p className="font-ui k-radius-primary border border-[var(--broad-color)]/45 bg-[var(--broad-color)]/14 p-4 text-sm text-[var(--broad-color)]">
           No extractable commitments found. The text contains no verifiable accountability statements.
         </p>
       )}
