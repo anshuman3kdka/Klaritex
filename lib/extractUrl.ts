@@ -27,6 +27,26 @@ function isBlockedIpv4Prefix(p1: number, p2: number): boolean {
   );
 }
 
+function parseDottedIpv4Octets(parts: Array<string | undefined>): number[] | null {
+  if (parts.length !== 4 || parts.some((part) => !part)) {
+    return null;
+  }
+
+  const octets = parts.map((part) => parseInt(part!, 10));
+  if (octets.some((part) => Number.isNaN(part) || part < 0 || part > 255)) {
+    return null;
+  }
+
+  return octets;
+}
+
+function isBlockedEmbeddedIpv4FromHexWords(highWordHex: string, lowWordHex: string): boolean {
+  const high = parseInt(highWordHex, 16);
+  const low = parseInt(lowWordHex, 16);
+  const octets = [(high >> 8) & 0xff, high & 0xff, (low >> 8) & 0xff, low & 0xff];
+  return isBlockedIpv4Prefix(octets[0], octets[1]);
+}
+
 function isBlockedIpAddress(address: string): boolean {
   const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
   const match = address.match(ipv4Regex);
@@ -39,36 +59,48 @@ function isBlockedIpAddress(address: string): boolean {
   }
 
   const ipv6 = address.toLowerCase();
-  const mappedOrCompatibleDotted = ipv6.match(
-    /^(?:(?:0:){5}|::)ffff:(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$|^(?:(?:0:){6}|::)(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+  const mappedDotted = ipv6.match(
+    /^(?:(?:0:){5}|::)ffff:(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
   );
-  if (mappedOrCompatibleDotted) {
-    const dottedGroups = mappedOrCompatibleDotted
-      .slice(1)
-      .filter((part): part is string => Boolean(part));
-    const octets = dottedGroups.map((part) => parseInt(part, 10));
-    if (octets.some((part) => part < 0 || part > 255)) {
+  if (mappedDotted) {
+    const octets = parseDottedIpv4Octets([
+      mappedDotted[1],
+      mappedDotted[2],
+      mappedDotted[3],
+      mappedDotted[4],
+    ]);
+    if (!octets) {
       return true;
     }
-    return isBlockedIpv4Prefix(octets[0]!, octets[1]!);
+    return isBlockedIpv4Prefix(octets[0], octets[1]);
+  }
+
+  const compatibleDotted = ipv6.match(
+    /^(?:(?:0:){6}|::)(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+  );
+  if (compatibleDotted) {
+    const octets = parseDottedIpv4Octets([
+      compatibleDotted[1],
+      compatibleDotted[2],
+      compatibleDotted[3],
+      compatibleDotted[4],
+    ]);
+    if (!octets) {
+      return true;
+    }
+    return isBlockedIpv4Prefix(octets[0], octets[1]);
   }
 
   const mappedHex = ipv6.match(
     /^(?:(?:0:){5}|::)ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/
   );
   if (mappedHex) {
-    const high = parseInt(mappedHex[1]!, 16);
-    const p1 = (high >> 8) & 0xff;
-    const p2 = high & 0xff;
-    return isBlockedIpv4Prefix(p1, p2);
+    return isBlockedEmbeddedIpv4FromHexWords(mappedHex[1]!, mappedHex[2]!);
   }
 
   const compatibleHex = ipv6.match(/^(?:(?:0:){6}|::)([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
   if (compatibleHex) {
-    const high = parseInt(compatibleHex[1]!, 16);
-    const p1 = (high >> 8) & 0xff;
-    const p2 = high & 0xff;
-    return isBlockedIpv4Prefix(p1, p2);
+    return isBlockedEmbeddedIpv4FromHexWords(compatibleHex[1]!, compatibleHex[2]!);
   }
 
   return (
@@ -104,7 +136,8 @@ function isSafeUrl(urlString: string): boolean {
       return false;
     }
 
-    if (isIP(hostname) && isBlockedIpAddress(hostname)) {
+    const normalizedHostname = hostname.replace(/^\[|\]$/g, "");
+    if (isIP(normalizedHostname) && isBlockedIpAddress(normalizedHostname)) {
       return false;
     }
 
