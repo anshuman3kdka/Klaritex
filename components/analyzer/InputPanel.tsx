@@ -212,6 +212,9 @@ export function InputPanel() {
     });
   }, [inputMode]);
 
+
+  const getIndicatorTransform = ({ left, width }: { left: number; width: number }) => `translateX(${left}px) scaleX(${Math.max(width, 1)})`;
+
   const analysisStateMessage = useMemo(() => {
     if (isAnalyzing) {
       return "Analyzing...";
@@ -426,21 +429,19 @@ export function InputPanel() {
         >
           <div
             aria-hidden
-            className="pointer-events-none absolute bottom-0 h-[2px] bg-[var(--gold-primary)]"
+            className="pointer-events-none absolute bottom-0 h-[2px] w-px origin-left bg-[var(--gold-primary)]"
             style={{
-              left: `${activeIndicatorStyle.left}px`,
-              width: `${activeIndicatorStyle.width}px`,
-              transition: "left 250ms cubic-bezier(0.4, 0, 0.2, 1), width 250ms cubic-bezier(0.4, 0, 0.2, 1)",
+              transform: getIndicatorTransform(activeIndicatorStyle),
+              transition: "transform 180ms cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute bottom-0 h-[2px] bg-[var(--gold-primary)]"
+            className="pointer-events-none absolute bottom-0 h-[2px] w-px origin-left bg-[var(--gold-primary)]"
             style={{
-              left: `${hoverIndicatorStyle.left}px`,
-              width: `${hoverIndicatorStyle.width}px`,
-              opacity: hoverIndicatorStyle.visible ? 0.3 : 0,
-              transition: "left 200ms cubic-bezier(0.4, 0, 0.2, 1), width 200ms cubic-bezier(0.4, 0, 0.2, 1), opacity 150ms ease",
+              transform: getIndicatorTransform(hoverIndicatorStyle),
+              opacity: hoverIndicatorStyle.visible ? 0.36 : 0,
+              transition: "transform 180ms cubic-bezier(0.4, 0, 0.2, 1), opacity 150ms ease",
             }}
           />
           {TABS.map((tab, index) => {
@@ -474,8 +475,10 @@ export function InputPanel() {
                   setHoverIndicatorStyle((previous) => ({ ...previous, visible: false }));
                 }}
                 style={tabAnimationStyle(index)}
-                className={`k-entrance-fade-down font-ui relative rounded-none px-2 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
-                  isActive ? "text-[var(--text-gold)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                className={`k-entrance-fade-down font-ui relative rounded-none border-b-2 px-2 py-3 text-left transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+                  isActive
+                    ? "border-[var(--gold-primary)] text-[var(--text-primary)]"
+                    : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
                 <p className="font-medium flex items-center">

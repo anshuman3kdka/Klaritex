@@ -102,21 +102,29 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
                 }
               }}
               onClick={() => onChange(option.value)}
-              className={`k-radius-primary border p-3 text-left transition-colors duration-150 active:bg-[var(--bg-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+              className={`k-radius-primary border p-3 text-left transition-transform duration-150 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
                 isTouchFlashing
                   ? "bg-[var(--bg-elevated)]"
                   : ""
               } ${
                 isActive
-                  ? "border-[var(--border-accent)] border-l-4 bg-[var(--bg-elevated)]"
-                  : "k-border-ui bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)]"
+                  ? "border-[var(--gold-primary)] bg-[var(--bg-elevated)]"
+                  : "k-border-ui bg-[var(--bg-surface)]"
               } ${disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
             >
-              <p className="font-ui k-text-heading flex items-center gap-2">
+              <p className={`font-ui k-text-heading flex items-center gap-2 ${isActive ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
                 {option.icon}
                 {option.label}
               </p>
-              <p className="font-ui mt-1 k-text-helper">{option.description}</p>
+              <p className={`font-ui mt-1 ${isActive ? "text-[var(--text-primary)]" : "k-text-helper"}`}>{option.description}</p>
+              <span
+                aria-hidden
+                className="mt-2 block h-px origin-left bg-[var(--gold-primary)] transition-[transform,opacity] duration-150"
+                style={{
+                  transform: isActive ? "scaleX(1)" : "scaleX(0)",
+                  opacity: isActive ? 1 : 0,
+                }}
+              />
             </button>
           );
         })}
