@@ -110,6 +110,28 @@ export function SpaceVoidBackground() {
     return () => context.revert();
   }, []);
 
+  useEffect(() => {
+    const rootElement = rootRef.current;
+    if (!rootElement) {
+      return;
+    }
+
+    const updateNebulaIntensity = () => {
+      const resultsVisible = Boolean(document.querySelector("section .k-module-label"));
+      rootElement.classList.toggle("space-void-bg--low-intensity", resultsVisible);
+    };
+
+    updateNebulaIntensity();
+
+    const observer = new MutationObserver(() => {
+      updateNebulaIntensity();
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div ref={rootRef} aria-hidden="true" className="space-void-bg pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <div
