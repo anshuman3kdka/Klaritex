@@ -32,6 +32,7 @@ export function UrlInput({ value, disabled = false, errorMessage, onChange }: Ur
         disabled={disabled}
         placeholder="https://..."
         aria-invalid={hasError}
+        aria-describedby="url-input-helper url-input-error"
         className={`font-ui k-radius-primary k-text-body w-full border bg-[var(--bg-primary)] p-3 outline-none transition-[border-color,box-shadow,background-color] duration-200 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)] ${
           hasError
             ? "border-[var(--missing-color)] focus-visible:border-[var(--missing-color)] focus-visible:ring-2 focus-visible:ring-[var(--missing-color)]/35 focus-visible:shadow-[0_0_0_4px_rgba(220,76,100,0.16)]"
@@ -39,10 +40,10 @@ export function UrlInput({ value, disabled = false, errorMessage, onChange }: Ur
         }`}
       />
 
-      <p className="font-ui k-text-helper mt-2 text-sm leading-5">
+      <p id="url-input-helper" className="font-ui k-text-helper mt-2 text-sm leading-5">
         Klaritex analyzes the article&apos;s text only. It does not search the web or fact-check claims.
       </p>
-      <p className={`font-ui mt-2 min-h-5 text-sm leading-5 ${hasError ? "text-[var(--missing-color)]" : "text-transparent"}`}>
+      <p id="url-input-error" role="alert" className={`font-ui mt-2 min-h-5 text-sm leading-5 ${hasError ? "text-[var(--missing-color)]" : "text-transparent"}`}>
         {errorMessage ?? "Input looks good."}
       </p>
     </div>
