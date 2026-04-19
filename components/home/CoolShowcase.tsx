@@ -93,7 +93,7 @@ export function CoolShowcase({ onIntent }: CoolShowcaseProps) {
     <section className="k-entrance-fade-down mx-auto mb-10 w-full max-w-5xl">
       <div className="k-card overflow-hidden border px-4 py-4 sm:px-6 sm:py-6">
         <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
-          <div>
+          <div className="min-w-0">
             <p className="font-mono-ui text-xs uppercase tracking-[0.2em] text-[var(--text-secondary)]">Preview Modes</p>
             <h2 className="mt-2 font-display text-2xl text-[var(--text-primary)] sm:text-3xl">
               Demo preview of Klaritex scoring modes.
@@ -119,7 +119,15 @@ export function CoolShowcase({ onIntent }: CoolShowcaseProps) {
               ))}
             </div>
 
-            <div className="cool-marquee mt-5" aria-label="Example things to analyze">
+            <div className="mt-5 flex flex-wrap gap-2 sm:hidden" aria-label="Example things to analyze">
+              {IDEA_CHIPS.map((chip) => (
+                <span key={chip} className="cool-chip">
+                  {chip}
+                </span>
+              ))}
+            </div>
+
+            <div className="cool-marquee mt-5 hidden sm:block" aria-label="Example things to analyze">
               <div className="cool-marquee-track">
                 {[...IDEA_CHIPS, ...IDEA_CHIPS].map((chip, index) => (
                   <span key={`${chip}-${index}`} className="cool-chip">
@@ -130,7 +138,7 @@ export function CoolShowcase({ onIntent }: CoolShowcaseProps) {
             </div>
           </div>
 
-          <div className="relative rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)]/60 p-4">
+          <div className="relative min-w-0 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)]/60 p-4">
             <div className={`pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br ${mood.accent}`} />
             <div className="relative">
               <p className="font-mono-ui text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">{mood.label}</p>
