@@ -18,6 +18,7 @@ type ThreeNamespace = {
   PointsMaterial: new (params: Record<string, unknown>) => any;
   Points: new (geometry: any, material: any) => any;
   Group: new () => any;
+  Color: new (hex: number) => any;
 };
 
 declare global {
@@ -68,8 +69,33 @@ function isLowPerformanceDevice(): boolean {
   return fewCores || lowMemory || dataSaver;
 }
 
+const TIER_COLORS: Record<AmbiguityTier, number> = {
+  1: 0x6ee7b7,
+  2: 0xfde68a,
+  3: 0xfca5a5,
+};
+
+const TIER_OPACITY: Record<AmbiguityTier, number> = {
+  1: 0.08,
+  2: 0.11,
+  3: 0.135,
+};
+
+const AMBIENT_TRANSITION_DURATION_MS = 420;
+
 export function DecorativeThreeBackground({ tier, activeModuleIndex, isEnabled }: DecorativeThreeBackgroundProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const activeModuleIndexRef = useRef(activeModuleIndex);
+  const tierRef = useRef(tier);
+
+  useEffect(() => {
+    activeModuleIndexRef.current = activeModuleIndex;
+  }, [activeModuleIndex]);
+
+  useEffect(() => {
+    tierRef.current = tier;
+  }, [tier]);
+
   useEffect(() => {
     if (!isEnabled || !mountRef.current) {
       return;
@@ -108,16 +134,17 @@ export function DecorativeThreeBackground({ tier, activeModuleIndex, isEnabled }
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
 
-      const tierColors: Record<AmbiguityTier, number> = {
-        1: 0x6ee7b7,
-        2: 0xfde68a,
-        3: 0xfca5a5,
-      };
+      const currentTier = tierRef.current;
+      const currentColor = new THREE.Color(TIER_COLORS[currentTier]);
+      const targetColor = new THREE.Color(TIER_COLORS[currentTier]);
+      let currentOpacity = shouldReduceEffects ? TIER_OPACITY[currentTier] * 0.72 : TIER_OPACITY[currentTier];
+      let targetOpacity = currentOpacity;
+      let transitionStart = performance.now();
 
       const material = new THREE.PointsMaterial({
-        color: tierColors[tier],
+        color: currentColor,
         transparent: true,
-        opacity: shouldReduceEffects ? 0.07 : 0.1,
+        opacity: currentOpacity,
         size: shouldReduceEffects ? 0.04 : 0.06,
         depthWrite: false,
       });
@@ -142,31 +169,43 @@ export function DecorativeThreeBackground({ tier, activeModuleIndex, isEnabled }
       window.addEventListener("resize", resize);
       cleanupResize = () => window.removeEventListener("resize", resize);
 
-      const speedMultiplier = shouldReduceEffects ? 0.0007 : 0.0015;
+      const speedMultiplier = shouldReduceEffects ? 0.0006 : 0.0015;
+      let previousTier = currentTier;
 
       const animate = (time: number) => {
         if (!isMounted) {
           return;
         }
 
+        const liveTier = tierRef.current;
+        if (liveTier !== previousTier) {
+          targetColor.setHex(TIER_COLORS[liveTier]);
+          const rawOpacity = shouldReduceEffects ? TIER_OPACITY[liveTier] * 0.72 : TIER_OPACITY[liveTier];
+          targetOpacity = rawOpacity;
+          transitionStart = time;
+          previousTier = liveTier;
+        }
+
+        const transitionElapsed = Math.max(0, time - transitionStart);
+        const progress = Math.min(1, transitionElapsed / AMBIENT_TRANSITION_DURATION_MS);
+        const easing = 1 - (1 - progress) * (1 - progress);
+
+        currentColor.lerp(targetColor, easing * 0.18);
+        material.color.copy(currentColor);
+        currentOpacity += (targetOpacity - currentOpacity) * 0.12;
+        material.opacity = currentOpacity;
+
         group.rotation.y = time * speedMultiplier;
         group.rotation.x = Math.sin(time * speedMultiplier * 0.7) * 0.04;
 
-        const moduleShift = (activeModuleIndex % 8) * 0.02;
+        const moduleShift = (activeModuleIndexRef.current % 8) * 0.02;
         group.position.x += (moduleShift - group.position.x) * 0.03;
 
         renderer.render(scene, camera);
-
-        if (!shouldReduceEffects) {
-          frameId = window.requestAnimationFrame(animate);
-        }
+        frameId = window.requestAnimationFrame(animate);
       };
 
-      animate(0);
-
-      if (!shouldReduceEffects) {
-        frameId = window.requestAnimationFrame(animate);
-      }
+      frameId = window.requestAnimationFrame(animate);
     });
 
     return () => {
@@ -180,11 +219,11 @@ export function DecorativeThreeBackground({ tier, activeModuleIndex, isEnabled }
 
       renderer?.dispose?.();
     };
-  }, [activeModuleIndex, isEnabled, tier]);
+  }, [isEnabled]);
 
   if (!isEnabled) {
     return null;
   }
 
-  return <div ref={mountRef} aria-hidden="true" className="k-radius-primary pointer-events-none absolute inset-0 z-0 overflow-hidden" />;
+  return <div ref={mountRef} aria-hidden="true" className="results-ambient-layer k-radius-primary pointer-events-none absolute inset-0 z-0 overflow-hidden" />;
 }

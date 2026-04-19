@@ -27,6 +27,10 @@
   --surface-tint-hover: color-mix(in oklab, var(--bg-elevated) 88%, #ffffff 12%);
   --shadow-rest: 0 2px 8px rgba(0, 0, 0, 0.22);
   --shadow-hover: 0 6px 14px rgba(0, 0, 0, 0.28);
+  --ambient-edge-color: var(--gold-primary);
+  --ambient-glow-color: rgba(201, 168, 76, 0.28);
+  --ambient-opacity: 0.1;
+  --ambient-transition-duration: 420ms;
 }
 
 body {
@@ -177,6 +181,63 @@ body {
 
 .module-card .module-status-badge {
   transition: background-color 200ms ease, filter 200ms ease;
+}
+
+.results-panel-shell {
+  --ambient-edge-color: var(--gold-primary);
+  --ambient-glow-color: rgba(201, 168, 76, 0.28);
+  --ambient-opacity: 0.1;
+}
+
+.results-panel-shell[data-ambient-preset="calm"] {
+  --ambient-edge-color: #6ee7b7;
+  --ambient-glow-color: rgba(110, 231, 183, 0.28);
+  --ambient-opacity: 0.08;
+}
+
+.results-panel-shell[data-ambient-preset="warn"] {
+  --ambient-edge-color: #fde68a;
+  --ambient-glow-color: rgba(253, 230, 138, 0.3);
+  --ambient-opacity: 0.12;
+}
+
+.results-panel-shell[data-ambient-preset="critical"] {
+  --ambient-edge-color: #fca5a5;
+  --ambient-glow-color: rgba(252, 165, 165, 0.34);
+  --ambient-opacity: 0.14;
+}
+
+.results-panel-shell .k-module-card,
+.results-panel-shell .module-card {
+  border-color: color-mix(in oklab, var(--ambient-edge-color) 26%, transparent);
+  transition:
+    border-color var(--ambient-transition-duration) ease,
+    box-shadow var(--ambient-transition-duration) ease,
+    background-color 200ms ease,
+    transform 200ms ease;
+}
+
+.results-panel-shell .k-module-card {
+  border-left-color: var(--ambient-edge-color);
+}
+
+.results-panel-shell .k-tier-badge {
+  transition:
+    border-color var(--ambient-transition-duration) ease,
+    box-shadow var(--ambient-transition-duration) ease,
+    color var(--ambient-transition-duration) ease,
+    background-color var(--ambient-transition-duration) ease;
+}
+
+.results-panel-shell .k-tier-badge--1,
+.results-panel-shell .k-tier-badge--2,
+.results-panel-shell .k-tier-badge--3 {
+  box-shadow: 0 0 14px var(--ambient-glow-color);
+}
+
+.results-panel-shell .results-ambient-layer {
+  opacity: var(--ambient-opacity);
+  transition: opacity var(--ambient-transition-duration) ease;
 }
 
 @media (hover: hover) {
