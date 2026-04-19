@@ -37,6 +37,13 @@ body {
 
 .space-void-bg {
   background: radial-gradient(circle at 50% 42%, #050508 0%, #000000 72%);
+  --nebula-intensity: 1;
+  --nebula-contrast: 1;
+}
+
+.space-void-bg--low-intensity {
+  --nebula-intensity: 0.58;
+  --nebula-contrast: 0.9;
 }
 
 .space-void-layer {
@@ -74,8 +81,8 @@ body {
   min-width: 280px;
   min-height: 280px;
   border-radius: 9999px;
-  filter: blur(84px);
-  opacity: 0.16;
+  filter: blur(84px) saturate(var(--nebula-contrast)) contrast(var(--nebula-contrast));
+  opacity: calc(0.16 * var(--nebula-intensity));
   will-change: transform;
   transform: translateZ(0);
 }
