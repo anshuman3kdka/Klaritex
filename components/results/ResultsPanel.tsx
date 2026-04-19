@@ -11,7 +11,7 @@ import { VagueLines } from "@/components/results/VagueLines";
 import { VerifiableRequirements } from "@/components/results/VerifiableRequirements";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 import { APP_CONFIG } from "@/lib/config";
-import type { AnalysisResult } from "@/lib/types";
+import type { AnalysisResult, AmbiguityTier } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -20,6 +20,14 @@ interface ResultsPanelProps {
   result?: AnalysisResult | null;
   isLoading?: boolean;
 }
+
+type AmbientPreset = "calm" | "warn" | "critical";
+
+const AMBIENT_PRESET_BY_TIER: Record<AmbiguityTier, AmbientPreset> = {
+  1: "calm",
+  2: "warn",
+  3: "critical",
+};
 
 const SKELETON_CARD_HEIGHTS = [120, 132, 116, 128, 122, 148, 156, 120, 136, 144, 170];
 
@@ -146,6 +154,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
 
   const totalPhases = MODULE_PHASES.length;
   const progressPercent = ((activePhaseIndex + 1) / totalPhases) * 100;
+  const ambientPreset = result ? AMBIENT_PRESET_BY_TIER[result.tier] : "calm";
 
   const goToPhase = (phaseIndex: number) => {
     const boundedPhaseIndex = Math.max(0, Math.min(phaseIndex, totalPhases - 1));
@@ -283,7 +292,8 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
       {result ? (
         <section
           key={`${resultKey}-${animationKey}`}
-          className="k-radius-primary relative mx-auto mt-6 w-full max-w-3xl overflow-hidden"
+          className="results-panel-shell k-radius-primary relative mx-auto mt-6 w-full max-w-3xl overflow-hidden"
+          data-ambient-preset={ambientPreset}
           style={{ opacity: isLoading ? 0 : 1, transition: "opacity 400ms ease" }}
         >
           <DynamicDecorativeThreeBackground
@@ -314,15 +324,17 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
                   <span aria-live="polite">
                     Phase {activePhaseIndex + 1} of {totalPhases}: {MODULE_PHASES[activePhaseIndex].label}
                   </span>
-                  <button
-                    type="button"
-                    className="rounded-md border border-white/20 px-2 py-1 text-xs font-medium text-white transition hover:border-white/40 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-                    onClick={() => setIsExpandAllEnabled((current) => !current)}
-                    aria-pressed={isExpandAllEnabled}
-                    aria-label={isExpandAllEnabled ? "Collapse back to phased view" : "Expand all sections in one scrollable view"}
-                  >
-                    {isExpandAllEnabled ? "Use phased view" : "Expand all"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      className="rounded-md border border-white/20 px-2 py-1 text-xs font-medium text-white transition hover:border-white/40 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                      onClick={() => setIsExpandAllEnabled((current) => !current)}
+                      aria-pressed={isExpandAllEnabled}
+                      aria-label={isExpandAllEnabled ? "Collapse back to phased view" : "Expand all sections in one scrollable view"}
+                    >
+                      {isExpandAllEnabled ? "Use phased view" : "Expand all"}
+                    </button>
+                  </div>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-valuemin={1} aria-valuemax={totalPhases} aria-valuenow={activePhaseIndex + 1} aria-label="Analysis phase progress">
                   <div className="h-full rounded-full bg-white/70 transition-all duration-300 ease-out" style={{ width: `${progressPercent}%` }} />
