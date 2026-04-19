@@ -30,7 +30,7 @@
   --ambient-edge-color: var(--gold-primary);
   --ambient-glow-color: rgba(201, 168, 76, 0.28);
   --ambient-opacity: 0.1;
-  --ambient-aura-strength: 0.22;
+  --ambient-aura-strength: 0.12;
   --ambient-transition-duration: 420ms;
 }
 
@@ -188,7 +188,7 @@ body {
   --ambient-edge-color: var(--gold-primary);
   --ambient-glow-color: rgba(201, 168, 76, 0.28);
   --ambient-opacity: 0.1;
-  --ambient-aura-strength: 0.22;
+  --ambient-aura-strength: 0.12;
   isolation: isolate;
 }
 
@@ -205,42 +205,41 @@ body {
   z-index: 0;
   opacity: var(--ambient-aura-strength);
   background:
-    radial-gradient(circle at 18% 16%, color-mix(in oklab, var(--ambient-edge-color) 42%, transparent) 0%, transparent 56%),
-    radial-gradient(circle at 82% 12%, color-mix(in oklab, var(--ambient-edge-color) 32%, transparent) 0%, transparent 52%),
-    radial-gradient(circle at 50% 108%, color-mix(in oklab, var(--ambient-edge-color) 26%, transparent) 0%, transparent 50%);
+    radial-gradient(120% 78% at 50% -12%, color-mix(in oklab, var(--ambient-edge-color) 22%, transparent) 0%, transparent 72%),
+    radial-gradient(80% 60% at 50% 100%, color-mix(in oklab, var(--ambient-edge-color) 12%, transparent) 0%, transparent 82%);
 }
 
 .results-panel-shell::after {
   z-index: 1;
-  border: 1px solid color-mix(in oklab, var(--ambient-edge-color) 48%, transparent);
+  border: 1px solid color-mix(in oklab, var(--ambient-edge-color) 16%, transparent);
   border-radius: inherit;
-  opacity: 0.4;
+  opacity: 0.26;
 }
 
 .results-panel-shell[data-ambient-preset="green"] {
   --ambient-edge-color: #34d399;
   --ambient-glow-color: rgba(52, 211, 153, 0.24);
   --ambient-opacity: 0.08;
-  --ambient-aura-strength: 0.18;
+  --ambient-aura-strength: 0.08;
 }
 
 .results-panel-shell[data-ambient-preset="amber"] {
   --ambient-edge-color: #fbbf24;
   --ambient-glow-color: rgba(251, 191, 36, 0.28);
   --ambient-opacity: 0.12;
-  --ambient-aura-strength: 0.24;
+  --ambient-aura-strength: 0.12;
 }
 
 .results-panel-shell[data-ambient-preset="red"] {
   --ambient-edge-color: #f87171;
   --ambient-glow-color: rgba(248, 113, 113, 0.32);
   --ambient-opacity: 0.14;
-  --ambient-aura-strength: 0.3;
+  --ambient-aura-strength: 0.15;
 }
 
 .results-panel-shell .k-module-card,
 .results-panel-shell .module-card {
-  border-color: color-mix(in oklab, var(--ambient-edge-color) 26%, transparent);
+  border-color: color-mix(in oklab, var(--border) 78%, var(--ambient-edge-color) 22%);
   transition:
     border-color var(--ambient-transition-duration) ease,
     box-shadow var(--ambient-transition-duration) ease,
@@ -249,7 +248,7 @@ body {
 }
 
 .results-panel-shell .k-module-card {
-  border-left-color: var(--ambient-edge-color);
+  border-left-color: color-mix(in oklab, var(--ambient-edge-color) 55%, var(--border-accent) 45%);
 }
 
 .results-panel-shell .k-tier-badge {
@@ -272,7 +271,7 @@ body {
 }
 
 .results-panel-shell .module-card:hover {
-  border-color: color-mix(in oklab, var(--ambient-edge-color) 55%, transparent);
+  border-color: color-mix(in oklab, var(--border) 68%, var(--ambient-edge-color) 32%);
 }
 
 .results-panel-shell .module-card:hover .module-card-title {
@@ -300,6 +299,14 @@ body {
 
   .module-card:hover .module-status-badge {
     filter: brightness(1.1);
+  }
+
+  .results-panel-shell .module-card:hover {
+    border-color: color-mix(in oklab, var(--border) 68%, var(--ambient-edge-color) 32%);
+  }
+
+  .results-panel-shell .module-card:hover .module-card-title {
+    color: inherit;
   }
 }
 
