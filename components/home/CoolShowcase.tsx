@@ -2,6 +2,19 @@
 
 import { useMemo, useState } from "react";
 
+import type { AnalysisMode, InputMode } from "@/lib/types";
+
+type ShowcaseIntent = {
+  inputMode?: InputMode;
+  processingMode?: AnalysisMode;
+  text?: string;
+  focusTextInput?: boolean;
+};
+
+type CoolShowcaseProps = {
+  onIntent?: (intent: ShowcaseIntent) => void;
+};
+
 const MOODS = [
   {
     key: "focus",
@@ -38,10 +51,43 @@ const IDEA_CHIPS = [
   "Inspect a grant proposal",
 ];
 
-export function CoolShowcase() {
+export function CoolShowcase({ onIntent }: CoolShowcaseProps) {
   const [activeMood, setActiveMood] = useState<(typeof MOODS)[number]["key"]>("focus");
 
   const mood = useMemo(() => MOODS.find((entry) => entry.key === activeMood) ?? MOODS[0], [activeMood]);
+
+  const handleMoodClick = (key: (typeof MOODS)[number]["key"]) => {
+    setActiveMood(key);
+
+    if (!onIntent) {
+      return;
+    }
+
+    if (key === "focus") {
+      onIntent({
+        inputMode: "text",
+        processingMode: "quick",
+        text: "Our team will publish weekly progress updates every Friday with named owners for each milestone.",
+        focusTextInput: true,
+      });
+      return;
+    }
+
+    if (key === "debate") {
+      onIntent({
+        inputMode: "text",
+        processingMode: "deep",
+        text: "We may consider reducing fees sometime soon if market conditions permit and stakeholders align.",
+        focusTextInput: true,
+      });
+      return;
+    }
+
+    onIntent({
+      inputMode: "url",
+      processingMode: "deep",
+    });
+  };
 
   return (
     <section className="k-entrance-fade-down mx-auto mb-10 w-full max-w-5xl">
@@ -61,7 +107,7 @@ export function CoolShowcase() {
                 <button
                   key={entry.key}
                   type="button"
-                  onClick={() => setActiveMood(entry.key)}
+                  onClick={() => handleMoodClick(entry.key)}
                   className={`rounded-full border px-3 py-1.5 text-xs font-medium transition sm:text-sm ${
                     activeMood === entry.key
                       ? "border-[var(--gold-primary)] bg-[var(--gold-primary)]/15 text-[var(--text-primary)]"
