@@ -184,6 +184,59 @@ function getClarityTone(clarityLevel: number): { label: string; color: [number, 
   return { label: "Low", color: RISK };
 }
 
+
+function getAmbiguityGaugeColor(score: number): [number, number, number] {
+  if (score <= 3) {
+    return GOOD;
+  }
+  if (score <= 6) {
+    return WARNING;
+  }
+  return RISK;
+}
+
+function drawAmbiguityGauge(doc: jsPDF, centerX: number, centerY: number, score: number): void {
+  const clampedScore = Math.max(0, Math.min(10, score));
+  const progress = clampedScore / 10;
+  const activeColor = getAmbiguityGaugeColor(clampedScore);
+  const startAngle = -210;
+  const sweepAngle = 240;
+  const segments = 36;
+  const outerRadius = 7;
+  const innerRadius = 4.8;
+
+  const pointAt = (angleDeg: number, radius: number) => {
+    const radians = (angleDeg * Math.PI) / 180;
+    return {
+      x: centerX + Math.cos(radians) * radius,
+      y: centerY + Math.sin(radians) * radius,
+    };
+  };
+
+  doc.setLineWidth(1.2);
+
+  for (let i = 0; i < segments; i += 1) {
+    const segmentStart = startAngle + (sweepAngle / segments) * i + 1;
+    const segmentEnd = startAngle + (sweepAngle / segments) * (i + 1) - 1;
+    const isActive = (i + 1) / segments <= progress;
+
+    if (isActive) {
+      doc.setDrawColor(...activeColor);
+    } else {
+      doc.setDrawColor(226, 232, 240);
+    }
+
+    const p1 = pointAt(segmentStart, outerRadius);
+    const p2 = pointAt(segmentEnd, outerRadius);
+    doc.line(p1.x, p1.y, p2.x, p2.y);
+  }
+
+  doc.setFillColor(255, 255, 255);
+  doc.circle(centerX, centerY, innerRadius, "F");
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.25);
+  doc.circle(centerX, centerY, innerRadius);
+}
 function getUnanchoredSeverity(unanchoredClaimsCount: number): { label: string; color: [number, number, number] } {
   if (unanchoredClaimsCount <= 2) {
     return { label: "Low", color: GOOD };
@@ -228,14 +281,18 @@ function writeKpiDashboard(doc: jsPDF, y: number, result: AnalysisResult): numbe
   doc.text("Action/Talk Ratio", leftX + 3, row2Y + 5.5);
   doc.text("Unanchored Claims", rightX + 3, row2Y + 5.5);
 
+  const gaugeCenterX = leftX + cardWidth / 2;
+  const gaugeCenterY = y + 14.2;
+  drawAmbiguityGauge(doc, gaugeCenterX, gaugeCenterY, result.ambiguityScore);
+
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...INK);
-  doc.setFontSize(14);
-  doc.text(`${result.ambiguityScore.toFixed(1)} / 10`, leftX + 3, y + 13);
+  doc.setFontSize(8.8);
+  doc.text(result.ambiguityScore.toFixed(1), gaugeCenterX, gaugeCenterY + 1, { align: "center" });
 
-  doc.setFontSize(9.2);
+  doc.setFontSize(8.2);
   doc.setTextColor(...SUBTLE);
-  doc.text(`Tier ${result.tier}`, leftX + 3, y + 18.2);
+  doc.text(`Tier ${result.tier}`, gaugeCenterX, y + 22, { align: "center" });
 
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...clarityTone.color);
