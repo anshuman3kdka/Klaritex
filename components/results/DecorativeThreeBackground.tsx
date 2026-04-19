@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useVisualEffectsQuality } from "@/components/background/useVisualEffectsQuality";
 import type { AmbiguityTier } from "@/lib/types";
-import type { VisualEffectsQuality } from "@/lib/visualEffects";
 
 interface DecorativeThreeBackgroundProps {
   tier: AmbiguityTier;
@@ -71,42 +69,25 @@ function isLowPerformanceDevice(): boolean {
 }
 
 export function DecorativeThreeBackground({ tier, activeModuleIndex, isEnabled }: DecorativeThreeBackgroundProps) {
-  const { effectiveQuality } = useVisualEffectsQuality();
   const mountRef = useRef<HTMLDivElement | null>(null);
-  const isInViewRef = useRef(true);
-  const isPageVisibleRef = useRef(true);
-
   useEffect(() => {
-    if (!isEnabled || !mountRef.current || effectiveQuality === "off") {
+    if (!isEnabled || !mountRef.current) {
       return;
     }
 
     const hostElement = mountRef.current;
     let frameId = 0;
     let isMounted = true;
-    let isAnimating = false;
     let renderer: any;
     let cleanupResize: (() => void) | null = null;
-    let fallbackCleanup: (() => void) | null = null;
-    const shouldReduceEffects = prefersReducedMotion() || effectiveQuality === "low" || isLowPerformanceDevice();
-    const canRunFrame = () => isMounted && isInViewRef.current && isPageVisibleRef.current;
-    const particleCountByQuality: Record<VisualEffectsQuality, number> = {
-      high: 200,
-      medium: 140,
-      low: 70,
-      off: 0,
-    };
+    const shouldReduceEffects = prefersReducedMotion() || isLowPerformanceDevice();
 
     loadThreeScript().then((THREE) => {
       if (!THREE || !isMounted) {
-        if (hostElement && isMounted) {
-          fallbackCleanup = renderDomParticleFallback(hostElement, tier, effectiveQuality);
-        }
         return;
       }
 
       const host = hostElement;
-      isPageVisibleRef.current = document.visibilityState === "visible";
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
       camera.position.z = 8;
@@ -116,7 +97,7 @@ export function DecorativeThreeBackground({ tier, activeModuleIndex, isEnabled }
       renderer.setClearColor(0x000000, 0);
       host.appendChild(renderer.domElement);
 
-      const particleCount = particleCountByQuality[effectiveQuality];
+      const particleCount = shouldReduceEffects ? 80 : 140;
       const spread = 10;
       const positions: number[] = [];
 
@@ -136,8 +117,8 @@ export function DecorativeThreeBackground({ tier, activeModuleIndex, isEnabled }
       const material = new THREE.PointsMaterial({
         color: tierColors[tier],
         transparent: true,
-        opacity: shouldReduceEffects ? 0.06 : effectiveQuality === "high" ? 0.12 : 0.09,
-        size: shouldReduceEffects ? 0.035 : effectiveQuality === "high" ? 0.07 : 0.055,
+        opacity: shouldReduceEffects ? 0.07 : 0.1,
+        size: shouldReduceEffects ? 0.04 : 0.06,
         depthWrite: false,
       });
 
@@ -161,14 +142,12 @@ export function DecorativeThreeBackground({ tier, activeModuleIndex, isEnabled }
       window.addEventListener("resize", resize);
       cleanupResize = () => window.removeEventListener("resize", resize);
 
-      const speedMultiplier = shouldReduceEffects ? 0.0006 : effectiveQuality === "high" ? 0.0018 : 0.0013;
+      const speedMultiplier = shouldReduceEffects ? 0.0007 : 0.0015;
 
       const animate = (time: number) => {
-        if (!canRunFrame()) {
-          isAnimating = false;
+        if (!isMounted) {
           return;
         }
-        isAnimating = true;
 
         group.rotation.y = time * speedMultiplier;
         group.rotation.x = Math.sin(time * speedMultiplier * 0.7) * 0.04;
@@ -178,42 +157,22 @@ export function DecorativeThreeBackground({ tier, activeModuleIndex, isEnabled }
 
         renderer.render(scene, camera);
 
-        frameId = window.requestAnimationFrame(animate);
-      };
-
-      if (canRunFrame()) {
-        animate(0);
-        frameId = window.requestAnimationFrame(animate);
-      }
-
-      const handleVisibilityChange = () => {
-        if (!isAnimating && canRunFrame()) {
+        if (!shouldReduceEffects) {
           frameId = window.requestAnimationFrame(animate);
         }
       };
 
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          isInViewRef.current = entry.isIntersecting;
-          if (!isAnimating && canRunFrame()) {
-            frameId = window.requestAnimationFrame(animate);
-          }
-        },
-        { threshold: 0.1 },
-      );
-      observer.observe(host);
-      document.addEventListener("visibilitychange", handleVisibilityChange);
-      fallbackCleanup = () => {
-        observer.disconnect();
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
-      };
+      animate(0);
+
+      if (!shouldReduceEffects) {
+        frameId = window.requestAnimationFrame(animate);
+      }
     });
 
     return () => {
       isMounted = false;
       window.cancelAnimationFrame(frameId);
       cleanupResize?.();
-      fallbackCleanup?.();
 
       if (renderer && hostElement.contains(renderer.domElement)) {
         hostElement.removeChild(renderer.domElement);
@@ -221,43 +180,11 @@ export function DecorativeThreeBackground({ tier, activeModuleIndex, isEnabled }
 
       renderer?.dispose?.();
     };
-  }, [activeModuleIndex, effectiveQuality, isEnabled, tier]);
+  }, [activeModuleIndex, isEnabled, tier]);
 
-  if (!isEnabled || effectiveQuality === "off") {
+  if (!isEnabled) {
     return null;
   }
 
   return <div ref={mountRef} aria-hidden="true" className="k-radius-primary pointer-events-none absolute inset-0 z-0 overflow-hidden" />;
-}
-
-function renderDomParticleFallback(host: HTMLDivElement, tier: AmbiguityTier, quality: VisualEffectsQuality): () => void {
-  const overlay = document.createElement("div");
-  overlay.className = "decorative-particle-fallback";
-  host.appendChild(overlay);
-
-  const particleCount = quality === "low" ? 18 : quality === "high" ? 52 : 32;
-  const tierColors: Record<AmbiguityTier, string> = {
-    1: "rgba(110, 231, 183, 0.42)",
-    2: "rgba(253, 230, 138, 0.42)",
-    3: "rgba(252, 165, 165, 0.42)",
-  };
-
-  Array.from({ length: particleCount }).forEach(() => {
-    const dot = document.createElement("span");
-    dot.className = "decorative-particle-fallback-dot";
-    dot.style.left = `${Math.random() * 100}%`;
-    dot.style.top = `${Math.random() * 100}%`;
-    dot.style.background = tierColors[tier];
-    dot.style.width = `${0.08 + Math.random() * 0.2}rem`;
-    dot.style.height = dot.style.width;
-    dot.style.animationDelay = `${Math.random() * 4}s`;
-    dot.style.animationDuration = `${4 + Math.random() * 6}s`;
-    overlay.appendChild(dot);
-  });
-
-  return () => {
-    if (host.contains(overlay)) {
-      host.removeChild(overlay);
-    }
-  };
 }

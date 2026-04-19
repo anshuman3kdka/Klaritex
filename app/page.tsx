@@ -1,6 +1,5 @@
 import { InputPanel } from "@/components/analyzer/InputPanel";
 import { SpaceVoidBackground } from "@/components/background/SpaceVoidBackground";
-import { VisualEffectsToggle } from "@/components/background/VisualEffectsToggle";
 
 export default function HomePage() {
   return (
@@ -19,9 +18,13 @@ export default function HomePage() {
             </a>
           </div>
           <div>
-            <div className="flex items-center justify-center">
-              <VisualEffectsToggle />
-            </div>
+            <a
+              href="#"
+              aria-label="About (coming soon)"
+              className="font-ui text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:text-base"
+            >
+              About
+            </a>
           </div>
           <div className="text-right">
             <span className="font-display text-2xl tracking-tight text-[var(--text-gold)] sm:text-3xl">Klaritex&trade;</span>
