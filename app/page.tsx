@@ -52,6 +52,7 @@ export default function HomePage() {
         </section>
 
         <CoolShowcase
+          ctaTargetId="analyzer"
           onIntent={(nextIntent) => {
             setIntent({
               id: Date.now(),
@@ -60,7 +61,7 @@ export default function HomePage() {
           }}
         />
 
-        <InputPanel intent={intent} />
+        <InputPanel id="analyzer" intent={intent} />
       </main>
 
       <footer className="k-glass-surface relative z-10 shrink-0 border-t backdrop-blur-sm">

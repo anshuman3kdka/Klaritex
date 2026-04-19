@@ -13,6 +13,7 @@ type ShowcaseIntent = {
 
 type CoolShowcaseProps = {
   onIntent?: (intent: ShowcaseIntent) => void;
+  ctaTargetId?: string;
 };
 
 const MOODS = [
@@ -51,7 +52,7 @@ const IDEA_CHIPS = [
   "Inspect a grant proposal",
 ];
 
-export function CoolShowcase({ onIntent }: CoolShowcaseProps) {
+export function CoolShowcase({ onIntent, ctaTargetId = "analyzer" }: CoolShowcaseProps) {
   const [activeMood, setActiveMood] = useState<(typeof MOODS)[number]["key"]>("focus");
 
   const mood = useMemo(() => MOODS.find((entry) => entry.key === activeMood) ?? MOODS[0], [activeMood]);
@@ -89,6 +90,18 @@ export function CoolShowcase({ onIntent }: CoolShowcaseProps) {
     });
   };
 
+  const handlePrimaryCtaClick = () => {
+    onIntent?.({
+      inputMode: "text",
+      focusTextInput: true,
+    });
+
+    const target = document.getElementById(ctaTargetId);
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <section className="k-entrance-fade-down mx-auto mb-10 w-full max-w-5xl">
       <div className="k-card overflow-hidden border px-4 py-4 sm:px-6 sm:py-6">
@@ -101,6 +114,13 @@ export function CoolShowcase({ onIntent }: CoolShowcaseProps) {
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
               This card shows sample results only. Use the Analyze section below to run real analysis on your text.
             </p>
+            <button
+              type="button"
+              onClick={handlePrimaryCtaClick}
+              className="mt-4 inline-flex items-center rounded-lg bg-[var(--gold-primary)] px-4 py-2 font-ui text-sm font-semibold text-[#1a1a1a] transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50"
+            >
+              Try with my text
+            </button>
 
             <div className="mt-5 flex flex-wrap gap-2">
               {MOODS.map((entry) => (
