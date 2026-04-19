@@ -308,10 +308,31 @@ body {
 }
 
 
+.k-skeleton-card {
+  overflow: hidden;
+}
+
 .k-skeleton-shimmer {
-  background: linear-gradient(90deg, #0f1829 0%, #162035 50%, #0f1829 100%);
-  background-size: 200% 100%;
-  animation: kSkeletonSweep 1.8s linear infinite;
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--bg-elevated) 88%, var(--border-accent) 12%);
+}
+
+.k-skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 0%,
+    color-mix(in oklab, var(--gold-primary) 16%, transparent) 44%,
+    color-mix(in oklab, var(--text-secondary) 12%, transparent) 50%,
+    color-mix(in oklab, var(--gold-primary) 16%, transparent) 56%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 220% 100%;
+  opacity: 0.35;
+  animation: kSkeletonSweep 2.1s ease-in-out infinite;
 }
 
 .k-stress-toggle {
@@ -519,14 +540,16 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .k-entrance-fade-down,
   .k-entrance-scale-in,
-  .k-skeleton-shimmer,
   .k-tier-badge--3 {
     animation: none !important;
     transform: none !important;
     opacity: 1 !important;
   }
 
-  .k-skeleton-shimmer {
+  .k-skeleton-shimmer::after {
+    animation: none !important;
+    opacity: 0.15 !important;
+    background-size: 100% 100%;
     background-position: 0 0 !important;
   }
 }
