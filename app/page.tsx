@@ -5,10 +5,38 @@ import { useState } from "react";
 import { InputPanel } from "@/components/analyzer/InputPanel";
 import { SpaceVoidBackground } from "@/components/background/SpaceVoidBackground";
 import { CoolShowcase } from "@/components/home/CoolShowcase";
+import type { ShowcaseMoodKey } from "@/components/home/CoolShowcase";
 import type { InputPanelIntent } from "@/components/analyzer/InputPanel";
+import type { AnalysisMode, InputMode } from "@/lib/types";
+
+type MoodSetup = {
+  inputMode: InputMode;
+  processingMode: AnalysisMode;
+  starterTextTemplate: string;
+};
+
+const MOOD_SETUP_MAP: Record<ShowcaseMoodKey, MoodSetup> = {
+  focus: {
+    inputMode: "text",
+    processingMode: "deep",
+    starterTextTemplate: "Our team will publish weekly progress updates every Friday with named owners for each milestone.",
+  },
+  debate: {
+    inputMode: "url",
+    processingMode: "deep",
+    starterTextTemplate: "",
+  },
+  redflag: {
+    inputMode: "text",
+    processingMode: "quick",
+    starterTextTemplate: "We're going to revolutionize everything soon with game-changing outcomes for everyone.",
+  },
+};
 
 export default function HomePage() {
   const [intent, setIntent] = useState<InputPanelIntent | null>(null);
+  const [activeMood, setActiveMood] = useState<ShowcaseMoodKey>("focus");
+  const [inputDefaults, setInputDefaults] = useState<MoodSetup>(MOOD_SETUP_MAP.focus);
 
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--bg-primary)]">
@@ -52,8 +80,16 @@ export default function HomePage() {
         </section>
 
         <CoolShowcase
+          activeMood={activeMood}
+          onMoodChange={setActiveMood}
           ctaTargetId="analyzer"
-          onIntent={(nextIntent) => {
+          onUseSetup={(nextIntent) => {
+            const moodSetup = MOOD_SETUP_MAP[activeMood];
+            setInputDefaults({
+              inputMode: nextIntent.inputMode ?? moodSetup.inputMode,
+              processingMode: nextIntent.processingMode ?? moodSetup.processingMode,
+              starterTextTemplate: nextIntent.text ?? moodSetup.starterTextTemplate,
+            });
             setIntent({
               id: Date.now(),
               ...nextIntent,
@@ -61,7 +97,13 @@ export default function HomePage() {
           }}
         />
 
-        <InputPanel id="analyzer" intent={intent} />
+        <InputPanel
+          id="analyzer"
+          intent={intent}
+          defaultInputMode={inputDefaults.inputMode}
+          defaultProcessingMode={inputDefaults.processingMode}
+          starterTextTemplate={inputDefaults.starterTextTemplate}
+        />
       </main>
 
       <footer className="k-glass-surface relative z-10 shrink-0 border-t backdrop-blur-sm">

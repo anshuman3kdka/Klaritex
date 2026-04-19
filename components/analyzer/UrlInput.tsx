@@ -1,10 +1,13 @@
 "use client";
 
+import type { RefObject } from "react";
+
 interface UrlInputProps {
   value: string;
   disabled?: boolean;
   errorMessage?: string | null;
   onChange: (value: string) => void;
+  inputRef?: RefObject<HTMLInputElement | null>;
 }
 
 export function isValidHttpUrl(value: string): boolean {
@@ -16,7 +19,7 @@ export function isValidHttpUrl(value: string): boolean {
   }
 }
 
-export function UrlInput({ value, disabled = false, errorMessage, onChange }: UrlInputProps) {
+export function UrlInput({ value, disabled = false, errorMessage, onChange, inputRef }: UrlInputProps) {
   const hasError = Boolean(errorMessage);
 
   return (
@@ -25,6 +28,7 @@ export function UrlInput({ value, disabled = false, errorMessage, onChange }: Ur
         URL to analyze
       </label>
       <input
+        ref={inputRef}
         id="klaritex-url-input"
         type="url"
         value={value}
