@@ -112,3 +112,90 @@ Example:
 ```bash
 npm run screenshot -- http://127.0.0.1:3000 screenshots/change-1.png
 ```
+
+---
+
+## Live Smoke Check (pre-commit safety check)
+
+This project includes a **live smoke check** so you can verify the production/live API is still healthy before committing.
+
+### What it checks
+The command runs 3 real API scenarios against `LIVE_BASE_URL`:
+1. Text analysis (`/api/analyze`)
+2. PDF analysis (`/api/analyze-pdf`)
+3. URL analysis (`/api/analyze-url`)
+
+For each scenario, it verifies:
+- HTTP status is successful
+- Response shape contains expected fields (`result` / `status` / `message`) or Klaritex analysis keys
+- Response time is under threshold (default: 60s per scenario)
+
+### Fixture files used
+- `tests/fixtures/sample-text.txt`
+- `tests/fixtures/tiny-test.pdf`
+- `tests/fixtures/sample-url.txt`
+
+### Required environment variables
+- `LIVE_BASE_URL` (required) — your deployed site base URL, for example:
+  - `https://klaritex.example.com`
+
+Optional:
+- `LIVE_TIMEOUT_MS` (default `45000`) — request timeout per API call
+- `LIVE_SCENARIO_MAX_MS` (default `60000`) — max allowed response time before scenario fails
+- `SKIP_LIVE_CHECK=1` — emergency bypass for the smoke check command
+
+### Run manually before commit
+```bash
+LIVE_BASE_URL=https://your-live-site.com npm run live:check
+```
+
+### Example output
+```text
+Text analysis: PASS
+PDF analysis: PASS
+URL analysis: FAIL - Timeout threshold exceeded (62101ms > 60000ms)
+
+Live smoke check summary
++---------------+--------+-----------------------------------------------+
+| Scenario      | Result | Reason                                        |
++---------------+--------+-----------------------------------------------+
+| Text analysis | PASS   | HTTP 200 in 1450ms                            |
+| PDF analysis  | PASS   | HTTP 200 in 2038ms                            |
+| URL analysis  | FAIL   | Timeout threshold exceeded (62101ms > 60000ms)|
++---------------+--------+-----------------------------------------------+
+```
+
+### Pre-commit hook wiring
+This repo includes `.pre-commit-config.yaml` with a local hook that runs:
+```bash
+npm run live:check
+```
+
+If you use the Python `pre-commit` framework, install/enable it once:
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+### Emergency bypass options
+- Standard Git bypass (skips all commit hooks):
+  ```bash
+  git commit --no-verify -m "your message"
+  ```
+- Live-check-only bypass:
+  ```bash
+  SKIP_LIVE_CHECK=1 git commit -m "your message"
+  ```
+
+### Common failure causes
+- `LIVE_BASE_URL` is missing or has a typo
+- Live deployment is down or returning non-200 errors
+- Missing/invalid server auth or API key configuration (for example Gemini key missing in deployment)
+- Temporary rate limit on live APIs
+
+### CI (optional but included)
+A GitHub Actions workflow is included at `.github/workflows/live-check.yml` and runs on:
+- pushes to `main`
+- pushes to `release/**`
+
+It runs `npm run live:check` and uploads `live-smoke-check.log` as a build artifact for traceability.
