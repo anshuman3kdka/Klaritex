@@ -585,6 +585,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                     disabled={isAnalyzing}
                     placeholder="Paste a political statement, policy claim, corporate announcement, or any text you want analyzed..."
                     aria-invalid={textHasError}
+                    aria-describedby="text-input-char-count text-input-error-msg"
                     className={`font-ui k-radius-primary k-text-body h-full w-full border bg-[var(--bg-primary)] p-3 outline-none transition-[border-color,box-shadow,background-color] duration-200 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)] md:h-auto ${
                       textHasError
                         ? "border-[var(--missing-color)] focus-visible:border-[var(--missing-color)] focus-visible:ring-2 focus-visible:ring-[var(--missing-color)]/35 focus-visible:shadow-[0_0_0_4px_rgba(220,76,100,0.16)]"
@@ -592,6 +593,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                     }`}
                   />
                   <p
+                    id="text-input-char-count"
                     className={`font-mono-ui mt-2 shrink-0 text-sm leading-5 ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}
                   >
                     {textInput.length.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()}
@@ -695,7 +697,11 @@ export function InputPanel({ intent, id }: InputPanelProps) {
           </div>
         ) : null}
         {inputMode === "text" ? (
-          <p className={`font-ui mt-2 min-h-5 text-sm leading-5 ${textHasError ? "text-[var(--missing-color)]" : "text-transparent"}`}>
+          <p
+            id="text-input-error-msg"
+            role="alert"
+            className={`font-ui mt-2 min-h-5 text-sm leading-5 ${textHasError ? "text-[var(--missing-color)]" : "text-transparent"}`}
+          >
             {errorMessage ?? "Text looks good."}
           </p>
         ) : null}
