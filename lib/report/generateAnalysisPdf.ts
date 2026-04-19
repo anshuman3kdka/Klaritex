@@ -108,7 +108,59 @@ function ensurePageSpace(doc: jsPDF, y: number, neededSpace: number, pageTitle: 
   return 31;
 }
 
-function writeCard(doc: jsPDF, y: number, title: string, pageTitle: string, pageNumberRef: { value: number }): number {
+type CardIconMarker = "summary" | "evidence" | "ambiguity" | "vague" | "commitment";
+
+function drawCardIcon(doc: jsPDF, marker: CardIconMarker, x: number, yCenter: number) {
+  doc.setDrawColor(...INK);
+  doc.setLineWidth(0.4);
+
+  if (marker === "summary") {
+    doc.circle(x, yCenter, 2.1);
+    doc.line(x - 1.2, yCenter - 0.1, x - 0.3, yCenter + 1);
+    doc.line(x - 0.3, yCenter + 1, x + 1.3, yCenter - 1.1);
+    return;
+  }
+
+  if (marker === "evidence") {
+    doc.line(x - 2.2, yCenter - 1.7, x + 1.8, yCenter - 1.7);
+    doc.line(x - 2.2, yCenter, x + 2.2, yCenter);
+    doc.line(x - 2.2, yCenter + 1.7, x + 0.8, yCenter + 1.7);
+    doc.circle(x - 2.7, yCenter - 1.7, 0.25);
+    doc.circle(x - 2.7, yCenter, 0.25);
+    doc.circle(x - 2.7, yCenter + 1.7, 0.25);
+    return;
+  }
+
+  if (marker === "ambiguity") {
+    doc.circle(x, yCenter - 0.4, 2.1);
+    doc.line(x, yCenter + 2, x, yCenter + 2.4);
+    doc.circle(x, yCenter + 3.3, 0.3);
+    return;
+  }
+
+  if (marker === "vague") {
+    doc.circle(x - 1.2, yCenter, 1.3);
+    doc.circle(x + 1.2, yCenter, 1.3);
+    doc.line(x - 0.4, yCenter, x + 0.4, yCenter);
+    return;
+  }
+
+  doc.line(x - 1.8, yCenter - 1.8, x - 0.2, yCenter - 0.2);
+  doc.line(x - 0.2, yCenter - 0.2, x + 2.1, yCenter - 2);
+  doc.line(x - 0.1, yCenter - 0.1, x - 0.1, yCenter + 2.2);
+  doc.circle(x - 1.8, yCenter - 1.8, 0.35);
+  doc.circle(x + 2.1, yCenter - 2, 0.35);
+  doc.circle(x - 0.1, yCenter + 2.2, 0.35);
+}
+
+function writeCard(
+  doc: jsPDF,
+  y: number,
+  title: string,
+  pageTitle: string,
+  pageNumberRef: { value: number },
+  iconMarker?: CardIconMarker
+): number {
   y = ensurePageSpace(doc, y, 16, pageTitle, pageNumberRef);
 
   doc.setFillColor(248, 250, 252);
@@ -121,7 +173,11 @@ function writeCard(doc: jsPDF, y: number, title: string, pageTitle: string, page
   doc.setTextColor(...INK);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(CARD_TITLE_SIZE);
-  doc.text(title, PAGE_MARGIN + 4, y + 3.5);
+  const iconOffset = iconMarker ? 7 : 0;
+  if (iconMarker) {
+    drawCardIcon(doc, iconMarker, PAGE_MARGIN + 4, y + 1.8);
+  }
+  doc.text(title, PAGE_MARGIN + 4 + iconOffset, y + 3.5);
 
   return y + 14;
 }
@@ -499,7 +555,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   y = writeKpiDashboard(doc, y, result);
   y += 8;
 
-  y = writeCard(doc, y, "Summary", "Executive Summary", pageCounter);
+  y = writeCard(doc, y, "Summary", "Executive Summary", pageCounter, "summary");
   y = writeRichParagraph(doc, result.commitmentSummary, y, "Executive Summary", pageCounter, { baseSize: 11 });
 
   y += 4;
@@ -519,7 +575,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   y = 31;
 
   const sourceTypeLabel = source.mode === "text" ? "Raw text" : source.mode === "url" ? "URL" : "Uploaded PDF";
-  y = writeCard(doc, y, "Input Prompt", "Input & Evidence", pageCounter);
+  y = writeCard(doc, y, "Input Prompt", "Input & Evidence", pageCounter, "evidence");
   y = writeRichParagraph(
     doc,
     `**Source Type:** ${sourceTypeLabel}\n\n${formatSourcePreview(source)}`,
@@ -529,7 +585,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   );
 
   y += 3;
-  y = writeCard(doc, y, "Verifiable Requirements", "Input & Evidence", pageCounter);
+  y = writeCard(doc, y, "Verifiable Requirements", "Input & Evidence", pageCounter, "evidence");
   y = writeRichParagraph(
     doc,
     result.verifiableRequirements.length > 0
@@ -545,7 +601,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   addPageChrome(doc, "Analysis Details", pageCounter.value);
   y = 31;
 
-  y = writeCard(doc, y, "Ambiguity Explanation", "Analysis Details", pageCounter);
+  y = writeCard(doc, y, "Ambiguity Explanation", "Analysis Details", pageCounter, "ambiguity");
   y = writeRichParagraph(
     doc,
     result.ambiguityExplanation.length > 0 ? result.ambiguityExplanation.map((item) => `- ${item}`).join("\n") : "No explanation provided.",
@@ -555,7 +611,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   );
 
   y += 3;
-  y = writeCard(doc, y, "Vague Lines", "Analysis Details", pageCounter);
+  y = writeCard(doc, y, "Vague Lines", "Analysis Details", pageCounter, "vague");
   y = writeRichParagraph(
     doc,
     result.vagueLines.length > 0
@@ -579,7 +635,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   );
 
   y += 3;
-  y = writeCard(doc, y, "Commitment Breakdown", "Analysis Details", pageCounter);
+  y = writeCard(doc, y, "Commitment Breakdown", "Analysis Details", pageCounter, "commitment");
 
   if (result.elements.length === 0) {
     y = writeRichParagraph(doc, "No commitment elements provided.", y, "Analysis Details", pageCounter);
