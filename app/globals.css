@@ -46,10 +46,6 @@ body {
   --nebula-contrast: 0.9;
 }
 
-.space-void-bg--offscreen {
-  opacity: 0;
-}
-
 .space-void-layer {
   position: absolute;
   inset: 0;
@@ -89,33 +85,6 @@ body {
   opacity: calc(0.16 * var(--nebula-intensity));
   will-change: transform;
   transform: translateZ(0);
-}
-
-.decorative-particle-fallback {
-  position: absolute;
-  inset: 0;
-}
-
-.decorative-particle-fallback-dot {
-  position: absolute;
-  border-radius: 9999px;
-  opacity: 0.35;
-  animation: decorativeFallbackDrift 7s ease-in-out infinite;
-}
-
-@keyframes decorativeFallbackDrift {
-  0% {
-    transform: translate3d(0, 0, 0);
-    opacity: 0.22;
-  }
-  50% {
-    transform: translate3d(0.25rem, -0.45rem, 0);
-    opacity: 0.5;
-  }
-  100% {
-    transform: translate3d(0, 0, 0);
-    opacity: 0.22;
-  }
 }
 
 .nebula-one {
