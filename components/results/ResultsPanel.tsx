@@ -97,6 +97,15 @@ function PriorityModuleLayer({
   );
 }
 
+function SectionSeparator({ label }: { label: string }) {
+  return (
+    <div className="pt-1">
+      <div className="h-px w-full bg-white/10" aria-hidden="true" />
+      <p className="k-module-label mt-2">{label}</p>
+    </div>
+  );
+}
+
 export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
   const resultKey = useMemo(() => (result ? "active" : "empty"), [result]);
   const [showSkeleton, setShowSkeleton] = useState(isLoading);
@@ -153,6 +162,8 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
           />
 
           <div className="relative z-10 space-y-3 sm:space-y-4 md:space-y-5">
+            <SectionSeparator label="Summary" />
+
             <PriorityModuleLayer index={0} setActiveModuleIndex={setActiveModuleIndex}>
               <ScoreSummaryBar
                 ambiguityScore={result.ambiguityScore}
@@ -186,6 +197,8 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
               </ScrollRevealCard>
             </ModuleLayer>
 
+            <SectionSeparator label="Findings" />
+
             <ModuleLayer index={4} setActiveModuleIndex={setActiveModuleIndex}>
               <ScrollRevealCard>
                 <UnanchoredClaims unanchoredClaimsCount={result.unanchoredClaimsCount} />
@@ -215,6 +228,8 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
                 <CommitmentSummary commitmentSummary={result.commitmentSummary} />
               </ScrollRevealCard>
             </ModuleLayer>
+
+            <SectionSeparator label="Evidence Details" />
 
             <ModuleLayer index={9} setActiveModuleIndex={setActiveModuleIndex}>
               <ScrollRevealCard>
