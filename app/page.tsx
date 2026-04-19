@@ -6,7 +6,7 @@ export default function HomePage() {
     <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--bg-primary)]">
       <SpaceVoidBackground />
 
-      <header className="k-entrance-fade-down relative z-10 shrink-0 border-b border-[var(--border)] bg-[var(--bg-surface)]/70">
+      <header className="k-entrance-fade-down k-glass-surface relative z-10 shrink-0 border-b backdrop-blur-sm">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-3 items-center gap-4 px-4 py-5 sm:px-6">
           <div>
             <a
@@ -46,7 +46,7 @@ export default function HomePage() {
         <InputPanel />
       </main>
 
-      <footer className="relative z-10 shrink-0 border-t border-[var(--border)] bg-[var(--bg-surface)]/50">
+      <footer className="k-glass-surface relative z-10 shrink-0 border-t backdrop-blur-sm">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-8 sm:px-6">
           <div className="flex items-center gap-8">
             <a
