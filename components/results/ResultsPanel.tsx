@@ -21,12 +21,12 @@ interface ResultsPanelProps {
   isLoading?: boolean;
 }
 
-type AmbientPreset = "calm" | "warn" | "critical";
+type AmbientPreset = "green" | "amber" | "red";
 
 const AMBIENT_PRESET_BY_TIER: Record<AmbiguityTier, AmbientPreset> = {
-  1: "calm",
-  2: "warn",
-  3: "critical",
+  1: "green",
+  2: "amber",
+  3: "red",
 };
 
 const SKELETON_CARD_HEIGHTS = [120, 132, 116, 128, 122, 148, 156, 120, 136, 144, 170];
@@ -154,7 +154,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
 
   const totalPhases = MODULE_PHASES.length;
   const progressPercent = ((activePhaseIndex + 1) / totalPhases) * 100;
-  const ambientPreset = result ? AMBIENT_PRESET_BY_TIER[result.tier] : "calm";
+  const ambientPreset = result ? AMBIENT_PRESET_BY_TIER[result.tier] : "green";
 
   const goToPhase = (phaseIndex: number) => {
     const boundedPhaseIndex = Math.max(0, Math.min(phaseIndex, totalPhases - 1));
