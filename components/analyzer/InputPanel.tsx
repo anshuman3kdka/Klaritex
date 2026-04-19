@@ -21,6 +21,7 @@ export type InputPanelIntent = {
 
 type InputPanelProps = {
   intent?: InputPanelIntent | null;
+  id?: string;
 };
 
 const MAX_TEXT_LENGTH = 10_000;
@@ -155,7 +156,7 @@ async function readApiPayload(response: Response): Promise<AnalysisResult | { er
   }
 }
 
-export function InputPanel({ intent }: InputPanelProps) {
+export function InputPanel({ intent, id }: InputPanelProps) {
   const [inputMode, setInputMode] = useState<InputMode>("text");
   const [processingMode, setProcessingMode] = useState<AnalysisMode>("quick");
   const [textInput, setTextInput] = useState("");
@@ -476,7 +477,7 @@ export function InputPanel({ intent }: InputPanelProps) {
 
   return (
     <>
-      <section className="k-card k-entrance-fade-down mx-auto w-full max-w-3xl p-4 sm:p-6" style={cardAnimationStyle}>
+      <section id={id} className="k-card k-entrance-fade-down mx-auto w-full max-w-3xl p-4 sm:p-6" style={cardAnimationStyle}>
         <div
           ref={tabListRef}
           className="relative grid grid-cols-1 gap-2 border-b border-[var(--border)] pb-2 sm:grid-cols-3"
