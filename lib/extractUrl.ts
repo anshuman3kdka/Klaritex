@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 import fetch from "node-fetch";
 
 const MAX_REDIRECT_HOPS = 2;
@@ -38,6 +39,38 @@ function isBlockedIpAddress(address: string): boolean {
   }
 
   const ipv6 = address.toLowerCase();
+  const mappedOrCompatibleDotted = ipv6.match(
+    /^(?:(?:0:){5}|::)ffff:(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$|^(?:(?:0:){6}|::)(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+  );
+  if (mappedOrCompatibleDotted) {
+    const dottedGroups = mappedOrCompatibleDotted
+      .slice(1)
+      .filter((part): part is string => Boolean(part));
+    const octets = dottedGroups.map((part) => parseInt(part, 10));
+    if (octets.some((part) => part < 0 || part > 255)) {
+      return true;
+    }
+    return isBlockedIpv4Prefix(octets[0]!, octets[1]!);
+  }
+
+  const mappedHex = ipv6.match(
+    /^(?:(?:0:){5}|::)ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/
+  );
+  if (mappedHex) {
+    const high = parseInt(mappedHex[1]!, 16);
+    const p1 = (high >> 8) & 0xff;
+    const p2 = high & 0xff;
+    return isBlockedIpv4Prefix(p1, p2);
+  }
+
+  const compatibleHex = ipv6.match(/^(?:(?:0:){6}|::)([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+  if (compatibleHex) {
+    const high = parseInt(compatibleHex[1]!, 16);
+    const p1 = (high >> 8) & 0xff;
+    const p2 = high & 0xff;
+    return isBlockedIpv4Prefix(p1, p2);
+  }
+
   return (
     ipv6 === "::" ||
     ipv6 === "::1" ||
@@ -71,75 +104,8 @@ function isSafeUrl(urlString: string): boolean {
       return false;
     }
 
-    const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
-    const match = hostname.match(ipv4Regex);
-    if (match) {
-      const p1 = parseInt(match[1]!, 10);
-      const p2 = parseInt(match[2]!, 10);
-      if (isBlockedIpv4Prefix(p1, p2)) {
-        return false;
-      }
-    }
-
-    if (hostname.startsWith("[") && hostname.endsWith("]")) {
-      const ipv6 = hostname.slice(1, -1).toLowerCase();
-      if (
-        ipv6 === "::" ||
-        ipv6 === "0:0:0:0:0:0:0:0" ||
-        ipv6 === "::1" ||
-        ipv6 === "0:0:0:0:0:0:0:1" ||
-        ipv6.startsWith("fd") ||
-        ipv6.startsWith("fc") ||
-        ipv6.startsWith("fe80")
-      ) {
-        return false;
-      }
-
-      // Handle IPv4-compatible IPv6 addresses: ::a.b.c.d
-      // Node.js normalizes ::a.b.c.d → ::(a*256+b):(c*256+d) in hex.
-      const compatMatch = ipv6.match(/^::([0-9a-f]{1,4})(?::[0-9a-f]{1,4})?$/);
-      if (compatMatch) {
-        const high = parseInt(compatMatch[1]!, 16);
-        const p1 = (high >> 8) & 0xff;
-        const p2 = high & 0xff;
-        if (isBlockedIpv4Prefix(p1, p2)) {
-          return false;
-        }
-      }
-
-      // Handle IPv4-mapped IPv6 in dotted-decimal form: ::ffff:a.b.c.d
-      const dottedMatch = ipv6.match(
-        /^::ffff:(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
-      );
-      if (dottedMatch) {
-        const p1 = parseInt(dottedMatch[1]!, 10);
-        const p2 = parseInt(dottedMatch[2]!, 10);
-        // Reject malformed octets (0-255 only) and private/internal ranges.
-        if (
-          p1 > 255 || p2 > 255 ||
-          parseInt(dottedMatch[3]!, 10) > 255 ||
-          parseInt(dottedMatch[4]!, 10) > 255 ||
-          isBlockedIpv4Prefix(p1, p2)
-        ) {
-          return false;
-        }
-      }
-
-      // Handle IPv4-mapped IPv6 in hex form: ::ffff:HHHH:HHHH
-      // Node.js normalizes ::ffff:a.b.c.d → ::ffff:(a*256+b):(c*256+d) in hex.
-      // Reconstruct the first two IPv4 octets from the high 16-bit group and
-      // reuse the same range checks as the IPv4 path above.
-      // The low 16-bit group (third and fourth octets) is the host portion and
-      // does not affect which subnet the address belongs to for any blocked range.
-      const hexMatch = ipv6.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
-      if (hexMatch) {
-        const high = parseInt(hexMatch[1]!, 16);
-        const p1 = (high >> 8) & 0xff;
-        const p2 = high & 0xff;
-        if (isBlockedIpv4Prefix(p1, p2)) {
-          return false;
-        }
-      }
+    if (isIP(hostname) && isBlockedIpAddress(hostname)) {
+      return false;
     }
 
     return true;

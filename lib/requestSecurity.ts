@@ -26,8 +26,7 @@ export function getClientIdentifier(request: Request): string {
     }
   }
 
-  const userAgent = request.headers.get("user-agent") ?? "unknown-agent";
-  return `fallback:${userAgent.slice(0, 120)}`;
+  return "fallback:unknown";
 }
 
 export function isJsonRequest(request: Request): boolean {
