@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: live-check
+        name: live smoke check
+        entry: npm run live:check
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
