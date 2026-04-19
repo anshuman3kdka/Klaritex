@@ -1,4 +1,6 @@
 import * as cheerio from "cheerio";
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 import fetch from "node-fetch";
 
 const MAX_REDIRECT_HOPS = 2;
@@ -25,12 +27,105 @@ function isBlockedIpv4Prefix(p1: number, p2: number): boolean {
   );
 }
 
+function parseDottedIpv4Octets(parts: Array<string | undefined>): number[] | null {
+  if (parts.length !== 4 || parts.some((part) => !part)) {
+    return null;
+  }
+
+  const octets = parts.map((part) => parseInt(part!, 10));
+  if (octets.some((part) => Number.isNaN(part) || part < 0 || part > 255)) {
+    return null;
+  }
+
+  return octets;
+}
+
+function isBlockedEmbeddedIpv4FromHexWords(highWordHex: string, lowWordHex: string): boolean {
+  const high = parseInt(highWordHex, 16);
+  const low = parseInt(lowWordHex, 16);
+  const octets = [(high >> 8) & 0xff, high & 0xff, (low >> 8) & 0xff, low & 0xff];
+  return isBlockedIpv4Prefix(octets[0], octets[1]);
+}
+
+function isBlockedIpAddress(address: string): boolean {
+  const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+  const match = address.match(ipv4Regex);
+  if (match) {
+    const octets = match.slice(1).map((part) => parseInt(part, 10));
+    if (octets.some((part) => part < 0 || part > 255)) {
+      return true;
+    }
+    return isBlockedIpv4Prefix(octets[0]!, octets[1]!);
+  }
+
+  const ipv6 = address.toLowerCase();
+  const mappedDotted = ipv6.match(
+    /^(?:(?:0:){5}|::)ffff:(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+  );
+  if (mappedDotted) {
+    const octets = parseDottedIpv4Octets([
+      mappedDotted[1],
+      mappedDotted[2],
+      mappedDotted[3],
+      mappedDotted[4],
+    ]);
+    if (!octets) {
+      return true;
+    }
+    return isBlockedIpv4Prefix(octets[0], octets[1]);
+  }
+
+  const compatibleDotted = ipv6.match(
+    /^(?:(?:0:){6}|::)(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+  );
+  if (compatibleDotted) {
+    const octets = parseDottedIpv4Octets([
+      compatibleDotted[1],
+      compatibleDotted[2],
+      compatibleDotted[3],
+      compatibleDotted[4],
+    ]);
+    if (!octets) {
+      return true;
+    }
+    return isBlockedIpv4Prefix(octets[0], octets[1]);
+  }
+
+  const mappedHex = ipv6.match(
+    /^(?:(?:0:){5}|::)ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/
+  );
+  if (mappedHex) {
+    return isBlockedEmbeddedIpv4FromHexWords(mappedHex[1]!, mappedHex[2]!);
+  }
+
+  const compatibleHex = ipv6.match(/^(?:(?:0:){6}|::)([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+  if (compatibleHex) {
+    return isBlockedEmbeddedIpv4FromHexWords(compatibleHex[1]!, compatibleHex[2]!);
+  }
+
+  return (
+    ipv6 === "::" ||
+    ipv6 === "::1" ||
+    ipv6 === "0:0:0:0:0:0:0:0" ||
+    ipv6 === "0:0:0:0:0:0:0:1" ||
+    ipv6.startsWith("fd") ||
+    ipv6.startsWith("fc") ||
+    ipv6.startsWith("fe80")
+  );
+}
+
 function isSafeUrl(urlString: string): boolean {
   try {
     const url = new URL(urlString);
     if (url.protocol !== "http:" && url.protocol !== "https:") return false;
 
     const hostname = url.hostname.toLowerCase();
+    if (url.username || url.password) {
+      return false;
+    }
+    if (url.port && url.port !== "80" && url.port !== "443") {
+      return false;
+    }
 
     if (
       hostname === "localhost" ||
@@ -41,80 +136,29 @@ function isSafeUrl(urlString: string): boolean {
       return false;
     }
 
-    const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
-    const match = hostname.match(ipv4Regex);
-    if (match) {
-      const p1 = parseInt(match[1]!, 10);
-      const p2 = parseInt(match[2]!, 10);
-      if (isBlockedIpv4Prefix(p1, p2)) {
-        return false;
-      }
-    }
-
-    if (hostname.startsWith("[") && hostname.endsWith("]")) {
-      const ipv6 = hostname.slice(1, -1).toLowerCase();
-      if (
-        ipv6 === "::" ||
-        ipv6 === "0:0:0:0:0:0:0:0" ||
-        ipv6 === "::1" ||
-        ipv6 === "0:0:0:0:0:0:0:1" ||
-        ipv6.startsWith("fd") ||
-        ipv6.startsWith("fc") ||
-        ipv6.startsWith("fe80")
-      ) {
-        return false;
-      }
-
-      // Handle IPv4-compatible IPv6 addresses: ::a.b.c.d
-      // Node.js normalizes ::a.b.c.d → ::(a*256+b):(c*256+d) in hex.
-      const compatMatch = ipv6.match(/^::([0-9a-f]{1,4})(?::[0-9a-f]{1,4})?$/);
-      if (compatMatch) {
-        const high = parseInt(compatMatch[1]!, 16);
-        const p1 = (high >> 8) & 0xff;
-        const p2 = high & 0xff;
-        if (isBlockedIpv4Prefix(p1, p2)) {
-          return false;
-        }
-      }
-
-      // Handle IPv4-mapped IPv6 in dotted-decimal form: ::ffff:a.b.c.d
-      const dottedMatch = ipv6.match(
-        /^::ffff:(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
-      );
-      if (dottedMatch) {
-        const p1 = parseInt(dottedMatch[1]!, 10);
-        const p2 = parseInt(dottedMatch[2]!, 10);
-        // Reject malformed octets (0-255 only) and private/internal ranges.
-        if (
-          p1 > 255 || p2 > 255 ||
-          parseInt(dottedMatch[3]!, 10) > 255 ||
-          parseInt(dottedMatch[4]!, 10) > 255 ||
-          isBlockedIpv4Prefix(p1, p2)
-        ) {
-          return false;
-        }
-      }
-
-      // Handle IPv4-mapped IPv6 in hex form: ::ffff:HHHH:HHHH
-      // Node.js normalizes ::ffff:a.b.c.d → ::ffff:(a*256+b):(c*256+d) in hex.
-      // Reconstruct the first two IPv4 octets from the high 16-bit group and
-      // reuse the same range checks as the IPv4 path above.
-      // The low 16-bit group (third and fourth octets) is the host portion and
-      // does not affect which subnet the address belongs to for any blocked range.
-      const hexMatch = ipv6.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
-      if (hexMatch) {
-        const high = parseInt(hexMatch[1]!, 16);
-        const p1 = (high >> 8) & 0xff;
-        const p2 = high & 0xff;
-        if (isBlockedIpv4Prefix(p1, p2)) {
-          return false;
-        }
-      }
+    const normalizedHostname = hostname.replace(/^\[|\]$/g, "");
+    if (isIP(normalizedHostname) && isBlockedIpAddress(normalizedHostname)) {
+      return false;
     }
 
     return true;
   } catch {
     return false;
+  }
+}
+
+async function assertPublicDnsResolution(urlString: string): Promise<void> {
+  const url = new URL(urlString);
+  const records = await lookup(url.hostname, { all: true });
+
+  if (!records.length) {
+    throw new UrlExtractionError("Could not fetch content from URL.");
+  }
+
+  for (const record of records) {
+    if (isBlockedIpAddress(record.address)) {
+      throw new UrlExtractionError("Could not fetch content from URL.");
+    }
   }
 }
 
@@ -125,11 +169,13 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
     if (!isSafeUrl(currentUrl)) {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
+    await assertPublicDnsResolution(currentUrl);
 
     const response = await fetch(currentUrl, {
       method: "GET",
       redirect: "manual",
-      size: 5 * 1024 * 1024 // 5MB limit to prevent memory exhaustion DoS
+      size: 5 * 1024 * 1024, // 5MB limit to prevent memory exhaustion DoS
+      signal: AbortSignal.timeout(8000),
     });
 
     const status = response.status;
@@ -151,6 +197,16 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
     }
 
     if (!response.ok) {
+      throw new UrlExtractionError("Could not fetch content from URL.");
+    }
+
+    const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+    const isSupportedContentType =
+      contentType.includes("text/html") ||
+      contentType.includes("application/xhtml+xml") ||
+      contentType.includes("text/plain");
+
+    if (!isSupportedContentType) {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
 
