@@ -1,5 +1,6 @@
 import { InputPanel } from "@/components/analyzer/InputPanel";
 import { SpaceVoidBackground } from "@/components/background/SpaceVoidBackground";
+import { CoolShowcase } from "@/components/home/CoolShowcase";
 
 export default function HomePage() {
   return (
@@ -42,6 +43,8 @@ export default function HomePage() {
             className="mx-auto mt-3 h-px w-24 rounded-full bg-gradient-to-r from-transparent via-[var(--gold-muted)] to-transparent sm:mt-4"
           />
         </section>
+
+        <CoolShowcase />
 
         <InputPanel />
       </main>

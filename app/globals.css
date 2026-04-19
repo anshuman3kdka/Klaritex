@@ -719,3 +719,75 @@ body {
 .k-verdict-char {
   opacity: 0;
 }
+
+.cool-marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.cool-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 0.65rem;
+  animation: cool-marquee-scroll 24s linear infinite;
+}
+
+.cool-chip {
+  border: 1px solid color-mix(in oklab, var(--border-accent) 38%, transparent);
+  background: color-mix(in oklab, var(--bg-elevated) 82%, transparent);
+  border-radius: 9999px;
+  padding: 0.38rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.cool-signal {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0.26rem;
+}
+
+.cool-signal span {
+  width: 0.35rem;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold-muted));
+  opacity: 0.82;
+  animation: cool-signal 1.35s ease-in-out infinite;
+}
+
+.cool-signal span:nth-child(1) {
+  height: 0.9rem;
+  animation-delay: 0s;
+}
+
+.cool-signal span:nth-child(2) {
+  height: 1.5rem;
+  animation-delay: 0.2s;
+}
+
+.cool-signal span:nth-child(3) {
+  height: 1.15rem;
+  animation-delay: 0.4s;
+}
+
+@keyframes cool-marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes cool-signal {
+  0%,
+  100% {
+    transform: scaleY(0.78);
+    opacity: 0.65;
+  }
+  50% {
+    transform: scaleY(1.08);
+    opacity: 1;
+  }
+}
