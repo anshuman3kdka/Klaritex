@@ -106,11 +106,19 @@ function SectionSeparator({ label }: { label: string }) {
   );
 }
 
+const MODULE_PHASES = [
+  { label: "Summary", moduleIndexes: [0, 1, 2, 3] },
+  { label: "Findings", moduleIndexes: [4, 5, 6, 7, 8] },
+  { label: "Evidence Details", moduleIndexes: [9, 10, 11] },
+] as const;
+
 export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
   const resultKey = useMemo(() => (result ? "active" : "empty"), [result]);
   const [showSkeleton, setShowSkeleton] = useState(isLoading);
   const [animationKey, setAnimationKey] = useState(0);
   const [activeModuleIndex, setActiveModuleIndex] = useState(0);
+  const [activePhaseIndex, setActivePhaseIndex] = useState(0);
+  const [isExpandAllEnabled, setIsExpandAllEnabled] = useState(false);
 
   useEffect(() => {
     if (isLoading) {
@@ -129,10 +137,133 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
       const animationId = window.setTimeout(() => {
         setAnimationKey((current) => current + 1);
         setActiveModuleIndex(0);
+        setActivePhaseIndex(0);
+        setIsExpandAllEnabled(false);
       }, 0);
       return () => window.clearTimeout(animationId);
     }
   }, [result]);
+
+  const totalPhases = MODULE_PHASES.length;
+  const progressPercent = ((activePhaseIndex + 1) / totalPhases) * 100;
+
+  const goToPhase = (phaseIndex: number) => {
+    const boundedPhaseIndex = Math.max(0, Math.min(phaseIndex, totalPhases - 1));
+    setActivePhaseIndex(boundedPhaseIndex);
+    setActiveModuleIndex(MODULE_PHASES[boundedPhaseIndex].moduleIndexes[0] ?? 0);
+  };
+
+  const renderModule = (moduleIndex: number) => {
+    switch (moduleIndex) {
+      case 0:
+        return (
+          <PriorityModuleLayer index={0} setActiveModuleIndex={setActiveModuleIndex}>
+            <ScoreSummaryBar
+              ambiguityScore={result!.ambiguityScore}
+              tier={result!.tier}
+              tierOverride={result!.tierOverride}
+              overrideRule={result!.overrideRule}
+            />
+          </PriorityModuleLayer>
+        );
+      case 1:
+        return (
+          <PriorityModuleLayer index={1} setActiveModuleIndex={setActiveModuleIndex}>
+            <ScrollRevealCard>
+              <DynamicAmbiguityScore
+                ambiguityScore={result!.ambiguityScore}
+                rawPenaltyScore={result!.rawPenaltyScore}
+                tier={result!.tier}
+                animationKey={animationKey}
+                defaultExpanded
+              />
+            </ScrollRevealCard>
+          </PriorityModuleLayer>
+        );
+      case 2:
+        return (
+          <ModuleLayer index={2} setActiveModuleIndex={setActiveModuleIndex}>
+            <ScrollRevealCard>
+              <ClarityLevel clarityLevel={result!.clarityLevel} />
+            </ScrollRevealCard>
+          </ModuleLayer>
+        );
+      case 3:
+        return (
+          <ModuleLayer index={3} setActiveModuleIndex={setActiveModuleIndex}>
+            <ScrollRevealCard>
+              <DynamicExposureCheck elements={result!.elements} />
+            </ScrollRevealCard>
+          </ModuleLayer>
+        );
+      case 4:
+        return (
+          <ModuleLayer index={4} setActiveModuleIndex={setActiveModuleIndex}>
+            <ScrollRevealCard>
+              <UnanchoredClaims unanchoredClaimsCount={result!.unanchoredClaimsCount} />
+            </ScrollRevealCard>
+          </ModuleLayer>
+        );
+      case 5:
+        return (
+          <ModuleLayer index={5} setActiveModuleIndex={setActiveModuleIndex}>
+            <ScrollRevealCard>
+              <VagueLines vagueLines={result!.vagueLines} />
+            </ScrollRevealCard>
+          </ModuleLayer>
+        );
+      case 6:
+        return (
+          <ModuleLayer index={6} setActiveModuleIndex={setActiveModuleIndex}>
+            <ScrollRevealCard>
+              <LowestAnchors lowestAnchors={result!.lowestAnchors} />
+            </ScrollRevealCard>
+          </ModuleLayer>
+        );
+      case 7:
+        return (
+          <ModuleLayer index={7} setActiveModuleIndex={setActiveModuleIndex}>
+            <ScrollRevealCard>
+              <ActionTalkRatio actionRatio={result!.actionRatio} talkRatio={result!.talkRatio} ratioLabel={result!.ratioLabel} />
+            </ScrollRevealCard>
+          </ModuleLayer>
+        );
+      case 8:
+        return (
+          <ModuleLayer index={8} setActiveModuleIndex={setActiveModuleIndex}>
+            <ScrollRevealCard>
+              <CommitmentSummary commitmentSummary={result!.commitmentSummary} />
+            </ScrollRevealCard>
+          </ModuleLayer>
+        );
+      case 9:
+        return (
+          <ModuleLayer index={9} setActiveModuleIndex={setActiveModuleIndex}>
+            <ScrollRevealCard>
+              <AmbiguityExplanation ambiguityExplanation={result!.ambiguityExplanation} />
+            </ScrollRevealCard>
+          </ModuleLayer>
+        );
+      case 10:
+        return (
+          <ModuleLayer index={10} setActiveModuleIndex={setActiveModuleIndex}>
+            <ScrollRevealCard>
+              <CommitmentBreakdown elements={result!.elements} defaultExpanded />
+            </ScrollRevealCard>
+          </ModuleLayer>
+        );
+      case 11:
+        return (
+          <ModuleLayer index={11} setActiveModuleIndex={setActiveModuleIndex}>
+            <ScrollRevealCard>
+              <VerifiableRequirements verifiableRequirements={result!.verifiableRequirements} />
+            </ScrollRevealCard>
+          </ModuleLayer>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <>
@@ -162,92 +293,71 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
           />
 
           <div className="relative z-10 space-y-3 sm:space-y-4 md:space-y-5">
-            <SectionSeparator label="Summary" />
+            <div
+              className="space-y-3 px-1"
+              role="group"
+              aria-label={`Results navigation. Phase ${activePhaseIndex + 1} of ${totalPhases}.`}
+              onKeyDown={(event) => {
+                if (isExpandAllEnabled) return;
+                if (event.key === "ArrowRight") {
+                  event.preventDefault();
+                  goToPhase(activePhaseIndex + 1);
+                }
+                if (event.key === "ArrowLeft") {
+                  event.preventDefault();
+                  goToPhase(activePhaseIndex - 1);
+                }
+              }}
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3 text-xs text-white/75">
+                  <span aria-live="polite">
+                    Phase {activePhaseIndex + 1} of {totalPhases}: {MODULE_PHASES[activePhaseIndex].label}
+                  </span>
+                  <button
+                    type="button"
+                    className="rounded-md border border-white/20 px-2 py-1 text-xs font-medium text-white transition hover:border-white/40 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    onClick={() => setIsExpandAllEnabled((current) => !current)}
+                    aria-pressed={isExpandAllEnabled}
+                    aria-label={isExpandAllEnabled ? "Collapse back to phased view" : "Expand all sections in one scrollable view"}
+                  >
+                    {isExpandAllEnabled ? "Use phased view" : "Expand all"}
+                  </button>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-valuemin={1} aria-valuemax={totalPhases} aria-valuenow={activePhaseIndex + 1} aria-label="Analysis phase progress">
+                  <div className="h-full rounded-full bg-white/70 transition-all duration-300 ease-out" style={{ width: `${progressPercent}%` }} />
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    className="rounded-md border border-white/20 px-3 py-1.5 text-sm text-white transition hover:border-white/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    onClick={() => goToPhase(activePhaseIndex - 1)}
+                    disabled={isExpandAllEnabled || activePhaseIndex === 0}
+                    aria-label={`Go to previous phase. Current phase is ${MODULE_PHASES[activePhaseIndex].label}.`}
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-md border border-white/20 px-3 py-1.5 text-sm text-white transition hover:border-white/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    onClick={() => goToPhase(activePhaseIndex + 1)}
+                    disabled={isExpandAllEnabled || activePhaseIndex === totalPhases - 1}
+                    aria-label={`Go to next phase. Current phase is ${MODULE_PHASES[activePhaseIndex].label}.`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
 
-            <PriorityModuleLayer index={0} setActiveModuleIndex={setActiveModuleIndex}>
-              <ScoreSummaryBar
-                ambiguityScore={result.ambiguityScore}
-                tier={result.tier}
-                tierOverride={result.tierOverride}
-                overrideRule={result.overrideRule}
-              />
-            </PriorityModuleLayer>
-
-            <PriorityModuleLayer index={1} setActiveModuleIndex={setActiveModuleIndex}>
-              <ScrollRevealCard>
-                <DynamicAmbiguityScore
-                  ambiguityScore={result.ambiguityScore}
-                  rawPenaltyScore={result.rawPenaltyScore}
-                  tier={result.tier}
-                  animationKey={animationKey}
-                  defaultExpanded
-                />
-              </ScrollRevealCard>
-            </PriorityModuleLayer>
-
-            <ModuleLayer index={2} setActiveModuleIndex={setActiveModuleIndex}>
-              <ScrollRevealCard>
-                <ClarityLevel clarityLevel={result.clarityLevel} />
-              </ScrollRevealCard>
-            </ModuleLayer>
-
-            <ModuleLayer index={3} setActiveModuleIndex={setActiveModuleIndex}>
-              <ScrollRevealCard>
-                <DynamicExposureCheck elements={result.elements} />
-              </ScrollRevealCard>
-            </ModuleLayer>
-
-            <SectionSeparator label="Findings" />
-
-            <ModuleLayer index={4} setActiveModuleIndex={setActiveModuleIndex}>
-              <ScrollRevealCard>
-                <UnanchoredClaims unanchoredClaimsCount={result.unanchoredClaimsCount} />
-              </ScrollRevealCard>
-            </ModuleLayer>
-
-            <ModuleLayer index={5} setActiveModuleIndex={setActiveModuleIndex}>
-              <ScrollRevealCard>
-                <VagueLines vagueLines={result.vagueLines} />
-              </ScrollRevealCard>
-            </ModuleLayer>
-
-            <ModuleLayer index={6} setActiveModuleIndex={setActiveModuleIndex}>
-              <ScrollRevealCard>
-                <LowestAnchors lowestAnchors={result.lowestAnchors} />
-              </ScrollRevealCard>
-            </ModuleLayer>
-
-            <ModuleLayer index={7} setActiveModuleIndex={setActiveModuleIndex}>
-              <ScrollRevealCard>
-                <ActionTalkRatio actionRatio={result.actionRatio} talkRatio={result.talkRatio} ratioLabel={result.ratioLabel} />
-              </ScrollRevealCard>
-            </ModuleLayer>
-
-            <ModuleLayer index={8} setActiveModuleIndex={setActiveModuleIndex}>
-              <ScrollRevealCard>
-                <CommitmentSummary commitmentSummary={result.commitmentSummary} />
-              </ScrollRevealCard>
-            </ModuleLayer>
-
-            <SectionSeparator label="Evidence Details" />
-
-            <ModuleLayer index={9} setActiveModuleIndex={setActiveModuleIndex}>
-              <ScrollRevealCard>
-                <AmbiguityExplanation ambiguityExplanation={result.ambiguityExplanation} />
-              </ScrollRevealCard>
-            </ModuleLayer>
-
-            <ModuleLayer index={10} setActiveModuleIndex={setActiveModuleIndex}>
-              <ScrollRevealCard>
-                <CommitmentBreakdown elements={result.elements} defaultExpanded />
-              </ScrollRevealCard>
-            </ModuleLayer>
-
-            <ModuleLayer index={11} setActiveModuleIndex={setActiveModuleIndex}>
-              <ScrollRevealCard>
-                <VerifiableRequirements verifiableRequirements={result.verifiableRequirements} />
-              </ScrollRevealCard>
-            </ModuleLayer>
+            {(isExpandAllEnabled ? MODULE_PHASES : [MODULE_PHASES[activePhaseIndex]]).map((phase) => (
+              <div key={phase.label} className="space-y-3 sm:space-y-4 md:space-y-5">
+                <SectionSeparator label={phase.label} />
+                {phase.moduleIndexes.map((moduleIndex) => (
+                  <div key={`module-${moduleIndex}`}>{renderModule(moduleIndex)}</div>
+                ))}
+              </div>
+            ))}
           </div>
         </section>
       ) : null}
