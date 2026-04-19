@@ -79,6 +79,24 @@ function ModuleLayer({ index, setActiveModuleIndex, children }: { index: number;
   );
 }
 
+function PriorityModuleLayer({
+  index,
+  setActiveModuleIndex,
+  children,
+}: {
+  index: number;
+  setActiveModuleIndex: (index: number) => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="py-1 sm:py-1.5 md:py-2">
+      <ModuleLayer index={index} setActiveModuleIndex={setActiveModuleIndex}>
+        {children}
+      </ModuleLayer>
+    </div>
+  );
+}
+
 export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
   const resultKey = useMemo(() => (result ? "active" : "empty"), [result]);
   const [showSkeleton, setShowSkeleton] = useState(isLoading);
@@ -111,7 +129,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
     <>
       {showSkeleton ? (
         <section
-          className="mx-auto mt-6 w-full max-w-3xl space-y-4 transition-opacity duration-300"
+          className="mx-auto mt-6 w-full max-w-3xl space-y-3 sm:space-y-4 md:space-y-5 transition-opacity duration-300"
           style={{ opacity: isLoading ? 1 : 0 }}
           aria-live="polite"
           aria-busy={isLoading}
@@ -134,17 +152,17 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
             isEnabled={APP_CONFIG.enableResultsThreeBackground}
           />
 
-          <div className="relative z-10 space-y-4">
-            <ModuleLayer index={0} setActiveModuleIndex={setActiveModuleIndex}>
+          <div className="relative z-10 space-y-3 sm:space-y-4 md:space-y-5">
+            <PriorityModuleLayer index={0} setActiveModuleIndex={setActiveModuleIndex}>
               <ScoreSummaryBar
                 ambiguityScore={result.ambiguityScore}
                 tier={result.tier}
                 tierOverride={result.tierOverride}
                 overrideRule={result.overrideRule}
               />
-            </ModuleLayer>
+            </PriorityModuleLayer>
 
-            <ModuleLayer index={1} setActiveModuleIndex={setActiveModuleIndex}>
+            <PriorityModuleLayer index={1} setActiveModuleIndex={setActiveModuleIndex}>
               <ScrollRevealCard>
                 <DynamicAmbiguityScore
                   ambiguityScore={result.ambiguityScore}
@@ -154,7 +172,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
                   defaultExpanded
                 />
               </ScrollRevealCard>
-            </ModuleLayer>
+            </PriorityModuleLayer>
 
             <ModuleLayer index={2} setActiveModuleIndex={setActiveModuleIndex}>
               <ScrollRevealCard>
