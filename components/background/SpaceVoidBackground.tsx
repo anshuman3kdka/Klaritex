@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { gsap } from "gsap";
+import { useVisualEffectsQuality } from "@/components/background/useVisualEffectsQuality";
 
 type StarConfig = {
   id: string;
@@ -22,27 +23,61 @@ function createStars(count: number, minSize: number, maxSize: number, minOpacity
 }
 
 export function SpaceVoidBackground() {
+  const { effectiveQuality } = useVisualEffectsQuality();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const layerOneRef = useRef<HTMLDivElement | null>(null);
   const layerTwoRef = useRef<HTMLDivElement | null>(null);
   const layerThreeRef = useRef<HTMLDivElement | null>(null);
   const nebulaRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const isInViewRef = useRef(true);
+  const isPageVisibleRef = useRef(true);
+  const activeAnimationsRef = useRef<Array<{ pause: () => void; resume: () => void }>>([]);
+  const rootVisibleClassRef = useRef(false);
 
-  const starsSmall = useMemo(() => createStars(90, 0.6, 1.5, 0.18, 0.42, "small"), []);
-  const starsMedium = useMemo(() => createStars(55, 1.2, 2.4, 0.35, 0.65, "medium"), []);
-  const starsLarge = useMemo(() => createStars(20, 2, 3.2, 0.6, 0.92, "large"), []);
+  const starsSmall = useMemo(() => {
+    if (effectiveQuality === "off") return [];
+    if (effectiveQuality === "low") return createStars(34, 0.6, 1.2, 0.14, 0.28, "small");
+    if (effectiveQuality === "medium") return createStars(90, 0.6, 1.5, 0.18, 0.42, "small");
+    return createStars(130, 0.6, 1.8, 0.2, 0.5, "small");
+  }, [effectiveQuality]);
+  const starsMedium = useMemo(() => {
+    if (effectiveQuality === "off") return [];
+    if (effectiveQuality === "low") return createStars(16, 1.2, 2, 0.28, 0.48, "medium");
+    if (effectiveQuality === "medium") return createStars(55, 1.2, 2.4, 0.35, 0.65, "medium");
+    return createStars(80, 1.2, 2.6, 0.38, 0.72, "medium");
+  }, [effectiveQuality]);
+  const starsLarge = useMemo(() => {
+    if (effectiveQuality === "off") return [];
+    if (effectiveQuality === "low") return createStars(6, 1.8, 2.8, 0.45, 0.72, "large");
+    if (effectiveQuality === "medium") return createStars(20, 2, 3.2, 0.6, 0.92, "large");
+    return createStars(32, 2.2, 3.4, 0.64, 0.96, "large");
+  }, [effectiveQuality]);
 
   useEffect(() => {
-    if (!rootRef.current) {
+    const rootElement = rootRef.current;
+    if (!rootElement || effectiveQuality === "off") {
       return;
     }
-    const shouldReduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const shouldReduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches || effectiveQuality === "low";
+    const updateMotionState = () => {
+      const shouldPause = !isInViewRef.current || !isPageVisibleRef.current;
+      activeAnimationsRef.current.forEach((animation) => {
+        if (shouldPause) {
+          animation.pause();
+          return;
+        }
+        animation.resume();
+      });
+    };
+    isPageVisibleRef.current = document.visibilityState === "visible";
+    updateMotionState();
 
     const context = gsap.context(() => {
+      const animations: Array<{ pause: () => void; resume: () => void }> = [];
       const layers = [
-        { element: layerOneRef.current, distance: 22, duration: 62 },
-        { element: layerTwoRef.current, distance: 34, duration: 82 },
-        { element: layerThreeRef.current, distance: 44, duration: 108 },
+        { element: layerOneRef.current, distance: effectiveQuality === "high" ? 30 : 22, duration: effectiveQuality === "high" ? 50 : 62 },
+        { element: layerTwoRef.current, distance: effectiveQuality === "high" ? 44 : 34, duration: effectiveQuality === "high" ? 64 : 82 },
+        { element: layerThreeRef.current, distance: effectiveQuality === "high" ? 56 : 44, duration: effectiveQuality === "high" ? 88 : 108 },
       ];
 
       layers.forEach((layer, index) => {
@@ -55,7 +90,7 @@ export function SpaceVoidBackground() {
           return;
         }
 
-        gsap.to(layer.element, {
+        const tween = gsap.to(layer.element, {
           y: index % 2 === 0 ? -layer.distance : layer.distance,
           x: index % 2 === 0 ? 8 : -6,
           duration: layer.duration,
@@ -64,6 +99,7 @@ export function SpaceVoidBackground() {
           yoyo: true,
           force3D: true,
         });
+        animations.push(tween);
       });
 
       const stars = gsap.utils.toArray<HTMLElement>(".void-star", rootRef.current);
@@ -73,15 +109,16 @@ export function SpaceVoidBackground() {
           return;
         }
 
-        gsap.to(star, {
+        const tween = gsap.to(star, {
           opacity: gsap.utils.random(0.2, 1),
-          duration: gsap.utils.random(1.8, 5.4),
+          duration: gsap.utils.random(1.8, effectiveQuality === "high" ? 4.4 : 5.4),
           delay: gsap.utils.random(0, 4),
           ease: "sine.inOut",
           repeat: -1,
           yoyo: true,
           force3D: true,
         });
+        animations.push(tween);
       });
 
       nebulaRefs.current.forEach((nebula, index) => {
@@ -94,7 +131,7 @@ export function SpaceVoidBackground() {
           return;
         }
 
-        gsap.to(nebula, {
+        const tween = gsap.to(nebula, {
           x: index === 1 ? -38 : 34,
           y: index === 2 ? -28 : 24,
           rotate: index % 2 === 0 ? 10 : -12,
@@ -104,11 +141,46 @@ export function SpaceVoidBackground() {
           yoyo: true,
           force3D: true,
         });
+        animations.push(tween);
       });
+
+      activeAnimationsRef.current = animations;
+      updateMotionState();
     }, rootRef);
 
-    return () => context.revert();
-  }, []);
+    const handleVisibilityChange = () => {
+      isPageVisibleRef.current = document.visibilityState === "visible";
+      updateMotionState();
+    };
+
+    const mainElement = document.querySelector("main");
+    let observer: IntersectionObserver | null = null;
+
+    if (mainElement) {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          isInViewRef.current = entry.isIntersecting;
+          if (rootVisibleClassRef.current !== entry.isIntersecting) {
+            rootElement.classList.toggle("space-void-bg--offscreen", !entry.isIntersecting);
+            rootVisibleClassRef.current = entry.isIntersecting;
+          }
+          updateMotionState();
+        },
+        { threshold: 0.05 },
+      );
+
+      observer.observe(mainElement);
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      activeAnimationsRef.current = [];
+      context.revert();
+    };
+  }, [effectiveQuality]);
 
   useEffect(() => {
     const rootElement = rootRef.current;
@@ -131,6 +203,10 @@ export function SpaceVoidBackground() {
 
     return () => observer.disconnect();
   }, []);
+
+  if (effectiveQuality === "off") {
+    return null;
+  }
 
   return (
     <div ref={rootRef} aria-hidden="true" className="space-void-bg pointer-events-none fixed inset-0 -z-10 overflow-hidden">
