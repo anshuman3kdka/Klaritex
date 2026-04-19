@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "screenshot": "node scripts/take-screenshot.mjs"
+    "screenshot": "node scripts/take-screenshot.mjs",
+    "live:check": "node scripts/live_smoke_check.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

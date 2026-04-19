@@ -1,0 +1,39 @@
+name: Live Smoke Check
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+  workflow_dispatch:
+
+jobs:
+  live-check:
+    runs-on: ubuntu-latest
+    env:
+      LIVE_BASE_URL: ${{ vars.LIVE_BASE_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run live smoke check
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run live:check | tee live-smoke-check.log
+
+      - name: Upload smoke check logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-smoke-check-log
+          path: live-smoke-check.log
