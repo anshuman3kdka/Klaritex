@@ -1,8 +1,15 @@
+"use client";
+
+import { useState } from "react";
+
 import { InputPanel } from "@/components/analyzer/InputPanel";
 import { SpaceVoidBackground } from "@/components/background/SpaceVoidBackground";
 import { CoolShowcase } from "@/components/home/CoolShowcase";
+import type { InputPanelIntent } from "@/components/analyzer/InputPanel";
 
 export default function HomePage() {
+  const [intent, setIntent] = useState<InputPanelIntent | null>(null);
+
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--bg-primary)]">
       <SpaceVoidBackground />
@@ -44,9 +51,16 @@ export default function HomePage() {
           />
         </section>
 
-        <CoolShowcase />
+        <CoolShowcase
+          onIntent={(nextIntent) => {
+            setIntent({
+              id: Date.now(),
+              ...nextIntent,
+            });
+          }}
+        />
 
-        <InputPanel />
+        <InputPanel intent={intent} />
       </main>
 
       <footer className="k-glass-surface relative z-10 shrink-0 border-t backdrop-blur-sm">

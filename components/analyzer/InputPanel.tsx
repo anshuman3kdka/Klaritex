@@ -11,6 +11,18 @@ import type { AnalysisMode, AnalysisResult, InputMode } from "@/lib/types";
 import type { ReportInputSource } from "@/lib/report/generateAnalysisPdf";
 import type { CSSProperties, ReactNode } from "react";
 
+export type InputPanelIntent = {
+  id: number;
+  inputMode?: InputMode;
+  processingMode?: AnalysisMode;
+  text?: string;
+  focusTextInput?: boolean;
+};
+
+type InputPanelProps = {
+  intent?: InputPanelIntent | null;
+};
+
 const MAX_TEXT_LENGTH = 10_000;
 const WARNING_THRESHOLD = Math.floor(MAX_TEXT_LENGTH * 0.9);
 const INPUT_CARD_DELAY_MS = 750;
@@ -143,7 +155,7 @@ async function readApiPayload(response: Response): Promise<AnalysisResult | { er
   }
 }
 
-export function InputPanel() {
+export function InputPanel({ intent }: InputPanelProps) {
   const [inputMode, setInputMode] = useState<InputMode>("text");
   const [processingMode, setProcessingMode] = useState<AnalysisMode>("quick");
   const [textInput, setTextInput] = useState("");
@@ -173,6 +185,7 @@ export function InputPanel() {
     url: null,
   });
   const hasMountedRef = useRef(false);
+  const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const isNearLimit = textInput.length >= WARNING_THRESHOLD;
   const textHasError = inputMode === "text" && Boolean(errorMessage);
@@ -420,6 +433,47 @@ export function InputPanel() {
     return () => window.clearTimeout(timer);
   }, [analyzeButtonState, hasInput]);
 
+  useEffect(() => {
+    if (!intent) {
+      return;
+    }
+
+    if (intent.inputMode) {
+      setInputMode(intent.inputMode);
+      setErrorMessage(null);
+
+      if (intent.inputMode !== "text") {
+        setTextInput("");
+      }
+
+      if (intent.inputMode !== "pdf") {
+        setPdfFile(null);
+      }
+
+      if (intent.inputMode !== "url") {
+        setUrlInput("");
+      }
+    }
+
+    if (intent.processingMode) {
+      setProcessingMode(intent.processingMode);
+    }
+
+    if (typeof intent.text === "string") {
+      const nextText = intent.text.slice(0, MAX_TEXT_LENGTH);
+      setTextInput(nextText);
+      setInputMode("text");
+      setErrorMessage(null);
+    }
+
+    if (intent.focusTextInput || typeof intent.text === "string") {
+      setInputMode("text");
+      window.requestAnimationFrame(() => {
+        textAreaRef.current?.focus();
+      });
+    }
+  }, [intent]);
+
   return (
     <>
       <section className="k-card k-entrance-fade-down mx-auto w-full max-w-3xl p-4 sm:p-6" style={cardAnimationStyle}>
@@ -506,6 +560,7 @@ export function InputPanel() {
               >
                 <div className="flex h-full flex-col md:block">
                   <textarea
+                    ref={textAreaRef}
                     id="klaritex-text-input"
                     value={textInput}
                     onFocus={() => setIsTextInputFocused(true)}
