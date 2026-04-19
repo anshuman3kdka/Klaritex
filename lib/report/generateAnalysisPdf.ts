@@ -199,6 +199,110 @@ function writeRichParagraph(
   return y;
 }
 
+
+function writeElementsTable(
+  doc: jsPDF,
+  y: number,
+  elements: AnalysisResult["elements"],
+  pageTitle: string,
+  pageNumberRef: { value: number }
+): number {
+  const tableX = PAGE_MARGIN;
+  const tableWidth = CONTENT_WIDTH;
+  const headerHeight = 8;
+  const rowPaddingY = 2.2;
+  const rowLineHeight = 4.8;
+  const columnWidths = {
+    name: tableWidth * 0.27,
+    status: tableWidth * 0.16,
+    penalty: tableWidth * 0.12,
+    notes: tableWidth * 0.45,
+  };
+
+  const columnX = {
+    name: tableX,
+    status: tableX + columnWidths.name,
+    penalty: tableX + columnWidths.name + columnWidths.status,
+    notes: tableX + columnWidths.name + columnWidths.status + columnWidths.penalty,
+  };
+
+  const drawHeader = (yPos: number) => {
+    yPos = ensurePageSpace(doc, yPos, headerHeight + 2, pageTitle, pageNumberRef);
+
+    doc.setFillColor(241, 245, 249);
+    doc.rect(tableX, yPos, tableWidth, headerHeight, "F");
+
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.22);
+    doc.rect(tableX, yPos, tableWidth, headerHeight);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...INK);
+
+    doc.text("Element name", columnX.name + 2, yPos + 5.2);
+    doc.text("Status", columnX.status + 2, yPos + 5.2);
+    doc.text("Penalty", columnX.penalty + 2, yPos + 5.2);
+    doc.text("Notes", columnX.notes + 2, yPos + 5.2);
+
+    doc.line(columnX.status, yPos, columnX.status, yPos + headerHeight);
+    doc.line(columnX.penalty, yPos, columnX.penalty, yPos + headerHeight);
+    doc.line(columnX.notes, yPos, columnX.notes, yPos + headerHeight);
+
+    return yPos + headerHeight;
+  };
+
+  y = drawHeader(y);
+
+  elements.forEach((element, index) => {
+    const nameLines = doc.splitTextToSize(element.name, columnWidths.name - 4) as string[];
+    const statusLines = doc.splitTextToSize(element.status, columnWidths.status - 4) as string[];
+    const penaltyLines = doc.splitTextToSize(String(element.penalty), columnWidths.penalty - 4) as string[];
+    const noteLines = doc.splitTextToSize(element.notes, columnWidths.notes - 4) as string[];
+
+    const maxLines = Math.max(nameLines.length, statusLines.length, penaltyLines.length, noteLines.length, 1);
+    const rowHeight = maxLines * rowLineHeight + rowPaddingY * 2;
+
+    const ensuredY = ensurePageSpace(doc, y, rowHeight + 0.5, pageTitle, pageNumberRef);
+    if (ensuredY !== y) {
+      y = drawHeader(ensuredY);
+    }
+
+    if (index % 2 === 1) {
+      doc.setFillColor(248, 250, 252);
+      doc.rect(tableX, y, tableWidth, rowHeight, "F");
+    }
+
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.18);
+    doc.line(tableX, y, tableX + tableWidth, y);
+    doc.line(tableX, y, tableX, y + rowHeight);
+    doc.line(tableX + tableWidth, y, tableX + tableWidth, y + rowHeight);
+    doc.line(columnX.status, y, columnX.status, y + rowHeight);
+    doc.line(columnX.penalty, y, columnX.penalty, y + rowHeight);
+    doc.line(columnX.notes, y, columnX.notes, y + rowHeight);
+
+    const rowTextY = y + rowPaddingY + rowLineHeight - 1;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...SUBTLE);
+
+    doc.text(nameLines, columnX.name + 2, rowTextY);
+    doc.text(statusLines, columnX.status + 2, rowTextY);
+    doc.text(penaltyLines, columnX.penalty + 2, rowTextY);
+    doc.text(noteLines, columnX.notes + 2, rowTextY);
+
+    y += rowHeight;
+  });
+
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.22);
+  doc.line(tableX, y, tableX + tableWidth, y);
+
+  return y + 2;
+}
+
 function getClarityTone(clarityLevel: number): { label: string; color: [number, number, number] } {
   if (clarityLevel >= 8) {
     return { label: "High", color: GOOD };
@@ -480,17 +584,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   if (result.elements.length === 0) {
     y = writeRichParagraph(doc, "No commitment elements provided.", y, "Analysis Details", pageCounter);
   } else {
-    for (const element of result.elements) {
-      y = ensurePageSpace(doc, y, 18, "Analysis Details", pageCounter);
-      y = writeRichParagraph(
-        doc,
-        `### ${element.name} (${element.status})\nPenalty: **${element.penalty}**\n${element.notes}`,
-        y,
-        "Analysis Details",
-        pageCounter
-      );
-      y += 0.6;
-    }
+    y = writeElementsTable(doc, y, result.elements, "Analysis Details", pageCounter);
   }
 
   if (result.exposureCheck && result.exposureCheck.length > 0) {
