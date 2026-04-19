@@ -22,6 +22,9 @@ const CONTENT_WIDTH = PAGE_WIDTH - PAGE_MARGIN * 2;
 const GOLD: [number, number, number] = [214, 170, 80];
 const INK: [number, number, number] = [17, 24, 39];
 const SUBTLE: [number, number, number] = [71, 85, 105];
+const GOOD: [number, number, number] = [22, 163, 74];
+const WARNING: [number, number, number] = [217, 119, 6];
+const RISK: [number, number, number] = [220, 38, 38];
 
 function modeLabel(mode: AnalysisMode): string {
   return mode === "deep" ? "Deep" : "Quick";
@@ -171,6 +174,99 @@ function writeRichParagraph(
   return y;
 }
 
+function getClarityTone(clarityLevel: number): { label: string; color: [number, number, number] } {
+  if (clarityLevel >= 8) {
+    return { label: "High", color: GOOD };
+  }
+  if (clarityLevel >= 5) {
+    return { label: "Moderate", color: WARNING };
+  }
+  return { label: "Low", color: RISK };
+}
+
+function getUnanchoredSeverity(unanchoredClaimsCount: number): { label: string; color: [number, number, number] } {
+  if (unanchoredClaimsCount <= 2) {
+    return { label: "Low", color: GOOD };
+  }
+  if (unanchoredClaimsCount <= 5) {
+    return { label: "Medium", color: WARNING };
+  }
+  return { label: "High", color: RISK };
+}
+
+function writeKpiDashboard(doc: jsPDF, y: number, result: AnalysisResult): number {
+  const gap = 4;
+  const cardWidth = (CONTENT_WIDTH - gap) / 2;
+  const cardHeight = 26;
+  const leftX = PAGE_MARGIN;
+  const rightX = PAGE_MARGIN + cardWidth + gap;
+  const row2Y = y + cardHeight + gap;
+  const clarityTone = getClarityTone(result.clarityLevel);
+  const unanchoredSeverity = getUnanchoredSeverity(result.unanchoredClaimsCount);
+  const actionTalkTotal = Math.max(result.actionRatio + result.talkRatio, 0.01);
+  const actionShare = Math.max(0, Math.min(1, result.actionRatio / actionTalkTotal));
+
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.25);
+
+  const drawCard = (x: number, yPos: number) => {
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(x, yPos, cardWidth, cardHeight, 2.5, 2.5, "F");
+    doc.roundedRect(x, yPos, cardWidth, cardHeight, 2.5, 2.5);
+  };
+
+  drawCard(leftX, y);
+  drawCard(rightX, y);
+  drawCard(leftX, row2Y);
+  drawCard(rightX, row2Y);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.8);
+  doc.setTextColor(...SUBTLE);
+  doc.text("Ambiguity Score", leftX + 3, y + 5.5);
+  doc.text("Clarity Level", rightX + 3, y + 5.5);
+  doc.text("Action/Talk Ratio", leftX + 3, row2Y + 5.5);
+  doc.text("Unanchored Claims", rightX + 3, row2Y + 5.5);
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...INK);
+  doc.setFontSize(14);
+  doc.text(`${result.ambiguityScore.toFixed(1)} / 10`, leftX + 3, y + 13);
+
+  doc.setFontSize(9.2);
+  doc.setTextColor(...SUBTLE);
+  doc.text(`Tier ${result.tier}`, leftX + 3, y + 18.2);
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...clarityTone.color);
+  doc.setFontSize(14);
+  doc.text(`${result.clarityLevel.toFixed(1)}`, rightX + 3, y + 13);
+  doc.setFontSize(9);
+  doc.text(clarityTone.label, rightX + 3, y + 18.2);
+
+  const barX = leftX + 3;
+  const barY = row2Y + 11;
+  const barWidth = cardWidth - 6;
+  const barHeight = 5;
+  doc.setFillColor(226, 232, 240);
+  doc.roundedRect(barX, barY, barWidth, barHeight, 1.4, 1.4, "F");
+  doc.setFillColor(...GOLD);
+  doc.roundedRect(barX, barY, barWidth * actionShare, barHeight, 1.4, 1.4, "F");
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...SUBTLE);
+  doc.setFontSize(8.6);
+  doc.text(`A ${result.actionRatio.toFixed(2)} vs T ${result.talkRatio.toFixed(2)}`, leftX + 3, row2Y + 19);
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...unanchoredSeverity.color);
+  doc.setFontSize(14);
+  doc.text(`${result.unanchoredClaimsCount}`, rightX + 3, row2Y + 13);
+  doc.setFontSize(9);
+  doc.text(unanchoredSeverity.label, rightX + 3, row2Y + 18.2);
+
+  return row2Y + cardHeight;
+}
+
 export function generateAnalysisPdf({ result, source, processingMode }: GenerateAnalysisReportOptions) {
   const doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
   const pageCounter = { value: 1 };
@@ -212,19 +308,10 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   doc.text(`Input Type: ${source.mode.toUpperCase()}`, PAGE_MARGIN + 4, 72);
   doc.text(`Analysis Mode: ${modeLabel(processingMode)}`, PAGE_MARGIN + 4, 78);
 
-  doc.setFillColor(254, 249, 195);
-  doc.roundedRect(PAGE_MARGIN + CONTENT_WIDTH - 55, 54, 49, 25, 3, 3, "F");
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(120, 53, 15);
-  doc.setFontSize(10);
-  doc.text("Ambiguity Score", PAGE_MARGIN + CONTENT_WIDTH - 50.5, 61);
-  doc.setFontSize(16);
-  doc.text(`${result.ambiguityScore.toFixed(1)} / 10`, PAGE_MARGIN + CONTENT_WIDTH - 50.5, 69);
-  doc.setFontSize(10);
-  doc.text(`Tier ${result.tier}`, PAGE_MARGIN + CONTENT_WIDTH - 50.5, 75.5);
-
   addPageChrome(doc, "Executive Summary", pageCounter.value);
-  let y = 95;
+  let y = 91;
+  y = writeKpiDashboard(doc, y, result);
+  y += 8;
 
   y = writeCard(doc, y, "Summary", "Executive Summary", pageCounter);
   y = writeRichParagraph(doc, result.commitmentSummary, y, "Executive Summary", pageCounter, { baseSize: 11 });
