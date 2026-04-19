@@ -23,6 +23,10 @@
   --radius-secondary: 0.5rem;
   --ui-border-width: 1px;
   --ui-border-opacity: 0.38;
+  --surface-tint-rest: color-mix(in oklab, var(--bg-surface) 92%, #ffffff 8%);
+  --surface-tint-hover: color-mix(in oklab, var(--bg-elevated) 88%, #ffffff 12%);
+  --shadow-rest: 0 2px 8px rgba(0, 0, 0, 0.22);
+  --shadow-hover: 0 6px 14px rgba(0, 0, 0, 0.28);
 }
 
 body {
@@ -137,20 +141,25 @@ body {
 .k-card {
   border: var(--ui-border-width) solid color-mix(in oklab, var(--border) calc(var(--ui-border-opacity) * 100%), transparent);
   border-radius: var(--radius-primary);
-  background: var(--bg-surface);
+  background: var(--surface-tint-rest);
+  box-shadow: var(--shadow-rest);
+  transition: background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
 
 .k-module-card {
   border: var(--ui-border-width) solid color-mix(in oklab, var(--border) calc(var(--ui-border-opacity) * 100%), transparent);
   border-left: 2px solid var(--border-accent);
   border-radius: var(--radius-primary);
-  background: var(--bg-surface);
+  background: var(--surface-tint-rest);
+  box-shadow: var(--shadow-rest);
+  transition: background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
 
 .module-card {
   border: var(--ui-border-width) solid color-mix(in oklab, var(--border-accent) 26%, transparent);
   border-radius: var(--radius-primary);
-  background: var(--bg-surface);
+  background: var(--surface-tint-rest);
+  box-shadow: var(--shadow-rest);
   overflow: hidden;
   transition: border-color 200ms ease, background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
@@ -164,11 +173,18 @@ body {
 }
 
 @media (hover: hover) {
+  .k-card:hover,
+  .k-module-card:hover {
+    background: var(--surface-tint-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover);
+  }
+
   .module-card:hover {
     border-color: rgba(201, 168, 76, 0.4);
-    background: var(--bg-elevated);
+    background: var(--surface-tint-hover);
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(201, 168, 76, 0.08);
+    box-shadow: var(--shadow-hover);
   }
 
   .module-card:hover .module-card-title {
