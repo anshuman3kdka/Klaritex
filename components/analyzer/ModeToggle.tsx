@@ -83,8 +83,10 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
 
   return (
     <div className="space-y-3">
-      <p className="font-ui k-text-heading">Processing Mode</p>
-      <div className="grid grid-cols-2 gap-2" role="radiogroup">
+      <p id="processing-mode-label" className="font-ui k-text-heading">
+        Processing Mode
+      </p>
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="processing-mode-label">
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
           const isTouchFlashing = touchFlashMode === option.value;

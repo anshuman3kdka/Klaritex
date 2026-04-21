@@ -9,7 +9,7 @@ import { ResultsPanel } from "@/components/results/ResultsPanel";
 import { generateAnalysisPdf } from "@/lib/report/generateAnalysisPdf";
 import type { AnalysisMode, AnalysisResult, InputMode } from "@/lib/types";
 import type { ReportInputSource } from "@/lib/report/generateAnalysisPdf";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 
 export type InputPanelIntent = {
   id: number;
@@ -269,6 +269,40 @@ export function InputPanel({ intent, id }: InputPanelProps) {
     setHoverIndicatorStyle((previous) => ({ ...previous, visible: false }));
   }
 
+  function handleTabListKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const currentIndex = TABS.findIndex((tab) => tab.value === inputMode);
+
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      const nextTab = TABS[(currentIndex + 1) % TABS.length];
+      handleTabSwitch(nextTab.value);
+      tabRefs.current[nextTab.value]?.focus();
+      return;
+    }
+
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      const nextTab = TABS[(currentIndex - 1 + TABS.length) % TABS.length];
+      handleTabSwitch(nextTab.value);
+      tabRefs.current[nextTab.value]?.focus();
+      return;
+    }
+
+    if (event.key === "Home") {
+      event.preventDefault();
+      handleTabSwitch(TABS[0].value);
+      tabRefs.current[TABS[0].value]?.focus();
+      return;
+    }
+
+    if (event.key === "End") {
+      event.preventDefault();
+      const lastTab = TABS[TABS.length - 1];
+      handleTabSwitch(lastTab.value);
+      tabRefs.current[lastTab.value]?.focus();
+    }
+  }
+
   async function handleAnalyze() {
     if (!canAnalyze) {
       return;
@@ -491,6 +525,8 @@ export function InputPanel({ intent, id }: InputPanelProps) {
           ref={tabListRef}
           className="relative grid grid-cols-1 gap-2 border-b border-[var(--border)] pb-2 sm:grid-cols-3"
           role="tablist"
+          aria-label="Input mode"
+          onKeyDown={handleTabListKeyDown}
         >
           <div
             aria-hidden
@@ -520,6 +556,8 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                 }}
                 role="tab"
                 aria-selected={isActive}
+                aria-controls={`input-panel-${tab.value}`}
+                id={`input-tab-${tab.value}`}
                 type="button"
                 onClick={() => handleTabSwitch(tab.value)}
                 onMouseEnter={() => {
@@ -557,7 +595,12 @@ export function InputPanel({ intent, id }: InputPanelProps) {
           })}
         </div>
 
-        <div className={`mt-5 ${isResetShaking ? "clear-reset-shake" : ""}`}>
+        <div
+          className={`mt-5 ${isResetShaking ? "clear-reset-shake" : ""}`}
+          role="tabpanel"
+          id={`input-panel-${inputMode}`}
+          aria-labelledby={`input-tab-${inputMode}`}
+        >
           {inputMode === "text" ? (
             <>
               <label htmlFor="klaritex-text-input" className="font-ui k-text-heading mb-2 block">
@@ -594,6 +637,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                     disabled={isAnalyzing}
                     placeholder="Paste a political statement, policy claim, corporate announcement, or any text you want analyzed..."
                     aria-invalid={textHasError}
+                    aria-describedby="klaritex-text-count klaritex-text-message"
                     className={`font-ui k-radius-primary k-text-body h-full w-full border bg-[var(--bg-primary)] p-3 outline-none transition-[border-color,box-shadow,background-color] duration-200 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)] md:h-auto ${
                       textHasError
                         ? "border-[var(--missing-color)] focus-visible:border-[var(--missing-color)] focus-visible:ring-2 focus-visible:ring-[var(--missing-color)]/35 focus-visible:shadow-[0_0_0_4px_rgba(220,76,100,0.16)]"
@@ -601,6 +645,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                     }`}
                   />
                   <p
+                    id="klaritex-text-count"
                     className={`font-mono-ui mt-2 shrink-0 text-sm leading-5 ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}
                   >
                     {textInput.length.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()}
@@ -674,7 +719,11 @@ export function InputPanel({ intent, id }: InputPanelProps) {
           </button>
         </div>
 
-        {analysisStateMessage && <p className="font-ui k-text-body mt-4 text-[var(--text-secondary)]">{analysisStateMessage}</p>}
+        {analysisStateMessage && (
+          <p className="font-ui k-text-body mt-4 text-[var(--text-secondary)]" role="status" aria-live="polite">
+            {analysisStateMessage}
+          </p>
+        )}
         {lastResult && lastSource ? (
           <div className="mt-4">
             <button
@@ -704,7 +753,12 @@ export function InputPanel({ intent, id }: InputPanelProps) {
           </div>
         ) : null}
         {inputMode === "text" ? (
-          <p className={`font-ui mt-2 min-h-5 text-sm leading-5 ${textHasError ? "text-[var(--missing-color)]" : "text-transparent"}`}>
+          <p
+            id="klaritex-text-message"
+            role={textHasError ? "alert" : "status"}
+            aria-live="polite"
+            className={`font-ui mt-2 min-h-5 text-sm leading-5 ${textHasError ? "text-[var(--missing-color)]" : "text-transparent"}`}
+          >
             {errorMessage ?? "Text looks good."}
           </p>
         ) : null}

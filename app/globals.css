@@ -38,6 +38,36 @@ body {
   background: radial-gradient(circle at 50% 42%, #050508 0%, #000000 72%);
   color: var(--text-primary);
   font-family: "Inter", sans-serif;
+  min-height: 100vh;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 80;
+  transform: translateY(-140%);
+  border-radius: 0.4rem;
+  border: 1px solid color-mix(in oklab, var(--gold-primary) 72%, black 28%);
+  background: color-mix(in oklab, var(--bg-surface) 90%, black 10%);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  transition: transform 150ms ease;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
 }
 
 .space-void-bg {
@@ -645,6 +675,18 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
   .k-entrance-fade-down,
   .k-entrance-scale-in,
   .k-tier-badge--3 {
@@ -658,6 +700,11 @@ body {
     opacity: 0.15 !important;
     background-size: 100% 100%;
     background-position: 0 0 !important;
+  }
+
+  .cool-marquee-track,
+  .cool-signal span {
+    animation: none !important;
   }
 }
 

@@ -81,6 +81,8 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
 
   const activeErrorMessage = localError ?? errorMessage;
   const hasError = Boolean(activeErrorMessage);
+  const helperId = "klaritex-pdf-helper";
+  const messageId = "klaritex-pdf-message";
 
   return (
     <div>
@@ -92,6 +94,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         disabled={disabled}
         className="sr-only"
         id="klaritex-pdf-upload"
+        aria-describedby={`${helperId} ${messageId}`}
       />
 
       <div
@@ -129,7 +132,15 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         ) : null}
       </div>
 
-      <p className={`font-ui mt-2 min-h-5 text-sm leading-5 ${hasError ? "text-[var(--missing-color)]" : "text-transparent"}`}>
+      <p id={helperId} className="sr-only">
+        PDF only. Maximum 5MB.
+      </p>
+      <p
+        id={messageId}
+        role={hasError ? "alert" : "status"}
+        aria-live="polite"
+        className={`font-ui mt-2 min-h-5 text-sm leading-5 ${hasError ? "text-[var(--missing-color)]" : "text-transparent"}`}
+      >
         {activeErrorMessage ?? "PDF selection ready."}
       </p>
     </div>

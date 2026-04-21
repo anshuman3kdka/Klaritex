@@ -16,7 +16,7 @@ export default function HomePage() {
 
       <header className="k-entrance-fade-down k-glass-surface relative z-10 shrink-0 border-b backdrop-blur-sm">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-3 items-center gap-4 px-4 py-5 sm:px-6">
-          <div>
+          <nav aria-label="Primary navigation">
             <a
               href="https://klaritex.anshuman3kdka.in"
               aria-label="Clarity Engine"
@@ -24,15 +24,17 @@ export default function HomePage() {
             >
               Clarity Engine
             </a>
-          </div>
+          </nav>
           <div>
-            <a
-              href="#"
-              aria-label="About (coming soon)"
-              className="font-ui text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:text-base"
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              aria-label="About page is coming soon"
+              className="font-ui cursor-not-allowed text-sm text-[var(--text-secondary)]/75 sm:text-base"
             >
               About
-            </a>
+            </button>
           </div>
           <div className="text-right">
             <span className="font-display text-2xl tracking-tight text-[var(--text-gold)] sm:text-3xl">Klaritex&trade;</span>
@@ -40,7 +42,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 overflow-y-auto px-4 py-8 sm:px-6 sm:py-12">
+      <main id="main-content" className="relative z-10 flex-1 overflow-y-auto px-4 py-8 sm:px-6 sm:py-12">
         <section className="k-header k-entrance-fade-down mx-auto mb-8 w-full max-w-3xl rounded-xl px-4 py-8 text-center sm:py-10">
           <p className="font-ui text-base leading-relaxed text-[var(--text-primary)]/80 sm:text-lg">
             Language Exposed. Accountability Scored.
