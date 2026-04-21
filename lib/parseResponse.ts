@@ -21,24 +21,21 @@ function extractFirstBalancedJsonObject(text: string): string | null {
 
   let depth = 0;
   let inString = false;
-  let escaping = false;
+  const regex = /[{}"\\]/g;
+  regex.lastIndex = start;
 
-  for (let i = start; i < text.length; i += 1) {
-    const char = text[i];
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(text)) !== null) {
+    const char = match[0];
+    const i = match.index;
 
     if (inString) {
-      if (escaping) {
-        escaping = false;
-      } else if (char === "\\") {
-        escaping = true;
-      } else if (char === "\"") {
+      if (char === "\"") {
         inString = false;
+      } else if (char === "\\") {
+        // Skip the next character as it's escaped
+        regex.lastIndex += 1;
       }
-      continue;
-    }
-
-    if (char === "\"") {
-      inString = true;
       continue;
     }
 
@@ -49,6 +46,8 @@ function extractFirstBalancedJsonObject(text: string): string | null {
       if (depth === 0) {
         return text.slice(start, i + 1);
       }
+    } else if (char === "\"") {
+      inString = true;
     }
   }
 
