@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { useId, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 
 const MAX_PDF_SIZE_BYTES = 5 * 1024 * 1024;
 
@@ -30,6 +30,9 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
   const [isDragActive, setIsDragActive] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const baseId = useId();
+  const helperId = `${baseId}-helper`;
+  const errorId = `${baseId}-error`;
 
   function updateFile(nextFile: File | null) {
     if (!nextFile) {
@@ -92,6 +95,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         disabled={disabled}
         className="sr-only"
         id="klaritex-pdf-upload"
+        aria-describedby={hasError ? `${helperId} ${errorId}` : helperId}
       />
 
       <div
@@ -117,9 +121,10 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
               : "k-border-ui text-[var(--text-primary)] hover:border-[var(--border-accent)] focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/25 focus-visible:shadow-[0_0_0_4px_rgba(201,168,76,0.14)]"
         }`}
         aria-label="Upload PDF"
+        aria-describedby={hasError ? `${helperId} ${errorId}` : helperId}
       >
         <p className="font-ui k-text-heading">Drag and drop a PDF here, or click to choose a file</p>
-        <p className="font-ui k-text-helper mt-2 text-sm leading-5">PDF only · Maximum 5MB</p>
+        <p id={helperId} className="font-ui k-text-helper mt-2 text-sm leading-5">PDF only · Maximum 5MB</p>
 
         {value ? (
           <div className="k-radius-secondary mt-4 border border-[var(--clear-color)]/40 bg-[var(--clear-color)]/15 p-3">
@@ -129,9 +134,11 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         ) : null}
       </div>
 
-      <p className={`font-ui mt-2 min-h-5 text-sm leading-5 ${hasError ? "text-[var(--missing-color)]" : "text-transparent"}`}>
-        {activeErrorMessage ?? "PDF selection ready."}
-      </p>
+      <div id={errorId} role="alert" aria-live="polite">
+        <p className={`font-ui mt-2 min-h-5 text-sm leading-5 ${hasError ? "text-[var(--missing-color)]" : "text-transparent"}`}>
+          {activeErrorMessage ?? "PDF selection ready."}
+        </p>
+      </div>
     </div>
   );
 }
