@@ -1,5 +1,27 @@
 import type { Metadata } from "next";
+import { DM_Mono, Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
+
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-ui"
+});
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+  variable: "--font-mono-ui"
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  display: "swap",
+  variable: "--font-display"
+});
 
 export const metadata: Metadata = {
   title: "Klaritex",
@@ -20,7 +42,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={`${inter.className} ${inter.variable} ${dmMono.variable} ${playfairDisplay.variable}`}>{children}</body>
     </html>
   );
 }
