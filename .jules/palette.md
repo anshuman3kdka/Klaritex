@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Dynamic Form Error Associations
+**Learning:** Using generic HTML paragraphs for validation feedback and helper text without ARIA associations means screen reader users miss crucial context when interacting with form inputs (like `UrlInput`, `InputPanel` textareas, or custom `PdfUpload` drops).
+**Action:** Always add `aria-describedby` to the interactive input, linking it to the IDs of both the descriptive helper text and the error message (conditionally including the error ID only when an error exists). The error message container should also have `role="alert"` so changes are announced immediately.
