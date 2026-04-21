@@ -247,7 +247,16 @@ export function InputPanel({ intent, id }: InputPanelProps) {
       return;
     }
 
-    if (hasContentInMode(inputMode)) {
+    const currentModeHasContent = hasContentInMode(inputMode);
+
+    if (
+      currentModeHasContent &&
+      !window.confirm("Switching tabs will clear your current input. Continue?")
+    ) {
+      return;
+    }
+
+    if (currentModeHasContent) {
       setIsResetShaking(true);
       window.setTimeout(() => setIsResetShaking(false), 360);
     }
