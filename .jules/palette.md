@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Filter Chip Focus States
+**Learning:** Filter chips and custom toggles built as `<button>` elements (like the mood selection chips in `CoolShowcase.tsx`) lack default focus states that are visible against the dark theme.
+**Action:** When implementing custom interactive elements like filter chips or mood selectors, explicitly add `focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none` to ensure keyboard navigation accessibility.
