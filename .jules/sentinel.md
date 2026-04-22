@@ -26,3 +26,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2026-04-12 - Path Traversal via Unvalidated User Input
+**Vulnerability:** The application used an unvalidated `slug` directly to read files from the filesystem via `fs.readFileSync(path.join(POSTS_DIR, \`${slug}.md\`))`. This allows an attacker to fetch arbitrary files (e.g., source code, configuration files, system files) outside the intended `content/posts` directory by supplying a slug containing traversal characters like `../../../`.
+**Learning:** `path.join()` normalizes the input path but does NOT inherently restrict the resolved path to be a subdirectory of the base path.
+**Prevention:** Always validate that the normalized candidate file path starts with the normalized base directory path (e.g., using `path.normalize(candidate).startsWith(path.normalize(BASE_DIR) + path.sep)`) before performing any filesystem operations.
