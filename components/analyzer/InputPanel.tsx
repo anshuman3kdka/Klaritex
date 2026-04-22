@@ -556,7 +556,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                 }}
                 role="tab"
                 aria-selected={isActive}
-                aria-controls={`input-panel-${tab.value}`}
+                aria-controls={`input-panel-${inputMode}`}
                 id={`input-tab-${tab.value}`}
                 type="button"
                 onClick={() => handleTabSwitch(tab.value)}
@@ -637,7 +637,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                     disabled={isAnalyzing}
                     placeholder="Paste a political statement, policy claim, corporate announcement, or any text you want analyzed..."
                     aria-invalid={textHasError}
-                    aria-describedby="klaritex-text-count klaritex-text-message"
+                    aria-describedby={textHasError ? "klaritex-text-count klaritex-text-message" : "klaritex-text-count"}
                     className={`font-ui k-radius-primary k-text-body h-full w-full border bg-[var(--bg-primary)] p-3 outline-none transition-[border-color,box-shadow,background-color] duration-200 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)] md:h-auto ${
                       textHasError
                         ? "border-[var(--missing-color)] focus-visible:border-[var(--missing-color)] focus-visible:ring-2 focus-visible:ring-[var(--missing-color)]/35 focus-visible:shadow-[0_0_0_4px_rgba(220,76,100,0.16)]"
@@ -756,7 +756,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
           <p
             id="klaritex-text-message"
             role={textHasError ? "alert" : "status"}
-            aria-live="polite"
+            aria-live={textHasError ? "assertive" : "polite"}
             className={`font-ui mt-2 min-h-5 text-sm leading-5 ${textHasError ? "text-[var(--missing-color)]" : "text-transparent"}`}
           >
             {errorMessage ?? "Text looks good."}

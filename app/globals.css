@@ -706,9 +706,7 @@ textarea:focus-visible,
   .cool-signal span {
     animation: none !important;
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
   .module-card,
   .module-card .module-card-title,
   .module-card .module-status-badge {

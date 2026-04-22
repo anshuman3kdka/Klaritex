@@ -94,7 +94,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         disabled={disabled}
         className="sr-only"
         id="klaritex-pdf-upload"
-        aria-describedby={`${helperId} ${messageId}`}
+        aria-describedby={hasError ? `${helperId} ${messageId}` : helperId}
       />
 
       <div
@@ -138,7 +138,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
       <p
         id={messageId}
         role={hasError ? "alert" : "status"}
-        aria-live="polite"
+        aria-live={hasError ? "assertive" : "polite"}
         className={`font-ui mt-2 min-h-5 text-sm leading-5 ${hasError ? "text-[var(--missing-color)]" : "text-transparent"}`}
       >
         {activeErrorMessage ?? "PDF selection ready."}
