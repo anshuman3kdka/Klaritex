@@ -61,6 +61,55 @@ function formatSourcePreview(source: ReportInputSource): string {
   return source.text?.trim() ? source.text : "No text available";
 }
 
+function sanitizeFileNameSegment(value: string): string {
+  return value
+    .replace(/https?:\/\//gi, "")
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function formatReportTimestamp(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${year}-${month}-${day}_${hours}-${minutes}`;
+}
+
+function getSourceIdentifier(source: ReportInputSource): string | undefined {
+  if (source.mode === "url" && source.url?.trim()) {
+    try {
+      const host = new URL(source.url).hostname.replace(/^www\./i, "");
+      const sanitizedHost = sanitizeFileNameSegment(host);
+      return sanitizedHost || undefined;
+    } catch {
+      return sanitizeFileNameSegment(source.url.trim()) || undefined;
+    }
+  }
+
+  if (source.mode === "pdf" && source.fileName?.trim()) {
+    const baseName = source.fileName.replace(/\.[^.]+$/, "");
+    return sanitizeFileNameSegment(baseName) || undefined;
+  }
+
+  return undefined;
+}
+
+function buildAnalysisReportFileName(source: ReportInputSource, date: Date): string {
+  const parts = ["klaritex-analysis-report", formatReportTimestamp(date), source.mode];
+  const sourceIdentifier = getSourceIdentifier(source);
+
+  if (sourceIdentifier) {
+    parts.push(sourceIdentifier);
+  }
+
+  return `${parts.join("_")}.pdf`;
+}
+
 function cleanInlineMarkdown(text: string): string {
   return text
     .replace(/\*\*([^*]+)\*\*/g, "$1")
@@ -512,6 +561,7 @@ function writeKpiDashboard(doc: jsPDF, y: number, result: AnalysisResult): numbe
 export function generateAnalysisPdf({ result, source, processingMode }: GenerateAnalysisReportOptions) {
   const doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
   const pageCounter = { value: 1 };
+  const now = new Date();
 
   doc.setFillColor(...INK);
   doc.rect(0, 0, PAGE_WIDTH, 70, "F");
@@ -526,7 +576,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   doc.setFontSize(10.5);
   doc.text("Clean, structured clarity and commitment diagnostics", PAGE_MARGIN, 38);
 
-  const generatedAt = new Date().toLocaleString("en-US", {
+  const generatedAt = now.toLocaleString("en-US", {
     dateStyle: "long",
     timeStyle: "short",
   });
@@ -655,7 +705,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
     );
   }
 
-  doc.save("klaritex-analysis-report.pdf");
+  doc.save(buildAnalysisReportFileName(source, now));
 }
 
 export type { ReportInputSource };
