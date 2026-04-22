@@ -14,7 +14,7 @@ export default function BlogPage() {
   const posts = getAllPostMeta();
 
   return (
-    <main className="min-h-screen bg-[var(--bg-primary)] px-6 py-10 text-[var(--text-primary)] md:px-10">
+    <main id="main-content" className="min-h-screen bg-[var(--bg-primary)] px-6 py-10 text-[var(--text-primary)] md:px-10">
       <div className="mx-auto max-w-4xl space-y-8">
         <Link className="inline-block text-[var(--text-gold)] hover:underline" href="/">
           ← Back to home
