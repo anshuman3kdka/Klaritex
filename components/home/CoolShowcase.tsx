@@ -128,7 +128,7 @@ export function CoolShowcase({ onIntent, ctaTargetId = "analyzer" }: CoolShowcas
                   key={entry.key}
                   type="button"
                   onClick={() => handleMoodClick(entry.key)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition sm:text-sm ${
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 sm:text-sm ${
                     activeMood === entry.key
                       ? "border-[var(--gold-primary)] bg-[var(--gold-primary)]/15 text-[var(--text-primary)]"
                       : "border-[var(--border)] bg-[var(--bg-elevated)]/55 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
