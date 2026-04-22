@@ -1,18 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import type { AnalysisMode, InputMode } from "@/lib/types";
 
-type ShowcaseIntent = {
+export type ShowcaseIntent = {
   inputMode?: InputMode;
   processingMode?: AnalysisMode;
   text?: string;
-  focusTextInput?: boolean;
+  focusInput?: boolean;
 };
 
+export type ShowcaseMoodKey = "focus" | "debate" | "redflag";
+
 type CoolShowcaseProps = {
-  onIntent?: (intent: ShowcaseIntent) => void;
+  activeMood: ShowcaseMoodKey;
+  onMoodChange: (mood: ShowcaseMoodKey) => void;
+  onUseSetup?: (intent: ShowcaseIntent) => void;
   ctaTargetId?: string;
 };
 
@@ -24,6 +28,12 @@ const MOODS = [
     accent: "from-emerald-300/30 via-emerald-400/10 to-transparent",
     score: "91%",
     note: "Clear commitments detected",
+    setup: {
+      inputMode: "text",
+      processingMode: "deep",
+      text: "Our team will publish weekly progress updates every Friday with named owners for each milestone.",
+      focusInput: true,
+    } satisfies ShowcaseIntent,
   },
   {
     key: "debate",
@@ -32,6 +42,11 @@ const MOODS = [
     accent: "from-amber-300/35 via-amber-400/10 to-transparent",
     score: "63%",
     note: "Mixed commitment signals",
+    setup: {
+      inputMode: "url",
+      processingMode: "deep",
+      focusInput: true,
+    } satisfies ShowcaseIntent,
   },
   {
     key: "redflag",
@@ -40,6 +55,12 @@ const MOODS = [
     accent: "from-rose-300/35 via-rose-400/10 to-transparent",
     score: "28%",
     note: "High ambiguity risk",
+    setup: {
+      inputMode: "text",
+      processingMode: "quick",
+      text: "We're going to revolutionize everything soon with game-changing outcomes for everyone.",
+      focusInput: true,
+    } satisfies ShowcaseIntent,
   },
 ] as const;
 
@@ -52,49 +73,11 @@ const IDEA_CHIPS = [
   "Inspect a grant proposal",
 ];
 
-export function CoolShowcase({ onIntent, ctaTargetId = "analyzer" }: CoolShowcaseProps) {
-  const [activeMood, setActiveMood] = useState<(typeof MOODS)[number]["key"]>("focus");
-
+export function CoolShowcase({ activeMood, onMoodChange, onUseSetup, ctaTargetId = "analyzer" }: CoolShowcaseProps) {
   const mood = useMemo(() => MOODS.find((entry) => entry.key === activeMood) ?? MOODS[0], [activeMood]);
 
-  const handleMoodClick = (key: (typeof MOODS)[number]["key"]) => {
-    setActiveMood(key);
-
-    if (!onIntent) {
-      return;
-    }
-
-    if (key === "focus") {
-      onIntent({
-        inputMode: "text",
-        processingMode: "quick",
-        text: "Our team will publish weekly progress updates every Friday with named owners for each milestone.",
-        focusTextInput: true,
-      });
-      return;
-    }
-
-    if (key === "debate") {
-      onIntent({
-        inputMode: "text",
-        processingMode: "deep",
-        text: "We may consider reducing fees sometime soon if market conditions permit and stakeholders align.",
-        focusTextInput: true,
-      });
-      return;
-    }
-
-    onIntent({
-      inputMode: "url",
-      processingMode: "deep",
-    });
-  };
-
   const handlePrimaryCtaClick = () => {
-    onIntent?.({
-      inputMode: "text",
-      focusTextInput: true,
-    });
+    onUseSetup?.(mood.setup);
 
     const target = document.getElementById(ctaTargetId);
     if (target) {
@@ -119,7 +102,7 @@ export function CoolShowcase({ onIntent, ctaTargetId = "analyzer" }: CoolShowcas
               onClick={handlePrimaryCtaClick}
               className="mt-4 inline-flex items-center rounded-lg bg-[var(--gold-primary)] px-4 py-2 font-ui text-sm font-semibold text-[#1a1a1a] transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50"
             >
-              Try with my text
+              Use this setup
             </button>
 
             <div className="mt-5 flex flex-wrap gap-2">
@@ -127,7 +110,7 @@ export function CoolShowcase({ onIntent, ctaTargetId = "analyzer" }: CoolShowcas
                 <button
                   key={entry.key}
                   type="button"
-                  onClick={() => handleMoodClick(entry.key)}
+                  onClick={() => onMoodChange(entry.key)}
                   className={`rounded-full border px-3 py-1.5 text-xs font-medium transition sm:text-sm ${
                     activeMood === entry.key
                       ? "border-[var(--gold-primary)] bg-[var(--gold-primary)]/15 text-[var(--text-primary)]"

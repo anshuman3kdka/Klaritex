@@ -16,12 +16,15 @@ export type InputPanelIntent = {
   inputMode?: InputMode;
   processingMode?: AnalysisMode;
   text?: string;
-  focusTextInput?: boolean;
+  focusInput?: boolean;
 };
 
 type InputPanelProps = {
   intent?: InputPanelIntent | null;
   id?: string;
+  defaultInputMode?: InputMode;
+  defaultProcessingMode?: AnalysisMode;
+  starterTextTemplate?: string;
 };
 
 const MAX_TEXT_LENGTH = 10_000;
@@ -156,10 +159,16 @@ async function readApiPayload(response: Response): Promise<AnalysisResult | { er
   }
 }
 
-export function InputPanel({ intent, id }: InputPanelProps) {
-  const [inputMode, setInputMode] = useState<InputMode>("text");
-  const [processingMode, setProcessingMode] = useState<AnalysisMode>("quick");
-  const [textInput, setTextInput] = useState("");
+export function InputPanel({
+  intent,
+  id,
+  defaultInputMode = "text",
+  defaultProcessingMode = "quick",
+  starterTextTemplate = "",
+}: InputPanelProps) {
+  const [inputMode, setInputMode] = useState<InputMode>(defaultInputMode);
+  const [processingMode, setProcessingMode] = useState<AnalysisMode>(defaultProcessingMode);
+  const [textInput, setTextInput] = useState(starterTextTemplate.slice(0, MAX_TEXT_LENGTH));
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [urlInput, setUrlInput] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -187,6 +196,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
   });
   const hasMountedRef = useRef(false);
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
+  const urlInputRef = useRef<HTMLInputElement | null>(null);
 
   const isNearLimit = textInput.length >= WARNING_THRESHOLD;
   const textHasError = inputMode === "text" && Boolean(errorMessage);
@@ -510,13 +520,31 @@ export function InputPanel({ intent, id }: InputPanelProps) {
       setErrorMessage(null);
     }
 
-    if (intent.focusTextInput || typeof intent.text === "string") {
-      setInputMode("text");
+    if (intent.focusInput || typeof intent.text === "string") {
+      const modeToFocus = intent.text ? "text" : (intent.inputMode ?? "text");
       window.requestAnimationFrame(() => {
+        if (modeToFocus === "url") {
+          urlInputRef.current?.focus();
+          return;
+        }
+
         textAreaRef.current?.focus();
       });
     }
   }, [intent]);
+
+  useEffect(() => {
+    setInputMode(defaultInputMode);
+    setErrorMessage(null);
+  }, [defaultInputMode]);
+
+  useEffect(() => {
+    setProcessingMode(defaultProcessingMode);
+  }, [defaultProcessingMode]);
+
+  useEffect(() => {
+    setTextInput(starterTextTemplate.slice(0, MAX_TEXT_LENGTH));
+  }, [starterTextTemplate]);
 
   return (
     <>
@@ -670,6 +698,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
 
           {inputMode === "url" ? (
             <UrlInput
+              inputRef={urlInputRef}
               value={urlInput}
               disabled={isAnalyzing}
               errorMessage={errorMessage}
