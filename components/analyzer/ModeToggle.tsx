@@ -60,6 +60,7 @@ const MODE_OPTIONS: Array<{
 export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProps) {
   const [touchFlashMode, setTouchFlashMode] = useState<AnalysisMode | null>(null);
   const touchFlashTimeoutRef = useRef<number | null>(null);
+  const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const triggerTouchFlash = (mode: AnalysisMode) => {
     if (touchFlashTimeoutRef.current !== null) {
@@ -94,10 +95,38 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
           return (
             <button
               key={option.value}
+              ref={(element) => {
+                buttonRefs.current[option.value] = element;
+              }}
               role="radio"
               aria-checked={isActive}
+              tabIndex={isActive ? 0 : -1}
               type="button"
               disabled={disabled}
+              onKeyDown={(event) => {
+                if (disabled) return;
+
+                if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+                  event.preventDefault();
+                  const currentIndex = MODE_OPTIONS.findIndex((o) => o.value === value);
+
+                  let nextIndex;
+                  if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                    nextIndex = (currentIndex + 1) % MODE_OPTIONS.length;
+                  } else {
+                    nextIndex = (currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length;
+                  }
+
+                  const nextValue = MODE_OPTIONS[nextIndex].value;
+
+                  onChange(nextValue);
+
+                  // Wait for React to render the updated state (and tabIndex) before focusing
+                  window.setTimeout(() => {
+                    buttonRefs.current[nextValue]?.focus();
+                  }, 0);
+                }
+              }}
               onTouchStart={() => {
                 if (!disabled) {
                   triggerTouchFlash(option.value);
