@@ -26,3 +26,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2024-04-18 - Path Traversal Vulnerability via Dynamic File Resolution
+**Vulnerability:** The application resolved file paths using `path.join(POSTS_DIR, \`${slug}.md\`)` directly from user-supplied inputs (like the blog post slug). If an attacker provided a slug containing directory traversal characters (e.g., `../../../etc/passwd`), they could potentially read arbitrary `.md` files outside the intended content directory.
+**Learning:** Resolving file paths with `path.join` using unfiltered dynamic data does not protect against directory traversal, as Node.js natively resolves `../` navigation properly, evaluating into parent directories.
+**Prevention:** To prevent path traversal vulnerabilities when resolving filesystem paths from user-supplied inputs, explicitly check that the normalized candidate path stays strictly within the intended base directory using `path.normalize(candidate).startsWith(path.normalize(BASE_DIR) + path.sep)`.
