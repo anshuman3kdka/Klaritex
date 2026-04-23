@@ -64,7 +64,11 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
   if (!fs.existsSync(POSTS_DIR)) return null;
   // Attempt direct filename resolution first (slug == basename without extension)
   const candidate = path.join(POSTS_DIR, `${slug}.md`);
-  if (fs.existsSync(candidate)) {
+
+  const relativeCandidate = path.relative(POSTS_DIR, candidate);
+  const isSafeCandidate = !relativeCandidate.startsWith("..") && !path.isAbsolute(relativeCandidate);
+
+  if (isSafeCandidate && fs.existsSync(candidate)) {
     const raw = fs.readFileSync(candidate, "utf8");
     const { data, content } = matter(raw);
     const meta = normalizeMeta(data as Record<string, unknown>, `${slug}.md`);
