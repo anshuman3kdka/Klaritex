@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Radio Group Keyboard Navigation
+**Learning:** Custom radio groups built using generic buttons (with `role="radiogroup"` and `role="radio"`) do not inherently support standard keyboard navigation (Arrow keys). This prevents screen reader and keyboard-only users from intuitively navigating the options, as tab stops shouldn't be used for every item in a single radio group.
+**Action:** When implementing custom radio groups, explicitly implement `onKeyDown` handlers for `ArrowLeft`, `ArrowRight`, `ArrowUp`, and `ArrowDown` to cycle between options. Ensure only the active element is focusable (`tabIndex={0}`) while inactive options are skipped (`tabIndex={-1}`), managing focus changes explicitly after selection updates.
