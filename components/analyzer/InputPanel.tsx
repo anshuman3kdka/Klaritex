@@ -556,6 +556,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                 }}
                 role="tab"
                 aria-selected={isActive}
+                tabIndex={isActive ? 0 : -1}
                 aria-controls={`input-panel-${inputMode}`}
                 id={`input-tab-${tab.value}`}
                 type="button"
