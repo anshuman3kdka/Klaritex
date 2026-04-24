@@ -26,3 +26,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2025-02-23 - Path Traversal Vulnerability in `path.join`
+**Vulnerability:** The application used `path.join` with an unsanitized user-supplied input (`slug`) to construct a filesystem path for blog post lookups. This allowed Path Traversal, meaning an attacker could supply inputs like `../../../etc/passwd` and access files outside of the expected directory.
+**Learning:** The behavior of `path.join` coupled with `fs.existsSync` combined to create a path traversal risk, since `path.join` alone won't verify bounds. In a codebase expecting to serve dynamic files, bounds checking using `path.resolve` is required to guarantee confinement.
+**Prevention:** Always verify that a resolved path `path.resolve(candidate)` explicitly starts with the absolute path of the intended base directory `path.resolve(BASE_DIR) + path.sep` prior to accessing the filesystem.
