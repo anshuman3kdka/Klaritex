@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-03-09 - WAI-ARIA Radio Group and Tablist Keyboard Navigation
+**Learning:** Custom interactive components like `role="radiogroup"` or `role="tablist"` using generic buttons must implement a roving `tabIndex` (active item `tabIndex={0}`, inactive `tabIndex={-1}`) to prevent all options from entering the sequential keyboard navigation order, which is confusing and non-compliant with WAI-ARIA standards.
+**Action:** When building custom radios or tabs, ensure only the currently active item has `tabIndex={0}`, remove inactive ones with `-1`, and implement Arrow key navigation on the parent container (using `setTimeout` to safely apply `focus()` to the newly active item). Additionally, ensure ARIA attributes like `aria-controls` map uniquely to their respective target panels.
