@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - WAI-ARIA Roving Tab Index & ARIA Controls Mapping
+**Learning:** When building custom `role="tablist"` or `role="radiogroup"` components, setting generic `<button>` tags without correct properties leads to accessibility bugs. Screen readers expect `aria-controls` to statically map directly to the `id` of the matching `role="tabpanel"`. Additionally, keyboard navigation fails standard expectations if all tabs enter the sequentially focusable order.
+**Action:** Always implement a roving tab index (`tabIndex={isActive ? 0 : -1}`) so only the active element is focusable via the `Tab` key. Implement arrow key navigation by attaching an `onKeyDown` handler to the parent container. Finally, wrap `.focus()` changes in `setTimeout(..., 0)` during state transitions to ensure React has fully committed the DOM updates, avoiding focus loss.
