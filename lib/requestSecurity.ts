@@ -1,9 +1,10 @@
 import { isIP } from "node:net";
 
-function extractFirstHeaderValue(value: string | null): string | null {
+function extractRightmostHeaderValue(value: string | null): string | null {
   if (!value) return null;
-  const first = value.split(",")[0]?.trim();
-  return first || null;
+  const parts = value.split(",");
+  const last = parts[parts.length - 1]?.trim();
+  return last || null;
 }
 
 function normalizeIp(value: string | null): string | null {
@@ -16,7 +17,7 @@ export function getClientIdentifier(request: Request): string {
   const headerCandidates = [
     request.headers.get("cf-connecting-ip"),
     request.headers.get("x-real-ip"),
-    extractFirstHeaderValue(request.headers.get("x-forwarded-for")),
+    extractRightmostHeaderValue(request.headers.get("x-forwarded-for")),
   ];
 
   for (const candidate of headerCandidates) {
