@@ -26,3 +26,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2024-05-03 - [CRITICAL] Fix Path Traversal in getPostBySlug
+**Vulnerability:** The `getPostBySlug` function constructed a file path using `path.join(POSTS_DIR, \`\${slug}.md\`)` without verifying if the resolved path remained within `POSTS_DIR`. This allowed path traversal using `../` in the `slug` to access arbitrary `.md` files outside the intended directory.
+**Learning:** Always explicitly validate that user-provided input (like a URL slug) used to construct file paths does not escape the intended base directory. `path.join` normalizes the path but does not restrict it from going above the base directory.
+**Prevention:** Use `path.resolve(candidate).startsWith(path.resolve(BASE_DIR) + path.sep)` to ensure the absolute path of the candidate file resides strictly within the absolute path of the base directory.
