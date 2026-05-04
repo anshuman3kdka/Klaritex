@@ -73,6 +73,8 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
     }, 130);
   };
 
+  const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
   useEffect(() => {
     return () => {
       if (touchFlashTimeoutRef.current !== null) {
@@ -81,12 +83,34 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
     };
   }, []);
 
+  function handleKeyDown(event: React.KeyboardEvent<HTMLElement>) {
+    const currentIndex = MODE_OPTIONS.findIndex((opt) => opt.value === value);
+    if (currentIndex === -1 || disabled) return;
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault();
+      const nextValue = MODE_OPTIONS[(currentIndex + 1) % MODE_OPTIONS.length].value;
+      onChange(nextValue);
+      setTimeout(() => buttonRefs.current[nextValue]?.focus(), 0);
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const prevValue = MODE_OPTIONS[(currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length].value;
+      onChange(prevValue);
+      setTimeout(() => buttonRefs.current[prevValue]?.focus(), 0);
+    }
+  }
+
   return (
     <div className="space-y-3">
       <p id="processing-mode-label" className="font-ui k-text-heading">
         Processing Mode
       </p>
-      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="processing-mode-label">
+      <div
+        className="grid grid-cols-2 gap-2"
+        role="radiogroup"
+        aria-labelledby="processing-mode-label"
+        onKeyDown={handleKeyDown}
+      >
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
           const isTouchFlashing = touchFlashMode === option.value;
@@ -94,6 +118,10 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
           return (
             <button
               key={option.value}
+              ref={(el) => {
+                buttonRefs.current[option.value] = el;
+              }}
+              tabIndex={isActive ? 0 : -1}
               role="radio"
               aria-checked={isActive}
               type="button"
