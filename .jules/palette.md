@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Custom ARIA Radiogroups and Roving Tab Index
+**Learning:** When building custom `role="radiogroup"` components using generic HTML buttons instead of native radio inputs, standard tab navigation breaks. Screen readers and keyboard users expect arrow keys to navigate between options and a single tab stop for the group. Without explicit roving `tabIndex` (active item `0`, inactive items `-1`) and explicit `onKeyDown` handlers for `ArrowUp`/`ArrowDown`/`ArrowLeft`/`ArrowRight`, all generic buttons enter the tab order and arrow key navigation fails.
+**Action:** Always implement a roving `tabIndex` (`tabIndex={isActive ? 0 : -1}`) and attach an `onKeyDown` event handler to the parent `role="radiogroup"` or `role="tablist"` element to explicitly manage arrow key navigation and focus states using `setTimeout(..., 0)` to maintain focus continuity.
