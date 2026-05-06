@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 
 import type { AnalysisMode } from "@/lib/types";
 
@@ -60,6 +61,28 @@ const MODE_OPTIONS: Array<{
 export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProps) {
   const [touchFlashMode, setTouchFlashMode] = useState<AnalysisMode | null>(null);
   const touchFlashTimeoutRef = useRef<number | null>(null);
+  const radioRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const currentIndex = MODE_OPTIONS.findIndex((option) => option.value === value);
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault();
+      const nextOption = MODE_OPTIONS[(currentIndex + 1) % MODE_OPTIONS.length];
+      onChange(nextOption.value);
+      setTimeout(() => radioRefs.current[nextOption.value]?.focus(), 0);
+      return;
+    }
+
+    if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const nextOption = MODE_OPTIONS[(currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length];
+      onChange(nextOption.value);
+      setTimeout(() => radioRefs.current[nextOption.value]?.focus(), 0);
+      return;
+    }
+  };
 
   const triggerTouchFlash = (mode: AnalysisMode) => {
     if (touchFlashTimeoutRef.current !== null) {
@@ -86,7 +109,7 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
       <p id="processing-mode-label" className="font-ui k-text-heading">
         Processing Mode
       </p>
-      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="processing-mode-label">
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="processing-mode-label" onKeyDown={handleKeyDown}>
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
           const isTouchFlashing = touchFlashMode === option.value;
@@ -94,6 +117,10 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
           return (
             <button
               key={option.value}
+              ref={(el) => {
+                radioRefs.current[option.value] = el;
+              }}
+              tabIndex={isActive ? 0 : -1}
               role="radio"
               aria-checked={isActive}
               type="button"
