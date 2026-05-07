@@ -269,14 +269,16 @@ export function InputPanel({ intent, id }: InputPanelProps) {
     setHoverIndicatorStyle((previous) => ({ ...previous, visible: false }));
   }
 
-  function handleTabListKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+  function handleTabListKeyDown(event: KeyboardEvent<HTMLElement>) {
     const currentIndex = TABS.findIndex((tab) => tab.value === inputMode);
 
     if (event.key === "ArrowRight") {
       event.preventDefault();
       const nextTab = TABS[(currentIndex + 1) % TABS.length];
       handleTabSwitch(nextTab.value);
-      tabRefs.current[nextTab.value]?.focus();
+      window.setTimeout(() => {
+        tabRefs.current[nextTab.value]?.focus();
+      }, 0);
       return;
     }
 
@@ -284,14 +286,18 @@ export function InputPanel({ intent, id }: InputPanelProps) {
       event.preventDefault();
       const nextTab = TABS[(currentIndex - 1 + TABS.length) % TABS.length];
       handleTabSwitch(nextTab.value);
-      tabRefs.current[nextTab.value]?.focus();
+      window.setTimeout(() => {
+        tabRefs.current[nextTab.value]?.focus();
+      }, 0);
       return;
     }
 
     if (event.key === "Home") {
       event.preventDefault();
       handleTabSwitch(TABS[0].value);
-      tabRefs.current[TABS[0].value]?.focus();
+      window.setTimeout(() => {
+        tabRefs.current[TABS[0].value]?.focus();
+      }, 0);
       return;
     }
 
@@ -299,7 +305,9 @@ export function InputPanel({ intent, id }: InputPanelProps) {
       event.preventDefault();
       const lastTab = TABS[TABS.length - 1];
       handleTabSwitch(lastTab.value);
-      tabRefs.current[lastTab.value]?.focus();
+      window.setTimeout(() => {
+        tabRefs.current[lastTab.value]?.focus();
+      }, 0);
     }
   }
 
@@ -556,7 +564,8 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                 }}
                 role="tab"
                 aria-selected={isActive}
-                aria-controls={`input-panel-${inputMode}`}
+                tabIndex={isActive ? 0 : -1}
+                aria-controls={`input-panel-${tab.value}`}
                 id={`input-tab-${tab.value}`}
                 type="button"
                 onClick={() => handleTabSwitch(tab.value)}
