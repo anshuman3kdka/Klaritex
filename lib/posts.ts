@@ -62,8 +62,17 @@ export function getAllPostMeta(): PostMeta[] {
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   if (!fs.existsSync(POSTS_DIR)) return null;
-  // Attempt direct filename resolution first (slug == basename without extension)
+
+  // Prevent path traversal
   const candidate = path.join(POSTS_DIR, `${slug}.md`);
+  const resolvedCandidate = path.resolve(candidate);
+  const resolvedPostsDir = path.resolve(POSTS_DIR);
+
+  if (!resolvedCandidate.startsWith(resolvedPostsDir + path.sep)) {
+    return null;
+  }
+
+  // Attempt direct filename resolution first (slug == basename without extension)
   if (fs.existsSync(candidate)) {
     const raw = fs.readFileSync(candidate, "utf8");
     const { data, content } = matter(raw);
