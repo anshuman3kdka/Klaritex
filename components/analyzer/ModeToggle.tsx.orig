@@ -86,27 +86,7 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
       <p id="processing-mode-label" className="font-ui k-text-heading">
         Processing Mode
       </p>
-      <div
-        className="grid grid-cols-2 gap-2"
-        role="radiogroup"
-        aria-labelledby="processing-mode-label"
-        onKeyDown={(event) => {
-          if (disabled) return;
-          const currentIndex = MODE_OPTIONS.findIndex((opt) => opt.value === value);
-          let nextIndex = currentIndex;
-          if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-            event.preventDefault();
-            nextIndex = (currentIndex + 1) % MODE_OPTIONS.length;
-          } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-            event.preventDefault();
-            nextIndex = (currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length;
-          }
-          if (nextIndex !== currentIndex) {
-            onChange(MODE_OPTIONS[nextIndex].value);
-            setTimeout(() => document.getElementById(`mode-option-${MODE_OPTIONS[nextIndex].value}`)?.focus(), 0);
-          }
-        }}
-      >
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="processing-mode-label">
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
           const isTouchFlashing = touchFlashMode === option.value;
@@ -114,10 +94,8 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
           return (
             <button
               key={option.value}
-              id={`mode-option-${option.value}`}
               role="radio"
               aria-checked={isActive}
-              tabIndex={isActive ? 0 : -1}
               type="button"
               disabled={disabled}
               onTouchStart={() => {

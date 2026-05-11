@@ -559,6 +559,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                 aria-controls={`input-panel-${inputMode}`}
                 id={`input-tab-${tab.value}`}
                 type="button"
+                tabIndex={isActive ? 0 : -1}
                 onClick={() => handleTabSwitch(tab.value)}
                 onMouseEnter={() => {
                   if (isActive || !tabListRef.current || !tabRefs.current[tab.value]) {
