@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio";
-import { lookup } from "node:dns/promises";
+import { lookup } from "node:dns";
+import http from "node:http";
+import https from "node:https";
 import { isIP } from "node:net";
 import fetch from "node-fetch";
 
@@ -147,20 +149,28 @@ function isSafeUrl(urlString: string): boolean {
   }
 }
 
-async function assertPublicDnsResolution(urlString: string): Promise<void> {
-  const url = new URL(urlString);
-  const records = await lookup(url.hostname, { all: true });
+const customLookup = (
+  hostname: string,
+  options: any,
+  callback: (err: NodeJS.ErrnoException | null, address: any, family: number) => void
+) => {
+  lookup(hostname, options, (err, address, family) => {
+    if (err) return callback(err, address, family);
 
-  if (!records.length) {
-    throw new UrlExtractionError("Could not fetch content from URL.");
-  }
-
-  for (const record of records) {
-    if (isBlockedIpAddress(record.address)) {
-      throw new UrlExtractionError("Could not fetch content from URL.");
+    const addresses = Array.isArray(address) ? address : [{ address }];
+    for (const record of addresses) {
+      const ip = typeof record === "string" ? record : record.address;
+      if (typeof ip === "string" && isBlockedIpAddress(ip)) {
+        return callback(new Error("Blocked IP address"), address, family);
+      }
     }
-  }
-}
+
+    callback(err, address, family);
+  });
+};
+
+const httpAgent = new http.Agent({ lookup: customLookup });
+const httpsAgent = new https.Agent({ lookup: customLookup });
 
 async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
   let currentUrl = initialUrl;
@@ -169,9 +179,12 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
     if (!isSafeUrl(currentUrl)) {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
-    await assertPublicDnsResolution(currentUrl);
+
+    const parsedUrl = new URL(currentUrl);
+    const agent = parsedUrl.protocol === "http:" ? httpAgent : httpsAgent;
 
     const response = await fetch(currentUrl, {
+      agent,
       method: "GET",
       redirect: "manual",
       size: 5 * 1024 * 1024, // 5MB limit to prevent memory exhaustion DoS
