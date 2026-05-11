@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { LabWell, LabLabel } from "../lab";
 
 const MAX_PDF_SIZE_BYTES = 5 * 1024 * 1024;
 
@@ -97,7 +98,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         aria-describedby={hasError ? `${helperId} ${messageId}` : helperId}
       />
 
-      <div
+      <LabWell
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -110,27 +111,27 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
             inputRef.current?.click();
           }
         }}
-        className={`k-radius-primary cursor-pointer border border-dashed bg-[var(--bg-primary)] p-6 text-sm transition-[border-color,box-shadow,background-color,color] duration-200 focus-visible:outline-none ${
+        className={`cursor-pointer p-6 text-sm transition-[box-shadow,background-color,color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 ${
           disabled
-            ? "cursor-not-allowed k-border-ui bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
+            ? "cursor-not-allowed opacity-50"
             : hasError
-              ? "border-[var(--missing-color)] text-[var(--text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--missing-color)]/35 focus-visible:shadow-[0_0_0_4px_rgba(220,76,100,0.16)]"
+              ? "text-[var(--lab-red)] border border-[var(--lab-red)]/30"
             : isDragActive
-              ? "border-[var(--border-accent)] bg-[var(--bg-elevated)] text-[var(--text-gold)] focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/25 focus-visible:shadow-[0_0_0_4px_rgba(201,168,76,0.14)]"
-              : "k-border-ui text-[var(--text-primary)] hover:border-[var(--border-accent)] focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/25 focus-visible:shadow-[0_0_0_4px_rgba(201,168,76,0.14)]"
+              ? "text-[var(--lab-gold)] shadow-[var(--shadow-pressed)] bg-[var(--lab-surface)] border border-[var(--lab-gold)]/30"
+              : "text-[var(--lab-ink)] hover:text-[var(--lab-gold)]"
         }`}
         aria-label="Upload PDF"
       >
-        <p className="font-ui k-text-heading">Drag and drop a PDF here, or click to choose a file</p>
-        <p className="font-ui k-text-helper mt-2 text-sm leading-5">PDF only · Maximum 5MB</p>
+        <p className="font-sans font-semibold">Drag and drop a PDF here, or click to choose a file</p>
+        <p className="font-sans text-xs mt-2 opacity-80">PDF only · Maximum 5MB</p>
 
         {value ? (
-          <div className="k-radius-secondary mt-4 border border-[var(--clear-color)]/40 bg-[var(--clear-color)]/15 p-3">
-            <p className="font-ui k-text-heading text-[var(--clear-color)]">{value.name}</p>
-            <p className="font-ui k-text-helper text-[var(--clear-color)]">Ready to analyze</p>
+          <div className="rounded-lg mt-4 shadow-[var(--shadow-extruded)] p-4 text-[var(--lab-green)] border border-[var(--lab-green)]/20">
+            <p className="font-sans font-semibold">{value.name}</p>
+            <p className="font-sans text-xs mt-1">Ready to analyze</p>
           </div>
         ) : null}
-      </div>
+      </LabWell>
 
       <p id={helperId} className="sr-only">
         PDF only. Maximum 5MB.
@@ -139,7 +140,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         id={messageId}
         role={hasError ? "alert" : "status"}
         aria-live={hasError ? "assertive" : "polite"}
-        className={`font-ui mt-2 min-h-5 text-sm leading-5 ${hasError ? "text-[var(--missing-color)]" : "text-transparent"}`}
+        className={`font-sans mt-2 min-h-5 text-sm ${hasError ? "text-[var(--lab-red)]" : "text-transparent"}`}
       >
         {activeErrorMessage ?? "PDF selection ready."}
       </p>

@@ -1,5 +1,7 @@
 "use client";
 
+import { LabLabel } from "../lab";
+
 interface UrlInputProps {
   value: string;
   disabled?: boolean;
@@ -23,9 +25,9 @@ export function UrlInput({ value, disabled = false, errorMessage, onChange }: Ur
 
   return (
     <div>
-      <label htmlFor="klaritex-url-input" className="font-ui k-text-heading mb-2 block">
-        URL to analyze
-      </label>
+      <LabLabel className="mb-2 block">
+        <label htmlFor="klaritex-url-input">URL to analyze</label>
+      </LabLabel>
       <input
         id="klaritex-url-input"
         type="url"
@@ -35,21 +37,21 @@ export function UrlInput({ value, disabled = false, errorMessage, onChange }: Ur
         placeholder="https://..."
         aria-invalid={hasError}
         aria-describedby={hasError ? `${helperId} ${messageId}` : helperId}
-        className={`font-ui k-radius-primary k-text-body w-full border bg-[var(--bg-primary)] p-3 outline-none transition-[border-color,box-shadow,background-color] duration-200 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)] ${
+        className={`font-sans w-full bg-[var(--lab-surface)] p-4 outline-none transition-[box-shadow,background-color] duration-200 rounded-[8px] disabled:cursor-not-allowed disabled:opacity-50 ${
           hasError
-            ? "border-[var(--missing-color)] focus-visible:border-[var(--missing-color)] focus-visible:ring-2 focus-visible:ring-[var(--missing-color)]/35 focus-visible:shadow-[0_0_0_4px_rgba(220,76,100,0.16)]"
-            : "k-border-ui focus-visible:border-[var(--gold-primary)] focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/25 focus-visible:shadow-[0_0_0_4px_rgba(201,168,76,0.14)]"
+            ? "shadow-[var(--shadow-pressed)] ring-2 ring-[var(--lab-red)]"
+            : "shadow-[var(--shadow-pressed)] focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50"
         }`}
       />
 
-      <p id={helperId} className="font-ui k-text-helper mt-2 text-sm leading-5">
+      <p id={helperId} className="font-sans text-[var(--lab-muted)] mt-2 text-xs">
         Klaritex analyzes the article&apos;s text only. It does not search the web or fact-check claims.
       </p>
       <p
         id={messageId}
         role={hasError ? "alert" : "status"}
         aria-live={hasError ? "assertive" : "polite"}
-        className={`font-ui mt-2 min-h-5 text-sm leading-5 ${hasError ? "text-[var(--missing-color)]" : "text-transparent"}`}
+        className={`font-sans mt-2 min-h-5 text-sm ${hasError ? "text-[var(--lab-red)]" : "text-transparent"}`}
       >
         {errorMessage ?? "Input looks good."}
       </p>
