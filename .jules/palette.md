@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Roving Tabindex for ARIA Widgets
+**Learning:** Custom interactive ARIA widgets like `tablist` and `radiogroup` built with generic elements (or natively focusable elements like `<button>`) must use a roving tabindex pattern. Without explicit `tabIndex={isActive ? 0 : -1}` on the items and custom Arrow key handlers on the parent container, either all items enter the sequential tab order (polluting the flow) or they become inaccessible to keyboard users.
+**Action:** When building or reviewing custom ARIA grouping components, always ensure that only the active element has `tabIndex={0}`, all inactive elements have `tabIndex={-1}`, and the parent container handles Arrow key navigation to programmatically shift focus and update the active state. Wrap `.focus()` calls in `setTimeout(..., 0)` to guarantee DOM flush after state changes.
