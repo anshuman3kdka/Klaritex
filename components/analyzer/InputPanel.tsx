@@ -7,6 +7,7 @@ import { PdfUpload } from "@/components/analyzer/PdfUpload";
 import { UrlInput, isValidHttpUrl } from "@/components/analyzer/UrlInput";
 import { ResultsPanel } from "@/components/results/ResultsPanel";
 import { generateAnalysisPdf } from "@/lib/report/generateAnalysisPdf";
+import { LabCard, LabWell, LabLabel, LabButton } from "../lab";
 import type { AnalysisMode, AnalysisResult, InputMode } from "@/lib/types";
 import type { ReportInputSource } from "@/lib/report/generateAnalysisPdf";
 import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
