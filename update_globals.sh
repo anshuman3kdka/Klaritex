@@ -1,3 +1,5 @@
+#!/bin/bash
+cat << 'CSS' > app/globals.css
 @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;600&family=Inter:wght@400;500&family=Playfair+Display:wght@400;600&display=swap");
 @import "tailwindcss";
 
@@ -85,3 +87,4 @@ textarea:focus-visible,
     color: var(--lab-muted);
   }
 }
+CSS
