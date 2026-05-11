@@ -11,7 +11,7 @@ const playfair = Playfair_Display({
 
 const dmMono = DM_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500"],
   variable: "--font-mono",
   display: "swap",
 });
