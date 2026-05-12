@@ -243,96 +243,64 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
   };
 
   return (
-    <CollapsibleCard
-      title="Module 10 · Commitment Breakdown"
-      moduleId="module-10"
-      defaultExpanded={defaultExpanded}
-      headerAction={
-        <div className="k-radius-secondary k-border-ui inline-flex items-center gap-1 bg-[var(--bg-primary)]/45 p-1">
-          <button
-            type="button"
-            onClick={() => handleViewChange("breakdown")}
-            className={`font-ui k-radius-secondary px-3 py-1.5 text-xs font-semibold transition-transform duration-100 ease-out transition-colors active:scale-[0.96] ${
-              viewMode === "breakdown"
-                ? "bg-[var(--bg-elevated)] text-[var(--text-gold)]"
-                : "bg-transparent text-[var(--text-secondary)]"
-            }`}
-            style={{ transitionDuration: "100ms, 300ms" }}
-            aria-pressed={viewMode === "breakdown"}
-          >
-            Breakdown
-          </button>
-          <button
-            type="button"
-            onClick={() => handleViewChange("stress")}
-            className={`font-ui k-stress-toggle k-radius-secondary px-3 py-1.5 text-xs font-semibold transition-transform duration-100 ease-out transition-colors active:scale-[0.96] ${
-              viewMode === "stress"
-                ? "bg-[var(--gold-primary)]/18 text-[var(--text-gold)]"
-                : "bg-transparent text-[var(--text-secondary)]"
-            }`}
-            style={{ transitionDuration: "100ms, 300ms" }}
-            aria-pressed={viewMode === "stress"}
-          >
-            Stress Test
-          </button>
+    <LabCard className="p-6 relative">
+      <div className="flex justify-between items-start mb-6">
+        <LabLabel className="block">Module 10 · Commitment Breakdown</LabLabel>
+        <div className="flex items-center gap-3">
+          <LabLabel className="hidden sm:block">Stress Test</LabLabel>
+          <LabToggle
+            checked={viewMode === "stress"}
+            onChange={(checked) => handleViewChange(checked ? "stress" : "breakdown")}
+            aria-label="Toggle Stress Test Mode"
+          />
         </div>
-      }
-    >
-      <div ref={rootRef}>
+      </div>
+
+      <div ref={rootRef} className="relative">
+        {viewMode === "stress" && (
+          <div className="absolute top-0 bottom-0 w-px bg-[var(--lab-gold)] blur-[1px] opacity-80 shadow-[0_0_8px_rgba(201,168,76,0.8)] z-10 animate-sweep pointer-events-none" />
+        )}
         <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse text-sm">
+          <table className="min-w-full text-sm border-spacing-y-2 border-separate">
             <thead>
-              <tr className="font-mono-ui border-b k-border-color text-left text-xs uppercase tracking-wide text-[var(--text-secondary)]">
-                <th className="pb-2 pr-3">Component</th>
-                <th className="pb-2 pr-3">Question</th>
-                <th className="pb-2 pr-3">Extracted Value</th>
-                <th className="pb-2">Status</th>
+              <tr className="text-left font-mono text-[10px] uppercase tracking-wider text-[var(--lab-muted)]">
+                <th className="pb-2 px-3 font-normal">Component</th>
+                <th className="pb-2 px-3 font-normal hidden sm:table-cell">Question</th>
+                <th className="pb-2 px-3 font-normal">Extracted Value</th>
+                <th className="pb-2 px-3 font-normal">Status</th>
               </tr>
             </thead>
             <tbody>
-              {orderedElements.map((name) => {
+              {orderedElements.map((name, rowIndex) => {
                 const element = elementMap.get(name);
-                const status: ElementStatus | null = element?.status ?? null;
-                const extractedValue = element?.status === "missing" ? "—" : element?.notes || "—";
+                const status = element?.status ?? null;
+                const extractedValue = status === "missing" || !status ? "—" : element?.notes || "—";
                 const stressLabel = getStressLabel(status);
-                const isStressMode = viewMode === "stress";
-                const rowClasses = `breakdown-row k-commitment-row border-b border-[var(--border)]/40 align-top ${
-                  isStressMode
-                    ? stressStyles[stressLabel].row
-                    : "odd:bg-[var(--bg-surface)] even:bg-[var(--bg-elevated)]"
-                }`;
+
+                const opacityClass = viewMode === "stress"
+                  ? (stressLabel === "Testable" ? "opacity-100" : stressLabel === "Contested" ? "opacity-70" : "opacity-35")
+                  : "opacity-100";
+
+                const bgClass = viewMode === "stress" && stressLabel === "Testable"
+                  ? "bg-[var(--lab-gold)]/10 shadow-[var(--shadow-pressed)]"
+                  : "bg-[var(--lab-surface)] shadow-[var(--shadow-pressed)]";
 
                 return (
-                  <tr key={name} className={rowClasses} data-stress-class={stressLabel}>
-                    <td className="font-ui relative py-3 pr-3 pl-3 font-medium text-[var(--text-primary)]">
-                      <span
-                        className="k-row-accent"
-                        data-active={isStressMode && stressLabel === "Testable" ? "true" : "false"}
-                      />
+                  <tr key={name} className={`transition-all duration-300 ${opacityClass} breakdown-row`} data-stress-class={stressLabel}>
+                    <td className={`font-sans py-3 px-3 font-semibold text-[var(--lab-ink)] rounded-l-[8px] ${bgClass}`}>
+                      {viewMode === "stress" && stressLabel === "Testable" && (
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--lab-gold)] rounded-l-[8px]" />
+                      )}
                       {name}
                     </td>
-                    <td className="font-ui py-3 pr-3 text-[var(--text-secondary)]">{questionByElement[name]}</td>
-                    <td className="font-ui py-3 pr-3 text-[var(--text-primary)]">{extractedValue}</td>
-                    <td className="py-3">
-                      {status ? (
-                        <span
-                          className={`k-badge module-status-badge breakdown-badge ${
-                            viewMode === "stress" ? stressStyles[stressLabel].badge : statusStyles[status]
-                          }`}
-                        >
-                          {viewMode === "stress" ? stressLabel : statusLabel[status]}
-                        </span>
-                      ) : (
-                        <span
-                          className={`breakdown-badge ${
-                            viewMode === "stress"
-                              ? "k-badge module-status-badge k-breakdown-status-untestable"
-                              : "font-ui text-[var(--text-secondary)]"
-                          }`}
-                        >
-                          {viewMode === "stress" ? "Untestable" : "—"}
-                        </span>
-                      )}
+                    <td className={`font-sans py-3 px-3 text-[var(--lab-muted)] hidden sm:table-cell ${bgClass}`}>
+                      {questionByElement[name]}
+                    </td>
+                    <td className={`font-sans py-3 px-3 text-[var(--lab-ink)] ${bgClass}`}>
+                      {extractedValue}
+                    </td>
+                    <td className={`py-3 px-3 rounded-r-[8px] ${bgClass}`}>
+                      <LabPill status={viewMode === "stress" ? stressLabel : status ? statusLabel[status] : "Untestable" as any} />
                     </td>
                   </tr>
                 );
@@ -341,16 +309,46 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
           </table>
         </div>
 
-        {viewMode === "stress" ? (
-          <p ref={verdictRef} className="font-display mt-4 text-sm italic text-[var(--text-gold)]" aria-label={verdictText}>
-            {verdictText.split("").map((character, index) => (
-              <span key={`${character}-${index}`} className="k-verdict-char">
-                {character}
-              </span>
-            ))}
-          </p>
-        ) : null}
+        {viewMode === "stress" && (
+          <LabWell className="mt-6 flex items-start gap-3 p-4 border border-[var(--lab-gold)]/30 text-[var(--lab-gold)]">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mt-0.5 shrink-0"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <div className="font-sans text-sm text-[var(--lab-ink)]/90">
+              <strong className="text-[var(--lab-gold)]">Stress Test Active.</strong>
+              <p className="mt-1 leading-relaxed text-[var(--lab-muted)]">
+                The framework shifts from structural extraction to adversarial testing. Unclear or missing components are downgraded, showing only what can be definitively tested.
+              </p>
+            </div>
+          </LabWell>
+        )}
       </div>
-    </CollapsibleCard>
+
+      <style jsx>{`
+        @keyframes sweep {
+          0% { left: 0%; opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { left: 100%; opacity: 0; }
+        }
+        .animate-sweep {
+          animation: sweep 1.5s ease-in-out infinite;
+        }
+      `}</style>
+    </LabCard>
   );
 }
