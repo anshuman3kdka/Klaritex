@@ -4,7 +4,7 @@ import { gsap } from "gsap";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { CommitmentElement, ElementStatus } from "@/lib/types";
-import { CollapsibleCard } from "./CollapsibleCard";
+import { LabCard, LabLabel, LabToggle, LabWell, LabPill } from "../lab";
 
 interface CommitmentBreakdownProps {
   elements?: CommitmentElement[];
