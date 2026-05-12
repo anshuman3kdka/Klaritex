@@ -20,6 +20,7 @@ import type { ReactNode } from "react";
 interface ResultsPanelProps {
   result?: AnalysisResult | null;
   isLoading?: boolean;
+  sourceText?: string;
 }
 
 type AmbientPreset = "green" | "amber" | "red";
@@ -116,7 +117,7 @@ const MODULE_PHASES = [
   { label: "Evidence Details", moduleIndexes: [9, 10, 11] },
 ] as const;
 
-export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
+export function ResultsPanel({ result, isLoading = false, sourceText }: ResultsPanelProps) {
   const resultKey = useMemo(() => (result ? "active" : "empty"), [result]);
   const [showSkeleton, setShowSkeleton] = useState(isLoading);
   const [animationKey, setAnimationKey] = useState(0);
@@ -295,7 +296,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
           {/* Phase 4: Removed DynamicDecorativeThreeBackground for Laboratory White. */}
 
           <div className="relative z-10 flex flex-col lg:grid lg:grid-cols-3 gap-6">
-            <ForensicInspector sourceText={result.sourceText} />
+            <ForensicInspector sourceText={sourceText} />
 
             <div
               className="flex flex-col gap-6 px-1 col-span-3 lg:col-span-3"

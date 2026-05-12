@@ -750,7 +750,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
         ) : null}
       </LabCard>
 
-      <ResultsPanel result={lastResult} isLoading={isAnalyzing} />
+      <ResultsPanel result={lastResult} isLoading={isAnalyzing} sourceText={lastSource?.text} />
 
       <style jsx>{`
         .analyze-button {
