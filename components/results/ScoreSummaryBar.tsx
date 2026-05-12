@@ -1,5 +1,6 @@
 import type { AmbiguityTier } from "@/lib/types";
 import { CollapsibleCard } from "./CollapsibleCard";
+import { LabWell } from "../lab";
 
 interface ScoreSummaryBarProps {
   ambiguityScore?: number;
@@ -30,36 +31,36 @@ export function ScoreSummaryBar({ ambiguityScore, tier, tierOverride = false, ov
   const hasTier = typeof tier === "number";
 
   return (
-    <CollapsibleCard title="Score Summary" className={tier === 3 ? "border-[var(--tier3-color)]/55" : ""}>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="k-radius-primary k-border-ui bg-[var(--bg-elevated)] p-4">
-          <p className="k-module-label">Ambiguity Score</p>
-          <p className="font-mono-ui mt-1 text-4xl leading-none text-[var(--text-gold)] sm:text-5xl">
+    <CollapsibleCard title="Score Summary" className={tier === 3 ? "shadow-[var(--shadow-gold-glow)]" : ""}>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <LabWell className="p-4 flex flex-col justify-center">
+          <p className="font-mono text-[11px] uppercase tracking-widest text-[var(--lab-muted)]">Ambiguity Score</p>
+          <p className="font-serif mt-2 text-4xl font-semibold leading-none text-[var(--lab-ink)] sm:text-5xl">
             {hasScore ? ambiguityScore.toFixed(1) : "—"}
           </p>
-        </div>
+        </LabWell>
 
-        <div className="k-radius-primary k-border-ui bg-[var(--bg-elevated)] p-4">
-          <p className="k-module-label">Tier Badge</p>
+        <LabWell className="p-4 flex flex-col justify-center">
+          <p className="font-mono text-[11px] uppercase tracking-widest text-[var(--lab-muted)]">Tier</p>
           {hasTier ? (
-            <span className={`k-tier-badge k-tier-badge--summary mt-2 ${tierStyles[tier]}`}>
+            <span className={`mt-3 font-mono text-xs uppercase tracking-wide px-3 py-1.5 rounded-full self-start shadow-[var(--shadow-extruded)] ${tier === 3 ? "bg-[var(--lab-red)]/10 text-[var(--lab-red)]" : tier === 2 ? "bg-[var(--lab-amber)]/10 text-[var(--lab-amber)]" : "bg-[var(--lab-green)]/10 text-[var(--lab-green)]"}`}>
               {tierLabel[tier]}
             </span>
           ) : (
-            <p className="font-ui k-text-body mt-2 text-[var(--text-secondary)]">—</p>
+            <p className="font-sans mt-3 text-sm text-[var(--lab-muted)]">—</p>
           )}
-        </div>
+        </LabWell>
 
-        <div className="k-radius-primary k-border-ui bg-[var(--bg-elevated)] p-4">
-          <p className="k-module-label">Override Notice</p>
+        <LabWell className="p-4 flex flex-col justify-center">
+          <p className="font-mono text-[11px] uppercase tracking-widest text-[var(--lab-muted)]">Override Notice</p>
           {tierOverride ? (
-            <p className="font-ui k-radius-secondary mt-2 border border-[var(--tier3-color)]/55 bg-[var(--tier3-color)]/12 p-2 text-sm font-medium text-[var(--tier3-color)]">
+            <p className="font-mono text-xs mt-3 bg-[var(--lab-red)]/10 text-[var(--lab-red)] p-2 rounded-[8px] shadow-[var(--shadow-pressed)]">
               {overrideRule ? overrideRuleLabel[overrideRule] : "Override applied"}
             </p>
           ) : (
-            <p className="font-ui k-text-body mt-2 text-[var(--text-secondary)]">No override applied</p>
+            <p className="font-sans text-sm mt-3 text-[var(--lab-muted)]">No override applied</p>
           )}
-        </div>
+        </LabWell>
       </div>
     </CollapsibleCard>
   );

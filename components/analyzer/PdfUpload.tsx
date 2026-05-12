@@ -115,9 +115,9 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
           disabled
             ? "cursor-not-allowed opacity-50"
             : hasError
-              ? "text-[var(--lab-red)] border border-[var(--lab-red)]/30"
+              ? "text-[var(--lab-red)] "
             : isDragActive
-              ? "text-[var(--lab-gold)] shadow-[var(--shadow-pressed)] bg-[var(--lab-surface)] border border-[var(--lab-gold)]/30"
+              ? "text-[var(--lab-gold)] shadow-[var(--shadow-pressed)] bg-[var(--lab-surface)] "
               : "text-[var(--lab-ink)] hover:text-[var(--lab-gold)]"
         }`}
         aria-label="Upload PDF"
@@ -126,7 +126,7 @@ export function PdfUpload({ value, disabled = false, errorMessage, onFileChange 
         <p className="font-sans text-xs mt-2 opacity-80">PDF only · Maximum 5MB</p>
 
         {value ? (
-          <div className="rounded-lg mt-4 shadow-[var(--shadow-extruded)] p-4 text-[var(--lab-green)] border border-[var(--lab-green)]/20">
+          <div className="rounded-lg mt-4 shadow-[var(--shadow-extruded)] p-4 text-[var(--lab-green)] ">
             <p className="font-sans font-semibold">{value.name}</p>
             <p className="font-sans text-xs mt-1">Ready to analyze</p>
           </div>

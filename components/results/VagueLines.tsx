@@ -23,7 +23,7 @@ export function VagueLines({ vagueLines }: VagueLinesProps) {
           {lines.map((line, index) => (
             <li key={`${line.sentence}-${index}`}>
               <LabWell className="p-4 flex flex-col gap-3">
-                <blockquote className="font-sans text-[var(--lab-ink)] italic opacity-90 border-l-[3px] border-[var(--lab-gold)] pl-3">“{line.sentence}”</blockquote>
+                <blockquote className="font-sans text-[var(--lab-ink)] italic opacity-90 shadow-[var(--shadow-pressed)] pl-3">“{line.sentence}”</blockquote>
                 <p className="font-mono text-[11px] uppercase tracking-wide text-[var(--lab-red)]">{line.reason || "Missing structural detail."}</p>
               </LabWell>
             </li>

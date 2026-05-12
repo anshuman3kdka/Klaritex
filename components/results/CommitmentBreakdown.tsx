@@ -310,7 +310,7 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
         </div>
 
         {viewMode === "stress" && (
-          <LabWell className="mt-6 flex items-start gap-3 p-4 border border-[var(--lab-gold)]/30 text-[var(--lab-gold)]">
+          <LabWell className="mt-6 flex items-start gap-3 p-4  text-[var(--lab-gold)]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"

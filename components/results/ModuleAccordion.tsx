@@ -74,7 +74,7 @@ export function ModuleAccordion({
         data-module-id={moduleId}
         style={{ height: defaultExpanded ? "auto" : 0, opacity: defaultExpanded ? 1 : 0, overflow: "hidden" }}
       >
-        <div className="k-border-color border-t p-5 pt-4">{children}</div>
+        <div className="p-5 pt-4">{children}</div>
       </div>
     </article>
   );

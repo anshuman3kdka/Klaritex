@@ -322,7 +322,7 @@ export function ResultsPanel({ result, isLoading = false, sourceText }: ResultsP
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      className="rounded-md border border-white/20 px-2 py-1 text-xs font-medium text-white transition hover:border-white/40 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                      className="rounded-md shadow-[var(--shadow-pressed)] px-2 py-1 text-xs font-medium text-white transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                       onClick={() => setIsExpandAllEnabled((current) => !current)}
                       aria-pressed={isExpandAllEnabled}
                       aria-label={isExpandAllEnabled ? "Collapse back to phased view" : "Expand all sections in one scrollable view"}
@@ -337,7 +337,7 @@ export function ResultsPanel({ result, isLoading = false, sourceText }: ResultsP
                 <div className="flex items-center justify-between gap-2">
                   <button
                     type="button"
-                    className="rounded-md border border-white/20 px-3 py-1.5 text-sm text-white transition hover:border-white/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    className="rounded-md shadow-[var(--shadow-pressed)] px-3 py-1.5 text-sm text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                     onClick={() => goToPhase(activePhaseIndex - 1)}
                     disabled={isExpandAllEnabled || activePhaseIndex === 0}
                     aria-label={`Go to previous phase. Current phase is ${MODULE_PHASES[activePhaseIndex].label}.`}
@@ -346,7 +346,7 @@ export function ResultsPanel({ result, isLoading = false, sourceText }: ResultsP
                   </button>
                   <button
                     type="button"
-                    className="rounded-md border border-white/20 px-3 py-1.5 text-sm text-white transition hover:border-white/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    className="rounded-md shadow-[var(--shadow-pressed)] px-3 py-1.5 text-sm text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                     onClick={() => goToPhase(activePhaseIndex + 1)}
                     disabled={isExpandAllEnabled || activePhaseIndex === totalPhases - 1}
                     aria-label={`Go to next phase. Current phase is ${MODULE_PHASES[activePhaseIndex].label}.`}
