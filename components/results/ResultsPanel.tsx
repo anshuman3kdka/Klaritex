@@ -74,11 +74,6 @@ const DynamicExposureCheck = dynamic(
   },
 );
 
-const DynamicDecorativeThreeBackground = dynamic(
-  () => import("@/components/results/DecorativeThreeBackground").then((module) => module.DecorativeThreeBackground),
-  { loading: () => null },
-);
-
 function ModuleLayer({ index, setActiveModuleIndex, children }: { index: number; setActiveModuleIndex: (index: number) => void; children: ReactNode }) {
   return (
     <div onMouseEnter={() => setActiveModuleIndex(index)} onFocus={() => setActiveModuleIndex(index)}>
@@ -292,19 +287,15 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
       {result ? (
         <section
           key={`${resultKey}-${animationKey}`}
-          className="results-panel-shell k-radius-primary relative mx-auto mt-6 w-full max-w-3xl overflow-hidden"
+          className="results-panel-shell relative mx-auto mt-6 w-full max-w-[1200px]"
           data-ambient-preset={ambientPreset}
           style={{ opacity: isLoading ? 0 : 1, transition: "opacity 400ms ease" }}
         >
-          <DynamicDecorativeThreeBackground
-            tier={result.tier}
-            activeModuleIndex={activeModuleIndex}
-            isEnabled={APP_CONFIG.enableResultsThreeBackground}
-          />
+          {/* Phase 4: Removed DynamicDecorativeThreeBackground for Laboratory White. */}
 
-          <div className="relative z-10 space-y-3 sm:space-y-4 md:space-y-5">
+          <div className="relative z-10 flex flex-col lg:grid lg:grid-cols-3 gap-6">
             <div
-              className="space-y-3 px-1"
+              className="flex flex-col gap-6 px-1 col-span-3 lg:col-span-3"
               role="group"
               aria-label={`Results navigation. Phase ${activePhaseIndex + 1} of ${totalPhases}.`}
               onKeyDown={(event) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CollapsibleCard } from "./CollapsibleCard";
+import { LabCard, LabLabel, LabWell } from "../lab";
 import { useCounter } from "./useCounter";
 
 interface ActionTalkRatioProps {
@@ -109,48 +109,41 @@ export function ActionTalkRatio({ actionRatio, talkRatio, ratioLabel }: ActionTa
   const isLabelVisible = hasStarted && showLabel;
 
   return (
-    <CollapsibleCard title="Module 7 · Action vs Talk Ratio" moduleId="module-7">
+    <LabCard className="p-6">
+      <LabLabel className="mb-6 block">Module 7 · Action vs Talk Ratio</LabLabel>
       {!hasRatios ? (
-        <p className="font-ui rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
+        <p className="font-mono text-sm text-[var(--lab-muted)]">—</p>
       ) : (
         <>
-          <p className="font-mono-ui text-sm text-[var(--text-primary)]">
+          <p className="font-mono text-[13px] text-[var(--lab-ink)] font-semibold mb-4">
             {actionDisplay.toFixed(1)}% Action / {talkDisplay.toFixed(1)}% Talk
           </p>
 
-          <div ref={barRef} className="mt-3 h-6 overflow-hidden rounded-full bg-[var(--bg-primary)] px-0.5">
-            <div className="flex h-full w-full items-center gap-0.5">
-              <div
-                className="group relative flex items-center justify-center rounded-full bg-[var(--gold-primary)] text-[10px] font-medium text-[#0d101a] transition-all duration-200"
-                style={{ width: `${actionDisplay}%`, height: hoveredSegment === "action" ? "6px" : "3px" }}
-                onMouseEnter={() => setHoveredSegment("action")}
-                onMouseLeave={() => setHoveredSegment(null)}
-              >
-                {hoveredSegment === "action" ? `Action ${safeAction.toFixed(1)}%` : null}
-              </div>
-              <div
-                className="group relative flex items-center justify-center rounded-full bg-[var(--tier3-color)]/90 text-[10px] font-medium text-[#f7d4d4] transition-all duration-200"
-                style={{
-                  width: `${talkDisplay}%`,
-                  height: hoveredSegment === "talk" ? "6px" : "3px",
-                  animation: isJustTalk ? "kTierBadgeBreath 2.5s ease-in-out infinite" : undefined,
-                }}
-                onMouseEnter={() => setHoveredSegment("talk")}
-                onMouseLeave={() => setHoveredSegment(null)}
-              >
-                {hoveredSegment === "talk" ? `Talk ${safeTalk.toFixed(1)}%` : null}
-              </div>
-            </div>
+          <div ref={barRef} className="h-4 overflow-hidden rounded-full shadow-[var(--shadow-pressed)] bg-[var(--lab-surface)] flex items-center px-1 gap-1">
+            <div
+              className="rounded-full bg-[var(--lab-gold)] h-2 transition-all duration-200"
+              style={{ width: `${actionDisplay}%` }}
+              onMouseEnter={() => setHoveredSegment("action")}
+              onMouseLeave={() => setHoveredSegment(null)}
+            />
+            <div
+              className="rounded-full bg-[var(--lab-muted)] opacity-50 h-2 transition-all duration-200"
+              style={{
+                width: `${talkDisplay}%`,
+              }}
+              onMouseEnter={() => setHoveredSegment("talk")}
+              onMouseLeave={() => setHoveredSegment(null)}
+            />
           </div>
 
           <p
-            className="font-mono-ui mt-3 inline-flex rounded-sm border border-[var(--gold-muted)]/70 bg-[var(--gold-primary)]/14 px-3 py-1 text-xs uppercase tracking-[0.15em] text-[var(--text-gold)] transition-opacity"
+            className="font-mono mt-6 text-[11px] uppercase tracking-widest text-[var(--lab-gold)] font-semibold transition-opacity"
             style={{ opacity: isLabelVisible ? 1 : 0, transitionDuration: `${LABEL_FADE_MS}ms` }}
           >
             {labelText}
           </p>
         </>
       )}
-    </CollapsibleCard>
+    </LabCard>
   );
 }

@@ -1,4 +1,4 @@
-import { CollapsibleCard } from "./CollapsibleCard";
+import { LabCard, LabLabel, LabWell } from "../lab";
 
 interface ClarityLevelProps {
   clarityLevel?: number;
@@ -30,22 +30,24 @@ const clarityCopy: Record<number, { label: string; description: string }> = {
 export function ClarityLevel({ clarityLevel }: ClarityLevelProps) {
   if (typeof clarityLevel !== "number") {
     return (
-      <CollapsibleCard title="Module 2 · Clarity Level" moduleId="module-2">
-        <p className="font-ui rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
-      </CollapsibleCard>
+      <LabCard className="p-6">
+        <LabLabel className="mb-4 block">Module 2 · Clarity Level</LabLabel>
+        <p className="font-mono text-sm text-[var(--lab-muted)]">—</p>
+      </LabCard>
     );
   }
 
   const boundedLevel = Math.min(5, Math.max(1, Math.round(clarityLevel)));
 
   return (
-    <CollapsibleCard title="Module 2 · Clarity Level" moduleId="module-2">
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-4">
-        <p className="font-ui text-sm font-semibold text-[var(--text-primary)]">
-          Level {boundedLevel} · {clarityCopy[boundedLevel].label}
+    <LabCard className="p-6">
+      <LabLabel className="mb-4 block">Module 2 · Clarity Level</LabLabel>
+      <LabWell className="p-5 flex flex-col gap-2">
+        <p className="font-serif text-2xl font-semibold text-[var(--lab-ink)]">
+          L{boundedLevel} · {clarityCopy[boundedLevel].label}
         </p>
-        <p className="font-ui mt-2 text-sm text-[var(--text-secondary)]">{clarityCopy[boundedLevel].description}</p>
-      </div>
-    </CollapsibleCard>
+        <p className="font-mono text-sm text-[var(--lab-muted)]">{clarityCopy[boundedLevel].description}</p>
+      </LabWell>
+    </LabCard>
   );
 }

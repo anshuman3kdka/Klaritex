@@ -5,3 +5,4 @@ export * from './LabPill';
 export * from './LabLabel';
 export * from './LabToggle';
 export * from './LabVerdict';
+export * from './LabDial';

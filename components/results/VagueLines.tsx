@@ -1,7 +1,7 @@
 "use client";
 
 import type { VagueLine } from "@/lib/types";
-import { CollapsibleCard } from "./CollapsibleCard";
+import { LabCard, LabLabel, LabWell } from "../lab";
 
 interface VagueLinesProps {
   vagueLines?: VagueLine[];
@@ -12,23 +12,24 @@ export function VagueLines({ vagueLines }: VagueLinesProps) {
   const hasData = Array.isArray(vagueLines);
 
   return (
-    <CollapsibleCard title="Module 5 · Identify Vague Lines" moduleId="module-5">
+    <LabCard className="p-6">
+      <LabLabel className="mb-6 block">Module 5 · Vague Lines</LabLabel>
       {!hasData ? (
-        <p className="font-ui k-radius-primary k-border-ui border-dashed bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
+        <p className="font-mono text-sm text-[var(--lab-muted)]">—</p>
       ) : lines.length === 0 ? (
-        <p className="font-ui k-radius-primary border border-[var(--clear-color)]/40 bg-[var(--clear-color)]/15 p-4 text-sm font-medium text-[var(--clear-color)]">
-          No vague lines detected.
-        </p>
+        <p className="font-sans text-sm font-semibold text-[var(--lab-green)]">No vague lines detected.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-4">
           {lines.map((line, index) => (
-            <li key={`${line.sentence}-${index}`} className="k-radius-primary k-border-ui bg-[var(--bg-elevated)] p-4">
-              <blockquote className="font-ui k-text-body border-l-2 border-[var(--gold-muted)] pl-3 italic">“{line.sentence}”</blockquote>
-              <p className="font-ui k-text-body mt-2 text-[var(--text-secondary)]">{line.reason || "Missing structural detail."}</p>
+            <li key={`${line.sentence}-${index}`}>
+              <LabWell className="p-4 flex flex-col gap-3">
+                <blockquote className="font-sans text-[var(--lab-ink)] italic opacity-90 border-l-[3px] border-[var(--lab-gold)] pl-3">“{line.sentence}”</blockquote>
+                <p className="font-mono text-[11px] uppercase tracking-wide text-[var(--lab-red)]">{line.reason || "Missing structural detail."}</p>
+              </LabWell>
             </li>
           ))}
         </ul>
       )}
-    </CollapsibleCard>
+    </LabCard>
   );
 }
