@@ -9,6 +9,7 @@ import { ScrollRevealCard } from "@/components/results/ScrollRevealCard";
 import { UnanchoredClaims } from "@/components/results/UnanchoredClaims";
 import { VagueLines } from "@/components/results/VagueLines";
 import { VerifiableRequirements } from "@/components/results/VerifiableRequirements";
+import { ForensicInspector } from "@/components/results/ForensicInspector";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 import { APP_CONFIG } from "@/lib/config";
 import type { AnalysisResult, AmbiguityTier } from "@/lib/types";
@@ -294,6 +295,8 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
           {/* Phase 4: Removed DynamicDecorativeThreeBackground for Laboratory White. */}
 
           <div className="relative z-10 flex flex-col lg:grid lg:grid-cols-3 gap-6">
+            <ForensicInspector sourceText={result.sourceText} />
+
             <div
               className="flex flex-col gap-6 px-1 col-span-3 lg:col-span-3"
               role="group"

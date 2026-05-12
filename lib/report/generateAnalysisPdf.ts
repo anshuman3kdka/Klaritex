@@ -123,7 +123,7 @@ function addPageChrome(doc: jsPDF, title: string, pageNumber?: number) {
   doc.rect(0, 0, PAGE_WIDTH, 22, "F");
 
   doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.setFontSize(CHROME_TITLE_SIZE);
   doc.text(title, PAGE_MARGIN, 13.2);
 
@@ -136,7 +136,7 @@ function addPageChrome(doc: jsPDF, title: string, pageNumber?: number) {
   doc.line(PAGE_MARGIN, PAGE_HEIGHT - 12, PAGE_WIDTH - PAGE_MARGIN, PAGE_HEIGHT - 12);
 
   doc.setTextColor(107, 114, 128);
-  doc.setFont("helvetica", "italic");
+  doc.setFont("times", "italic");
   doc.setFontSize(CAPTION_SIZE);
   doc.text("Klaritex · Clarity Engine Framework", PAGE_MARGIN, PAGE_HEIGHT - CHROME_FOOTER_LINE_HEIGHT);
 
@@ -220,7 +220,7 @@ function writeCard(
   doc.roundedRect(PAGE_MARGIN, y - 5, CONTENT_WIDTH, 14, 2.5, 2.5);
 
   doc.setTextColor(...INK);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.setFontSize(CARD_TITLE_SIZE);
   const iconOffset = iconMarker ? 7 : 0;
   if (iconMarker) {
@@ -341,7 +341,7 @@ function writeElementsTable(
     doc.setLineWidth(0.22);
     doc.rect(tableX, yPos, tableWidth, headerHeight);
 
-    doc.setFont("helvetica", "bold");
+    doc.setFont("times", "bold");
     doc.setFontSize(9.5);
     doc.setTextColor(...INK);
 
@@ -507,7 +507,7 @@ function writeKpiDashboard(doc: jsPDF, y: number, result: AnalysisResult): numbe
   drawCard(leftX, row2Y);
   drawCard(rightX, row2Y);
 
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.setFontSize(8.8);
   doc.setTextColor(...SUBTLE);
   doc.text("Ambiguity Score", leftX + 3, y + 5.5);
@@ -519,7 +519,7 @@ function writeKpiDashboard(doc: jsPDF, y: number, result: AnalysisResult): numbe
   const gaugeCenterY = y + 14.2;
   drawAmbiguityGauge(doc, gaugeCenterX, gaugeCenterY, result.ambiguityScore);
 
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.setTextColor(...INK);
   doc.setFontSize(8.8);
   doc.text(result.ambiguityScore.toFixed(1), gaugeCenterX, gaugeCenterY + 1, { align: "center" });
@@ -528,7 +528,7 @@ function writeKpiDashboard(doc: jsPDF, y: number, result: AnalysisResult): numbe
   doc.setTextColor(...SUBTLE);
   doc.text(`Tier ${result.tier}`, gaugeCenterX, y + 22, { align: "center" });
 
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.setTextColor(...clarityTone.color);
   doc.setFontSize(14);
   doc.text(`${result.clarityLevel.toFixed(1)}`, rightX + 3, y + 13);
@@ -548,7 +548,7 @@ function writeKpiDashboard(doc: jsPDF, y: number, result: AnalysisResult): numbe
   doc.setFontSize(8.6);
   doc.text(`A ${result.actionRatio.toFixed(2)} vs T ${result.talkRatio.toFixed(2)}`, leftX + 3, row2Y + 19);
 
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.setTextColor(...unanchoredSeverity.color);
   doc.setFontSize(14);
   doc.text(`${result.unanchoredClaimsCount}`, rightX + 3, row2Y + 13);
@@ -567,7 +567,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   doc.rect(0, 0, PAGE_WIDTH, 70, "F");
 
   doc.setTextColor(...GOLD);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.setFontSize(24);
   doc.text("Klaritex Analysis Report", PAGE_MARGIN, 30);
 
@@ -588,7 +588,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   doc.setLineWidth(0.3);
   doc.roundedRect(PAGE_MARGIN, 50, CONTENT_WIDTH, 35, 3.5, 3.5);
 
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.setTextColor(...INK);
   doc.setFontSize(12);
   doc.text("Report Metadata", PAGE_MARGIN + 4, 58);
