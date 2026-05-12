@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, DM_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -64,9 +64,10 @@ export const metadata: Metadata = {
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }]
   },
   manifest: "/site.webmanifest",
-  viewport: {
-    themeColor: "#EBEFF5",
-  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#EBEFF5",
 };
 
 export default function RootLayout({
