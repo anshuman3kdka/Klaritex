@@ -5,8 +5,11 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
 let ratelimit: Ratelimit | null = null;
-const FALLBACK_WINDOW_MS = 60_000;
-const FALLBACK_MAX_REQUESTS = 10;
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const RATE_LIMIT_WINDOW_SECONDS = 60;
+const RATE_LIMIT_WINDOW = `${RATE_LIMIT_WINDOW_SECONDS} s` as const;
+const FALLBACK_WINDOW_MS = RATE_LIMIT_WINDOW_SECONDS * 1000;
+const FALLBACK_MAX_REQUESTS = RATE_LIMIT_MAX_REQUESTS;
 const FALLBACK_MAX_IDENTIFIERS = 5_000;
 const FALLBACK_CLEANUP_INTERVAL = 100;
 const fallbackStore = new Map<string, number[]>();
@@ -24,7 +27,7 @@ function getRatelimit(): Ratelimit | null {
     const redis = new Redis({ url, token });
     ratelimit = new Ratelimit({
       redis,
-      limiter: Ratelimit.slidingWindow(10, "60 s"),
+      limiter: Ratelimit.slidingWindow(RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW),
     });
   }
 

@@ -71,16 +71,38 @@ export async function parseJsonBodyWithLimit<T>(
       error: string;
     }
 > {
-  let rawBody: string;
-
-  try {
-    rawBody = await request.text();
-  } catch {
+  if (!request.body) {
     return { ok: false, status: 400, error: "Invalid request body." };
   }
 
-  if (Buffer.byteLength(rawBody, "utf8") > maxBytes) {
-    return { ok: false, status: 413, error: "Request body is too large." };
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+  let totalBytes = 0;
+  let rawBody = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+
+      if (!value) {
+        continue;
+      }
+
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel();
+        return { ok: false, status: 413, error: "Request body is too large." };
+      }
+
+      rawBody += decoder.decode(value, { stream: true });
+    }
+
+    rawBody += decoder.decode();
+  } catch {
+    return { ok: false, status: 400, error: "Invalid request body." };
   }
 
   try {

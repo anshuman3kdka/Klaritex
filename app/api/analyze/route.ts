@@ -39,13 +39,7 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIdentifier(request);
-  let allowed = true;
-
-  try {
-    ({ allowed } = await checkRateLimit(ip));
-  } catch {
-    allowed = true;
-  }
+  const { allowed } = await checkRateLimit(ip);
 
   if (!allowed) {
     return secureJsonResponse(

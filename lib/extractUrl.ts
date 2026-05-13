@@ -54,6 +54,10 @@ function isBlockedEmbeddedIpv4FromHexWords(highWordHex: string, lowWordHex: stri
   return isBlockedIpv4Prefix(octets[0], octets[1], octets[2]);
 }
 
+function isIpv6LinkLocalAddress(ipv6: string): boolean {
+  return /^fe[89ab]/.test(ipv6);
+}
+
 function isBlockedIpAddress(address: string): boolean {
   const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
   const match = address.match(ipv4Regex);
@@ -117,7 +121,7 @@ function isBlockedIpAddress(address: string): boolean {
     ipv6 === "0:0:0:0:0:0:0:1" ||
     ipv6.startsWith("fd") ||
     ipv6.startsWith("fc") ||
-    ipv6.startsWith("fe80") ||
+    isIpv6LinkLocalAddress(ipv6) ||
     ipv6.startsWith("ff")
   );
 }
