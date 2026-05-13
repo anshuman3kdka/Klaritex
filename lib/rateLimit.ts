@@ -5,6 +5,15 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
 let ratelimit: Ratelimit | null = null;
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const RATE_LIMIT_WINDOW_SECONDS = 60;
+const RATE_LIMIT_WINDOW = `${RATE_LIMIT_WINDOW_SECONDS} s` as const;
+const FALLBACK_WINDOW_MS = RATE_LIMIT_WINDOW_SECONDS * 1000;
+const FALLBACK_MAX_REQUESTS = RATE_LIMIT_MAX_REQUESTS;
+const FALLBACK_MAX_IDENTIFIERS = 5_000;
+const FALLBACK_CLEANUP_INTERVAL = 100;
+const fallbackStore = new Map<string, number[]>();
+let fallbackCallCounter = 0;
 
 function getRatelimit(): Ratelimit | null {
   const url = process.env.UPSTASH_REDIS_REST_URL;
@@ -18,11 +27,52 @@ function getRatelimit(): Ratelimit | null {
     const redis = new Redis({ url, token });
     ratelimit = new Ratelimit({
       redis,
-      limiter: Ratelimit.slidingWindow(10, "60 s"),
+      limiter: Ratelimit.slidingWindow(RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW),
     });
   }
 
   return ratelimit;
+}
+
+function runInMemoryFallbackRateLimit(identifier: string): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const windowStart = now - FALLBACK_WINDOW_MS;
+  fallbackCallCounter += 1;
+
+  if (fallbackCallCounter % FALLBACK_CLEANUP_INTERVAL === 0 || fallbackStore.size > FALLBACK_MAX_IDENTIFIERS) {
+    for (const [key, timestamps] of fallbackStore.entries()) {
+      const retained = timestamps.filter((timestamp) => timestamp > windowStart);
+      if (retained.length === 0) {
+        fallbackStore.delete(key);
+      } else if (retained.length !== timestamps.length) {
+        fallbackStore.set(key, retained);
+      }
+    }
+
+    const overflow = fallbackStore.size - FALLBACK_MAX_IDENTIFIERS;
+    if (overflow > 0) {
+      const keysToDelete = fallbackStore.keys();
+      for (let i = 0; i < overflow; i += 1) {
+        const next = keysToDelete.next();
+        if (next.done) {
+          break;
+        }
+        fallbackStore.delete(next.value);
+      }
+    }
+  }
+
+  const existingHits = fallbackStore.get(identifier) ?? [];
+  const freshHits = existingHits.filter((timestamp) => timestamp > windowStart);
+
+  if (freshHits.length >= FALLBACK_MAX_REQUESTS) {
+    fallbackStore.set(identifier, freshHits);
+    return { allowed: false, remaining: 0 };
+  }
+
+  freshHits.push(now);
+  fallbackStore.set(identifier, freshHits);
+  return { allowed: true, remaining: FALLBACK_MAX_REQUESTS - freshHits.length };
 }
 
 export async function checkRateLimit(
@@ -31,7 +81,7 @@ export async function checkRateLimit(
   const rateLimiter = getRatelimit();
 
   if (!rateLimiter) {
-    return { allowed: true, remaining: 999 };
+    return runInMemoryFallbackRateLimit(identifier);
   }
 
   try {
@@ -42,6 +92,6 @@ export async function checkRateLimit(
       remaining,
     };
   } catch {
-    return { allowed: true, remaining: 999 };
+    return runInMemoryFallbackRateLimit(identifier);
   }
 }

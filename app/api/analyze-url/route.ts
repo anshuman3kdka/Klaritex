@@ -1,10 +1,14 @@
-import { NextResponse } from "next/server";
-
 import { analyzeWithParseRetry } from "@/lib/analyzeWithParseRetry";
 import { extractUrlText, UrlExtractionError } from "@/lib/extractUrl";
 import { isProviderUnavailableError, sanitizeInput } from "@/lib/gemini";
 import { checkRateLimit } from "@/lib/rateLimit";
-import { getClientIdentifier, isJsonRequest } from "@/lib/requestSecurity";
+import {
+  getClientIdentifier,
+  isAllowedApiOrigin,
+  isJsonRequest,
+  parseJsonBodyWithLimit,
+  secureJsonResponse,
+} from "@/lib/requestSecurity";
 import type { AnalysisMode } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -28,8 +32,12 @@ function isValidUrl(value: string): boolean {
 }
 
 export async function POST(request: Request) {
+  if (!isAllowedApiOrigin(request)) {
+    return secureJsonResponse({ error: "Forbidden request origin." }, { status: 403 });
+  }
+
   if (!isJsonRequest(request)) {
-    return NextResponse.json({ error: "Content-Type must be application/json." }, { status: 415 });
+    return secureJsonResponse({ error: "Content-Type must be application/json." }, { status: 415 });
   }
 
   // Content-Length can be absent or spoofed by clients, so this is only a fast-path guard.
@@ -37,42 +45,34 @@ export async function POST(request: Request) {
   const contentLength = Number(contentLengthHeader);
 
   if (contentLengthHeader !== null && Number.isFinite(contentLength) && contentLength > 51200) {
-    return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
+    return secureJsonResponse({ error: "Request body is too large." }, { status: 413 });
   }
 
   const ip = getClientIdentifier(request);
-  let allowed = true;
-
-  try {
-    ({ allowed } = await checkRateLimit(ip));
-  } catch {
-    allowed = true;
-  }
+  const { allowed } = await checkRateLimit(ip);
 
   if (!allowed) {
-    return NextResponse.json(
+    return secureJsonResponse(
       { error: "Too many requests. Please wait before trying again." },
       { status: 429 }
     );
   }
 
-  let body: AnalyzeUrlRequestBody;
-
-  try {
-    body = (await request.json()) as AnalyzeUrlRequestBody;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+  const parsedBody = await parseJsonBodyWithLimit<AnalyzeUrlRequestBody>(request, 51200);
+  if (!parsedBody.ok) {
+    return secureJsonResponse({ error: parsedBody.error }, { status: parsedBody.status });
   }
+  const body = parsedBody.body;
 
   const rawUrl = body.url;
   const mode = body.mode;
 
   if (typeof rawUrl !== "string" || !isValidUrl(rawUrl)) {
-    return NextResponse.json({ error: "A valid URL is required." }, { status: 400 });
+    return secureJsonResponse({ error: "A valid URL is required." }, { status: 400 });
   }
 
   if (!isValidMode(mode)) {
-    return NextResponse.json({ error: "Mode must be 'quick' or 'deep'." }, { status: 400 });
+    return secureJsonResponse({ error: "Mode must be 'quick' or 'deep'." }, { status: 400 });
   }
 
   try {
@@ -80,34 +80,34 @@ export async function POST(request: Request) {
     const sanitizedText = sanitizeInput(urlText);
 
     if (!sanitizedText) {
-      return NextResponse.json({ error: "Could not fetch content from URL." }, { status: 422 });
+      return secureJsonResponse({ error: "Could not fetch content from URL." }, { status: 422 });
     }
 
     const parsed = await analyzeWithParseRetry(sanitizedText, mode);
 
-    return NextResponse.json(parsed, { status: 200 });
+    return secureJsonResponse(parsed, { status: 200 });
   } catch (error) {
     if (error instanceof UrlExtractionError) {
-      return NextResponse.json({ error: "Could not fetch content from URL." }, { status: 422 });
+      return secureJsonResponse({ error: "Could not fetch content from URL." }, { status: 422 });
     }
 
     const message = error instanceof Error ? error.message : "Unknown error";
 
     if (message === "Analysis parsing failed.") {
-      return NextResponse.json({ error: "Analysis parsing failed." }, { status: 500 });
+      return secureJsonResponse({ error: "Analysis parsing failed." }, { status: 500 });
     }
 
     if (isProviderUnavailableError(message)) {
       if (message.toLowerCase().includes("missing gemini api key")) {
-        return NextResponse.json(
+        return secureJsonResponse(
           { error: "Gemini API key is not configured on the server." },
           { status: 503 }
         );
       }
 
-      return NextResponse.json({ error: "AI service unavailable." }, { status: 503 });
+      return secureJsonResponse({ error: "AI service unavailable." }, { status: 503 });
     }
 
-    return NextResponse.json({ error: "Analysis failed." }, { status: 500 });
+    return secureJsonResponse({ error: "Analysis failed." }, { status: 500 });
   }
 }

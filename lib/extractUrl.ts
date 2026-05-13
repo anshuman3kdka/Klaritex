@@ -16,14 +16,21 @@ function normalizeWhitespace(text: string): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
-function isBlockedIpv4Prefix(p1: number, p2: number): boolean {
+function isBlockedIpv4Prefix(p1: number, p2: number, p3: number): boolean {
   return (
     p1 === 0 || // 0.0.0.0/8
     p1 === 10 || // 10.0.0.0/8
     p1 === 127 || // 127.0.0.0/8
     (p1 === 172 && p2 >= 16 && p2 <= 31) || // 172.16.0.0/12
     (p1 === 192 && p2 === 168) || // 192.168.0.0/16
-    (p1 === 169 && p2 === 254) // 169.254.0.0/16
+    (p1 === 169 && p2 === 254) || // 169.254.0.0/16
+    (p1 === 100 && p2 >= 64 && p2 <= 127) || // 100.64.0.0/10
+    (p1 === 192 && p2 === 0 && p3 === 0) || // 192.0.0.0/24
+    (p1 === 192 && p2 === 0 && p3 === 2) || // 192.0.2.0/24 (TEST-NET-1)
+    (p1 === 198 && (p2 === 18 || p2 === 19)) || // 198.18.0.0/15
+    (p1 === 198 && p2 === 51 && p3 === 100) || // 198.51.100.0/24 (TEST-NET-2)
+    (p1 === 203 && p2 === 0 && p3 === 113) || // 203.0.113.0/24 (TEST-NET-3)
+    p1 >= 224 // Multicast and reserved space
   );
 }
 
@@ -44,7 +51,11 @@ function isBlockedEmbeddedIpv4FromHexWords(highWordHex: string, lowWordHex: stri
   const high = parseInt(highWordHex, 16);
   const low = parseInt(lowWordHex, 16);
   const octets = [(high >> 8) & 0xff, high & 0xff, (low >> 8) & 0xff, low & 0xff];
-  return isBlockedIpv4Prefix(octets[0], octets[1]);
+  return isBlockedIpv4Prefix(octets[0], octets[1], octets[2]);
+}
+
+function isIpv6LinkLocalAddress(ipv6: string): boolean {
+  return /^fe[89ab]/.test(ipv6);
 }
 
 function isBlockedIpAddress(address: string): boolean {
@@ -55,7 +66,7 @@ function isBlockedIpAddress(address: string): boolean {
     if (octets.some((part) => part < 0 || part > 255)) {
       return true;
     }
-    return isBlockedIpv4Prefix(octets[0]!, octets[1]!);
+    return isBlockedIpv4Prefix(octets[0]!, octets[1]!, octets[2]!);
   }
 
   const ipv6 = address.toLowerCase();
@@ -72,7 +83,7 @@ function isBlockedIpAddress(address: string): boolean {
     if (!octets) {
       return true;
     }
-    return isBlockedIpv4Prefix(octets[0], octets[1]);
+    return isBlockedIpv4Prefix(octets[0], octets[1], octets[2]);
   }
 
   const compatibleDotted = ipv6.match(
@@ -88,7 +99,7 @@ function isBlockedIpAddress(address: string): boolean {
     if (!octets) {
       return true;
     }
-    return isBlockedIpv4Prefix(octets[0], octets[1]);
+    return isBlockedIpv4Prefix(octets[0], octets[1], octets[2]);
   }
 
   const mappedHex = ipv6.match(
@@ -110,7 +121,8 @@ function isBlockedIpAddress(address: string): boolean {
     ipv6 === "0:0:0:0:0:0:0:1" ||
     ipv6.startsWith("fd") ||
     ipv6.startsWith("fc") ||
-    ipv6.startsWith("fe80")
+    isIpv6LinkLocalAddress(ipv6) ||
+    ipv6.startsWith("ff")
   );
 }
 
@@ -131,6 +143,9 @@ function isSafeUrl(urlString: string): boolean {
       hostname === "localhost" ||
       hostname.endsWith(".localhost") ||
       hostname.endsWith(".local") ||
+      hostname.endsWith(".localdomain") ||
+      hostname.endsWith(".internal") ||
+      hostname.endsWith(".home.arpa") ||
       hostname.endsWith(".")
     ) {
       return false;

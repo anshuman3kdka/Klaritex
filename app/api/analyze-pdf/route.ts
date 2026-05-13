@@ -1,10 +1,13 @@
-import { NextResponse } from "next/server";
-
 import { analyzeWithParseRetry } from "@/lib/analyzeWithParseRetry";
 import { extractPdfText } from "@/lib/extractPdf";
 import { isProviderUnavailableError, sanitizeInput } from "@/lib/gemini";
 import { checkRateLimit } from "@/lib/rateLimit";
-import { getClientIdentifier } from "@/lib/requestSecurity";
+import {
+  getClientIdentifier,
+  hasExpectedContentType,
+  isAllowedApiOrigin,
+  secureJsonResponse,
+} from "@/lib/requestSecurity";
 import type { AnalysisMode } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -14,25 +17,27 @@ function isValidMode(value: unknown): value is AnalysisMode {
 }
 
 export async function POST(request: Request) {
+  if (!isAllowedApiOrigin(request)) {
+    return secureJsonResponse({ error: "Forbidden request origin." }, { status: 403 });
+  }
+
+  if (!hasExpectedContentType(request, "multipart/form-data")) {
+    return secureJsonResponse({ error: "Content-Type must be multipart/form-data." }, { status: 415 });
+  }
+
   // Content-Length can be absent or spoofed by clients, so this is only a fast-path guard.
   const contentLengthHeader = request.headers.get("content-length");
   const contentLength = Number(contentLengthHeader);
 
   if (contentLengthHeader !== null && Number.isFinite(contentLength) && contentLength > 6291456) {
-    return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
+    return secureJsonResponse({ error: "Request body is too large." }, { status: 413 });
   }
 
   const ip = getClientIdentifier(request);
-  let allowed = true;
-
-  try {
-    ({ allowed } = await checkRateLimit(ip));
-  } catch {
-    allowed = true;
-  }
+  const { allowed } = await checkRateLimit(ip);
 
   if (!allowed) {
-    return NextResponse.json(
+    return secureJsonResponse(
       { error: "Too many requests. Please wait before trying again." },
       { status: 429 }
     );
@@ -43,27 +48,31 @@ export async function POST(request: Request) {
   try {
     formData = await request.formData();
   } catch {
-    return NextResponse.json({ error: "Invalid form data." }, { status: 400 });
+    return secureJsonResponse({ error: "Invalid form data." }, { status: 400 });
   }
 
   const file = formData.get("file");
   const mode = formData.get("mode");
 
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "PDF file is required." }, { status: 400 });
+    return secureJsonResponse({ error: "PDF file is required." }, { status: 400 });
   }
 
   if (file.type && file.type !== "application/pdf") {
-    return NextResponse.json({ error: "Invalid file type. PDF required." }, { status: 415 });
+    return secureJsonResponse({ error: "Invalid file type. PDF required." }, { status: 415 });
+  }
+
+  if (file.size === 0) {
+    return secureJsonResponse({ error: "Empty PDF files are not allowed." }, { status: 422 });
   }
 
   if (!isValidMode(mode)) {
-    return NextResponse.json({ error: "Mode must be 'quick' or 'deep'." }, { status: 400 });
+    return secureJsonResponse({ error: "Mode must be 'quick' or 'deep'." }, { status: 400 });
   }
 
   // 10MB limit to prevent Memory Exhaustion DoS
   if (file.size > 10 * 1024 * 1024) {
-    return NextResponse.json({ error: "File too large. Maximum size is 10MB." }, { status: 413 });
+    return secureJsonResponse({ error: "File too large. Maximum size is 10MB." }, { status: 413 });
   }
 
   try {
@@ -72,42 +81,42 @@ export async function POST(request: Request) {
     const fileSignature = fileBuffer.subarray(0, 5).toString("utf8");
 
     if (fileSignature !== "%PDF-") {
-      return NextResponse.json({ error: "Invalid PDF file." }, { status: 415 });
+      return secureJsonResponse({ error: "Invalid PDF file." }, { status: 415 });
     }
 
     const pdfText = await extractPdfText(fileBuffer);
 
     if (!pdfText.trim()) {
-      return NextResponse.json({ error: "PDF contains no extractable text." }, { status: 422 });
+      return secureJsonResponse({ error: "PDF contains no extractable text." }, { status: 422 });
     }
 
     const sanitizedText = sanitizeInput(pdfText);
 
     if (!sanitizedText) {
-      return NextResponse.json({ error: "PDF contains no extractable text." }, { status: 422 });
+      return secureJsonResponse({ error: "PDF contains no extractable text." }, { status: 422 });
     }
 
     const parsed = await analyzeWithParseRetry(sanitizedText, mode);
 
-    return NextResponse.json(parsed, { status: 200 });
+    return secureJsonResponse(parsed, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
 
     if (message === "Analysis parsing failed.") {
-      return NextResponse.json({ error: "Analysis parsing failed." }, { status: 500 });
+      return secureJsonResponse({ error: "Analysis parsing failed." }, { status: 500 });
     }
 
     if (isProviderUnavailableError(message)) {
       if (message.toLowerCase().includes("missing gemini api key")) {
-        return NextResponse.json(
+        return secureJsonResponse(
           { error: "Gemini API key is not configured on the server." },
           { status: 503 }
         );
       }
 
-      return NextResponse.json({ error: "AI service unavailable." }, { status: 503 });
+      return secureJsonResponse({ error: "AI service unavailable." }, { status: 503 });
     }
 
-    return NextResponse.json({ error: "Analysis failed." }, { status: 500 });
+    return secureJsonResponse({ error: "Analysis failed." }, { status: 500 });
   }
 }
