@@ -13,7 +13,7 @@ export default function HomePage() {
     <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--lab-surface)]">
       {/* Phase 3: Background removed for Laboratory White constraint */}
 
-      <header className="k-entrance-fade-down relative z-10 shrink-0 border-b border-[var(--lab-shadow-dark)]/20 backdrop-blur-sm">
+      <header className="k-entrance-fade-down relative z-10 shrink-0 bg-[var(--lab-surface)]/85 shadow-[var(--shadow-extruded)] backdrop-blur-sm">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-3 items-center gap-4 px-4 py-5 sm:px-6">
           <nav aria-label="Primary navigation">
             <a
@@ -65,7 +65,7 @@ export default function HomePage() {
         <InputPanel id="analyzer" intent={intent} />
       </main>
 
-      <footer className="relative z-10 shrink-0 border-t border-[var(--lab-shadow-dark)]/20 backdrop-blur-sm">
+      <footer className="relative z-10 shrink-0 bg-[var(--lab-surface)]/85 shadow-[var(--shadow-extruded)] backdrop-blur-sm">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-8 sm:px-6">
           <div className="flex items-center gap-8">
             <a

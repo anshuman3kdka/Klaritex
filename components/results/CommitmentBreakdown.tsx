@@ -186,8 +186,8 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
         if (stressClass === "Testable") {
           gsap.fromTo(
             row,
-            { backgroundColor: "rgba(45,122,79,0.25)", opacity: 1, filter: "grayscale(0%)" },
-            { backgroundColor: "rgba(45,122,79,0)", duration: 0.45, ease: "power2.out", delay: 0.35 }
+            { backgroundColor: "color-mix(in oklab, var(--lab-gold) 24%, transparent)", opacity: 1, filter: "grayscale(0%)" },
+            { backgroundColor: "color-mix(in oklab, var(--lab-gold) 0%, transparent)", duration: 0.45, ease: "power2.out", delay: 0.35 }
           );
           return;
         }
@@ -203,7 +203,7 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
 
         gsap.to(row, {
           filter: "grayscale(70%)",
-          opacity: 0.45,
+          opacity: 0.35,
           duration: 0.4,
           ease: "power2.out",
           delay: 0.3
@@ -278,7 +278,7 @@ export function CommitmentBreakdown({ elements, defaultExpanded = false }: Commi
                 const stressLabel = getStressLabel(status);
 
                 const opacityClass = viewMode === "stress"
-                  ? (stressLabel === "Testable" ? "opacity-100" : stressLabel === "Contested" ? "opacity-70" : "opacity-35")
+                  ? (stressLabel === "Testable" ? "opacity-100" : stressLabel === "Contested" ? "opacity-70" : "opacity-[0.35]")
                   : "opacity-100";
 
                 const bgClass = viewMode === "stress" && stressLabel === "Testable"

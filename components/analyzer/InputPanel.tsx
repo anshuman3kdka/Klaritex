@@ -682,7 +682,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
           >
             {analyzeButtonState === "loading" ? (
               <div className="flex items-center justify-center gap-2">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--lab-ink)] border-t-transparent" />
+                <span className="analyze-button__spinner analyze-button__spinner--ink" />
                 <span>Analyzing...</span>
               </div>
             ) : analyzeButtonState === "complete" ? (
@@ -712,7 +712,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
             >
               {isGeneratingPdf ? (
                 <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--lab-muted)] border-t-transparent" />
+                  <span className="analyze-button__spinner analyze-button__spinner--muted" />
                   Generating...
                 </>
               ) : (
@@ -793,13 +793,25 @@ export function InputPanel({ intent, id }: InputPanelProps) {
         }
 
         .analyze-button__spinner {
+          /* Small transparent arc keeps spinner motion visible on light neumorphic surfaces. */
+          --spinner-gap: 18%;
+          --spinner-thickness: 2px;
           width: 16px;
           height: 16px;
           border-radius: 9999px;
-          border: 2px solid #c9a84c;
-          border-top-color: transparent;
+          background: conic-gradient(from 0deg, transparent 0 var(--spinner-gap), currentColor var(--spinner-gap) 100%);
+          -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--spinner-thickness)), #000 calc(100% - var(--spinner-thickness)));
+          mask: radial-gradient(farthest-side, transparent calc(100% - var(--spinner-thickness)), #000 calc(100% - var(--spinner-thickness)));
           animation: spin 600ms linear infinite;
           z-index: 1;
+        }
+
+        .analyze-button__spinner--ink {
+          color: var(--lab-ink);
+        }
+
+        .analyze-button__spinner--muted {
+          color: var(--lab-muted);
         }
 
         @keyframes goldPulse {

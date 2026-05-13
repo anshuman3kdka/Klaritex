@@ -46,7 +46,7 @@ export function ModuleAccordion({
       <button
         type="button"
         onClick={() => setIsExpanded((current) => !current)}
-        className="flex w-full items-center justify-between bg-transparent p-5 text-left transition-colors duration-150 hover:bg-[#162035] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50"
+        className="flex w-full items-center justify-between bg-transparent p-5 text-left transition-colors duration-150 hover:bg-[color-mix(in_oklab,var(--lab-shadow-dark)_18%,var(--lab-surface)_82%)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50"
         aria-expanded={isExpanded}
         aria-controls={contentId}
       >

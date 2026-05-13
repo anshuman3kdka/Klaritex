@@ -11,8 +11,9 @@ export function LabPill({ status, className = '', ...props }: LabPillProps) {
   const getColors = () => {
     switch (status) {
       case 'Locked In':
-      case 'Testable':
         return 'text-[var(--clear-color)] bg-[var(--clear-color)]/10';
+      case 'Testable':
+        return 'text-[var(--lab-gold)] bg-[var(--lab-gold)]/12 shadow-[var(--shadow-extruded)]';
       case 'Unclear':
       case 'Contested':
         return 'text-[var(--broad-color)] bg-[var(--broad-color)]/10';
