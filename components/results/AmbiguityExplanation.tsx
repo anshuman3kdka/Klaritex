@@ -1,4 +1,4 @@
-import { CollapsibleCard } from "./CollapsibleCard";
+import { LabCard, LabLabel } from "../lab";
 
 interface AmbiguityExplanationProps {
   ambiguityExplanation?: string[];
@@ -8,20 +8,21 @@ export function AmbiguityExplanation({ ambiguityExplanation }: AmbiguityExplanat
   const explanations = ambiguityExplanation ?? null;
 
   return (
-    <CollapsibleCard title="Module 9 · Structural Ambiguity Explanation" moduleId="module-9">
+    <LabCard className="p-6">
+      <LabLabel className="mb-6 block">Module 9 · Structural Ambiguity Explanation</LabLabel>
       {!explanations ? (
-        <p className="font-ui k-radius-primary k-border-ui border-dashed bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
+        <p className="font-mono text-sm text-[var(--lab-muted)]">—</p>
       ) : explanations.length === 0 ? (
-        <p className="font-ui k-radius-primary border border-[var(--clear-color)]/40 bg-[var(--clear-color)]/15 p-4 text-sm text-[var(--clear-color)]">
+        <p className="font-sans text-sm font-semibold text-[var(--lab-green)]">
           No structural ambiguity markers were returned.
         </p>
       ) : (
-        <ul className="font-ui k-text-body list-disc space-y-2 pl-5">
+        <ul className="font-mono text-xs list-disc space-y-3 pl-5 text-[var(--lab-ink)]">
           {explanations.slice(0, 4).map((item, index) => (
-            <li key={`${item}-${index}`}>{item}</li>
+            <li key={`${item}-${index}`} className="leading-relaxed">{item}</li>
           ))}
         </ul>
       )}
-    </CollapsibleCard>
+    </LabCard>
   );
 }

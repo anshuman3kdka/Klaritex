@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import type { AnalysisMode, InputMode } from "@/lib/types";
+import { LabCard, LabButton, LabLabel } from "../lab";
 
 type ShowcaseIntent = {
   inputMode?: InputMode;
@@ -103,35 +104,34 @@ export function CoolShowcase({ onIntent, ctaTargetId = "analyzer" }: CoolShowcas
   };
 
   return (
-    <section className="k-entrance-fade-down mx-auto mb-10 w-full max-w-5xl">
-      <div className="k-card overflow-hidden border px-4 py-4 sm:px-6 sm:py-6">
-        <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+    <section className="k-entrance-fade-down mx-auto mb-10 w-full max-w-5xl px-4 sm:px-6">
+      <LabCard className="overflow-hidden p-6 sm:p-8">
+        <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <div className="min-w-0">
-            <p className="font-mono-ui text-xs uppercase tracking-[0.2em] text-[var(--text-secondary)]">Preview Modes</p>
-            <h2 className="mt-2 font-display text-2xl text-[var(--text-primary)] sm:text-3xl">
+            <LabLabel>Preview Modes</LabLabel>
+            <h2 className="mt-2 font-serif text-2xl text-[var(--lab-ink)] sm:text-3xl font-semibold">
               Demo preview of Klaritex scoring modes.
             </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--lab-muted)] sm:text-base">
               This card shows sample results only. Use the Analyze section below to run real analysis on your text.
             </p>
-            <button
-              type="button"
+            <LabButton
               onClick={handlePrimaryCtaClick}
-              className="mt-4 inline-flex items-center rounded-lg bg-[var(--gold-primary)] px-4 py-2 font-ui text-sm font-semibold text-[#1a1a1a] transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50"
+              className="mt-6"
             >
               Try with my text
-            </button>
+            </LabButton>
 
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="mt-8 flex flex-wrap gap-2">
               {MOODS.map((entry) => (
                 <button
                   key={entry.key}
                   type="button"
                   onClick={() => handleMoodClick(entry.key)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition sm:text-sm ${
+                  className={`rounded-full px-3 py-1.5 text-xs font-mono transition sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 ${
                     activeMood === entry.key
-                      ? "border-[var(--gold-primary)] bg-[var(--gold-primary)]/15 text-[var(--text-primary)]"
-                      : "border-[var(--border)] bg-[var(--bg-elevated)]/55 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                      ? "shadow-[var(--shadow-pressed)] bg-[var(--lab-surface)] text-[var(--lab-gold)]"
+                      : "shadow-[var(--shadow-extruded)] bg-[var(--lab-surface)] text-[var(--lab-muted)] hover:text-[var(--lab-ink)] hover:shadow-[var(--shadow-pressed)]"
                   }`}
                 >
                   {entry.label}
@@ -139,18 +139,18 @@ export function CoolShowcase({ onIntent, ctaTargetId = "analyzer" }: CoolShowcas
               ))}
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-2 sm:hidden" aria-label="Example things to analyze">
+            <div className="mt-8 flex flex-wrap gap-2 sm:hidden" aria-label="Example things to analyze">
               {IDEA_CHIPS.map((chip) => (
-                <span key={chip} className="cool-chip">
+                <span key={chip} className="shadow-[var(--shadow-extruded)] bg-[var(--lab-surface)] rounded-full px-3 py-1 text-xs text-[var(--lab-muted)] font-mono">
                   {chip}
                 </span>
               ))}
             </div>
 
-            <div className="cool-marquee mt-5 hidden sm:block" aria-label="Example things to analyze">
+            <div className="cool-marquee mt-8 hidden sm:block" aria-label="Example things to analyze">
               <div className="cool-marquee-track">
                 {[...IDEA_CHIPS, ...IDEA_CHIPS].map((chip, index) => (
-                  <span key={`${chip}-${index}`} className="cool-chip">
+                  <span key={`${chip}-${index}`} className="shadow-[var(--shadow-extruded)] bg-[var(--lab-surface)] rounded-full px-3 py-1 text-xs text-[var(--lab-muted)] font-mono mx-1">
                     {chip}
                   </span>
                 ))}
@@ -158,31 +158,25 @@ export function CoolShowcase({ onIntent, ctaTargetId = "analyzer" }: CoolShowcas
             </div>
           </div>
 
-          <div className="relative min-w-0 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)]/60 p-4">
-            <div className={`pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br ${mood.accent}`} />
+          <div className="relative min-w-0 rounded-2xl p-6 shadow-[var(--shadow-pressed)] bg-[var(--lab-surface)]">
             <div className="relative">
-              <p className="font-mono-ui text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">{mood.label}</p>
-              <p className="mt-1 text-sm text-[var(--text-secondary)]">{mood.subtitle}</p>
+              <LabLabel>{mood.label}</LabLabel>
+              <p className="mt-1 text-sm text-[var(--lab-muted)] font-sans">{mood.subtitle}</p>
 
-              <div className="mt-5 flex items-end justify-between">
+              <div className="mt-6 flex items-end justify-between">
                 <div>
-                  <p className="font-mono-ui text-xs uppercase tracking-[0.14em] text-[var(--text-secondary)]">Confidence</p>
-                  <p className="mt-1 font-display text-4xl text-[var(--text-primary)]">{mood.score}</p>
-                </div>
-                <div className="cool-signal" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
+                  <LabLabel>Confidence</LabLabel>
+                  <p className="mt-1 font-serif text-4xl text-[var(--lab-ink)] font-semibold">{mood.score}</p>
                 </div>
               </div>
 
-              <p className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--bg-primary)]/40 px-3 py-2 text-sm text-[var(--text-primary)]/90">
+              <p className="mt-6 rounded-lg p-4 text-sm text-[var(--lab-ink)] shadow-[var(--shadow-extruded)] bg-[var(--lab-surface)]">
                 {mood.note}
               </p>
             </div>
           </div>
         </div>
-      </div>
+      </LabCard>
     </section>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { AnalysisMode } from "@/lib/types";
+import { LabCard, LabLabel } from "../lab";
 
 interface ModeToggleProps {
   value: AnalysisMode;
@@ -83,13 +84,12 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
 
   return (
     <div className="space-y-3">
-      <p id="processing-mode-label" className="font-ui k-text-heading">
+      <LabLabel id="processing-mode-label">
         Processing Mode
-      </p>
-      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="processing-mode-label">
+      </LabLabel>
+      <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label">
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
-          const isTouchFlashing = touchFlashMode === option.value;
 
           return (
             <button
@@ -98,33 +98,24 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
               aria-checked={isActive}
               type="button"
               disabled={disabled}
-              onTouchStart={() => {
-                if (!disabled) {
-                  triggerTouchFlash(option.value);
-                }
-              }}
               onClick={() => onChange(option.value)}
-              className={`k-radius-primary border p-3 text-left transition-transform duration-150 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
-                isTouchFlashing
-                  ? "bg-[var(--bg-elevated)]"
-                  : ""
-              } ${
+              className={`p-4 text-left transition-[box-shadow,background-color] duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 rounded-2xl ${
                 isActive
-                  ? "border-[var(--gold-primary)] bg-[var(--bg-elevated)]"
-                  : "k-border-ui bg-[var(--bg-surface)]"
-              } ${disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
+                  ? "shadow-[var(--shadow-pressed)] bg-[var(--lab-surface)] text-[var(--lab-ink)]"
+                  : "shadow-[var(--shadow-extruded)] bg-[var(--lab-surface)] text-[var(--lab-muted)] hover:text-[var(--lab-ink)] hover:shadow-[var(--shadow-pressed)]"
+              } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
             >
-              <p className={`font-ui k-text-heading flex items-center gap-2 ${isActive ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
+              <p className="font-sans font-semibold text-sm flex items-center gap-2">
                 {option.icon}
                 {option.label}
               </p>
-              <p className={`font-ui mt-1 ${isActive ? "text-[var(--text-primary)]" : "k-text-helper"}`}>{option.description}</p>
+              <p className="font-sans text-xs mt-2 opacity-80">{option.description}</p>
+
               <span
                 aria-hidden
-                className="mt-2 block h-px origin-left bg-[var(--gold-primary)] transition-[transform,opacity] duration-150"
+                className="mt-3 block h-px origin-left bg-[var(--lab-gold)] transition-transform duration-200"
                 style={{
                   transform: isActive ? "scaleX(1)" : "scaleX(0)",
-                  opacity: isActive ? 1 : 0,
                 }}
               />
             </button>

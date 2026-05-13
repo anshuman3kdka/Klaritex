@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { CommitmentElement } from "@/lib/types";
-import { CollapsibleCard } from "./CollapsibleCard";
+import { LabCard, LabLabel, LabWell, LabPill } from "../lab";
 
 interface ExposureCheckProps {
   elements: CommitmentElement[];
@@ -164,10 +164,8 @@ export function ExposureCheck({ elements }: ExposureCheckProps) {
   }, [lockedInCount, missingCount, total, unclearCount]);
 
   return (
-    <CollapsibleCard title="Module 3 · Exposure Check" moduleId="module-3">
-      <p className="font-ui text-sm text-[var(--text-secondary)]">
-        This module lists what is clearly committed versus what stays unclear or missing.
-      </p>
+    <LabCard className="p-6">
+      <LabLabel className="mb-6 block">Module 3 · Exposure Check</LabLabel>
 
       <div className="relative mt-4 flex justify-center">
         <svg width={CHART_SIZE} height={CHART_SIZE} viewBox={`0 0 ${CHART_SIZE} ${CHART_SIZE}`} role="img" aria-label="Exposure radar chart">
@@ -178,7 +176,7 @@ export function ExposureCheck({ elements }: ExposureCheckProps) {
               cy={CENTER}
               r={RADIUS * ring}
               fill="none"
-              stroke="rgba(255,255,255,0.05)"
+              stroke="var(--lab-shadow-dark)"
               strokeWidth={1}
             />
           ))}
@@ -192,7 +190,7 @@ export function ExposureCheck({ elements }: ExposureCheckProps) {
                 y1={CENTER}
                 x2={CENTER + axisTip[0]}
                 y2={CENTER + axisTip[1]}
-                stroke="rgba(201,168,76,0.15)"
+                stroke="var(--lab-shadow-dark)"
                 strokeWidth={1}
               />
             );
@@ -228,7 +226,7 @@ export function ExposureCheck({ elements }: ExposureCheckProps) {
               textAnchor="middle"
               dominantBaseline="middle"
               onClick={() => setActiveTooltip({ text: `${point.name}: ${statusLabels[point.status]} — ${point.penalty} pts`, x: point.labelX, y: point.labelY - 18 })}
-              style={{ cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "10px", fill: "rgba(232,237,245,0.6)" }}
+              style={{ cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "10px", fill: "var(--lab-muted)" }}
             >
               {point.name}
             </text>
@@ -238,7 +236,7 @@ export function ExposureCheck({ elements }: ExposureCheckProps) {
         {activeTooltip ? (
           <button
             type="button"
-            className="absolute rounded-md border border-[var(--border)] bg-[var(--bg-elevated)]/95 px-2 py-1 font-mono-ui text-[10px] text-[var(--text-primary)]"
+            className="absolute shadow-[var(--shadow-extruded)] rounded-[8px] bg-[var(--lab-surface)] px-2 py-1 font-mono text-[10px] text-[var(--lab-ink)]"
             style={{ left: activeTooltip.x, top: activeTooltip.y, transform: "translate(-50%, -100%)" }}
             onClick={() => setActiveTooltip(null)}
           >
@@ -247,34 +245,25 @@ export function ExposureCheck({ elements }: ExposureCheckProps) {
         ) : null}
       </div>
 
-      <div className="mt-2">
-        <p className="k-module-label mb-2">Distribution</p>
-        <div className="flex h-2.5 overflow-hidden rounded-full bg-[var(--bg-primary)]">
-          <div ref={(node) => { barSegmentRefs.current[0] = node; }} className="bg-[var(--clear-color)]" style={{ width: "0%" }} />
-          <div ref={(node) => { barSegmentRefs.current[1] = node; }} className="bg-[var(--broad-color)]" style={{ width: "0%" }} />
-          <div ref={(node) => { barSegmentRefs.current[2] = node; }} className="bg-[var(--missing-color)]" style={{ width: "0%" }} />
+      <div className="mt-8">
+        <LabLabel className="mb-2 block">Distribution</LabLabel>
+        <div className="flex h-3 overflow-hidden rounded-full shadow-[var(--shadow-pressed)] bg-[var(--lab-surface)]">
+          <div ref={(node) => { barSegmentRefs.current[0] = node; }} className="bg-[var(--lab-green)]" style={{ width: "0%" }} />
+          <div ref={(node) => { barSegmentRefs.current[1] = node; }} className="bg-[var(--lab-amber)]" style={{ width: "0%" }} />
+          <div ref={(node) => { barSegmentRefs.current[2] = node; }} className="bg-[var(--lab-red)]" style={{ width: "0%" }} />
         </div>
       </div>
 
-      <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {items.map((item) => (
-          <li key={`${item.name}-${item.status}`} className="rounded-md bg-[var(--bg-elevated)]/45 px-2 py-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="font-ui text-[11px] text-[var(--text-secondary)]">{item.name}</p>
-              <p className="font-mono-ui inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-[var(--text-secondary)]/80">
-                <span className={`h-1.5 w-1.5 rounded-full ${
-                  item.status === "clear"
-                    ? "bg-[var(--clear-color)]"
-                    : item.status === "broad"
-                      ? "bg-[var(--broad-color)]"
-                      : "bg-[var(--missing-color)]"
-                }`} />
-                {statusLabels[item.status]}
-              </p>
-            </div>
+          <li key={`${item.name}-${item.status}`}>
+            <LabWell className="flex items-center justify-between gap-2 p-2 px-3">
+              <span className="font-sans text-[11px] font-semibold text-[var(--lab-ink)]">{item.name}</span>
+              <LabPill status={statusLabels[item.status] as any} />
+            </LabWell>
           </li>
         ))}
       </ul>
-    </CollapsibleCard>
+    </LabCard>
   );
 }

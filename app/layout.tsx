@@ -1,5 +1,27 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { Playfair_Display, DM_Mono, Inter } from "next/font/google";
 import "./globals.css";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  variable: "--font-serif",
+  display: "swap",
+});
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
@@ -41,14 +63,18 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }]
   },
-  manifest: "/site.webmanifest"
+  manifest: "/site.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#EBEFF5",
 };
 
 export default function RootLayout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${playfair.variable} ${dmMono.variable} ${inter.variable}`}>
       <body>
         <a href="#main-content" className="skip-link">
           Skip to main content

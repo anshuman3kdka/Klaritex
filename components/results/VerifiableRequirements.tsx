@@ -1,4 +1,4 @@
-import { CollapsibleCard } from "./CollapsibleCard";
+import { LabCard, LabLabel, LabWell } from "../lab";
 
 interface VerifiableRequirementsProps {
   verifiableRequirements?: string[];
@@ -8,20 +8,23 @@ export function VerifiableRequirements({ verifiableRequirements }: VerifiableReq
   const requirements = verifiableRequirements ?? null;
 
   return (
-    <CollapsibleCard title="Module 11 · Verifiable Requirements" moduleId="module-11">
+    <LabCard className="p-6">
+      <LabLabel className="mb-6 block">Module 11 · Verifiable Requirements</LabLabel>
       {!requirements ? (
-        <p className="font-ui k-radius-primary k-border-ui border-dashed bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">—</p>
+        <p className="font-mono text-sm text-[var(--lab-muted)]">—</p>
       ) : requirements.length === 0 ? (
-        <p className="font-ui k-radius-primary border border-[var(--clear-color)]/40 bg-[var(--clear-color)]/15 p-4 text-sm font-medium text-[var(--clear-color)]">
-          No additional requirements — this statement is fully verifiable.
-        </p>
+        <LabWell className="p-4 flex items-center justify-center min-h-[100px]">
+          <p className="font-sans text-sm font-semibold text-[var(--lab-green)] text-center">
+            No additional requirements — this statement is fully verifiable.
+          </p>
+        </LabWell>
       ) : (
-        <ul className="font-ui k-text-body list-disc space-y-2 pl-5">
+        <ul className="font-mono text-xs list-disc space-y-3 pl-5 text-[var(--lab-ink)]">
           {requirements.map((item, index) => (
-            <li key={`${item}-${index}`}>{item}</li>
+            <li key={`${item}-${index}`} className="leading-relaxed">{item}</li>
           ))}
         </ul>
       )}
-    </CollapsibleCard>
+    </LabCard>
   );
 }

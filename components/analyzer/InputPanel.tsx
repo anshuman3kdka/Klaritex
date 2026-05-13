@@ -7,6 +7,7 @@ import { PdfUpload } from "@/components/analyzer/PdfUpload";
 import { UrlInput, isValidHttpUrl } from "@/components/analyzer/UrlInput";
 import { ResultsPanel } from "@/components/results/ResultsPanel";
 import { generateAnalysisPdf } from "@/lib/report/generateAnalysisPdf";
+import { LabCard, LabWell, LabLabel, LabButton } from "../lab";
 import type { AnalysisMode, AnalysisResult, InputMode } from "@/lib/types";
 import type { ReportInputSource } from "@/lib/report/generateAnalysisPdf";
 import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
@@ -520,31 +521,14 @@ export function InputPanel({ intent, id }: InputPanelProps) {
 
   return (
     <>
-      <section id={id} className="k-card k-entrance-fade-down mx-auto w-full max-w-3xl p-4 sm:p-6" style={cardAnimationStyle}>
+      <LabCard id={id} className="k-entrance-fade-down mx-auto w-full max-w-3xl p-6 sm:p-8" style={cardAnimationStyle}>
         <div
           ref={tabListRef}
-          className="relative grid grid-cols-1 gap-2 border-b border-[var(--border)] pb-2 sm:grid-cols-3"
+          className="relative grid grid-cols-1 gap-2 sm:grid-cols-3 mb-6"
           role="tablist"
           aria-label="Input mode"
           onKeyDown={handleTabListKeyDown}
         >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute bottom-0 h-[2px] w-px origin-left bg-[var(--gold-primary)]"
-            style={{
-              transform: getIndicatorTransform(activeIndicatorStyle),
-              transition: "transform 180ms cubic-bezier(0.4, 0, 0.2, 1)",
-            }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute bottom-0 h-[2px] w-px origin-left bg-[var(--gold-primary)]"
-            style={{
-              transform: getIndicatorTransform(hoverIndicatorStyle),
-              opacity: hoverIndicatorStyle.visible ? 0.36 : 0,
-              transition: "transform 180ms cubic-bezier(0.4, 0, 0.2, 1), opacity 150ms ease",
-            }}
-          />
           {TABS.map((tab, index) => {
             const isActive = inputMode === tab.value;
 
@@ -560,31 +544,14 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                 id={`input-tab-${tab.value}`}
                 type="button"
                 onClick={() => handleTabSwitch(tab.value)}
-                onMouseEnter={() => {
-                  if (isActive || !tabListRef.current || !tabRefs.current[tab.value]) {
-                    return;
-                  }
-
-                  const containerRect = tabListRef.current.getBoundingClientRect();
-                  const tabRect = tabRefs.current[tab.value]!.getBoundingClientRect();
-
-                  setHoverIndicatorStyle({
-                    left: tabRect.left - containerRect.left,
-                    width: tabRect.width,
-                    visible: true,
-                  });
-                }}
-                onMouseLeave={() => {
-                  setHoverIndicatorStyle((previous) => ({ ...previous, visible: false }));
-                }}
                 style={tabAnimationStyle(index)}
-                className={`k-entrance-fade-down font-ui relative rounded-none border-b-2 px-2 py-3 text-left transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
+                className={`k-entrance-fade-down p-3 rounded-[8px] text-left transition-[box-shadow,color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 ${
                   isActive
-                    ? "border-[var(--gold-primary)] text-[var(--text-primary)]"
-                    : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    ? "shadow-[var(--shadow-pressed)] text-[var(--lab-gold)] bg-[var(--lab-surface)]"
+                    : "shadow-[var(--shadow-extruded)] text-[var(--lab-muted)] hover:text-[var(--lab-ink)] hover:shadow-[var(--shadow-pressed)]"
                 }`}
               >
-                <p className="font-medium flex items-center">
+                <p className="font-sans font-semibold text-sm flex items-center justify-center">
                   <span className={`mr-2 ${rotatingTab === tab.value ? "tab-icon-rotate" : ""}`} aria-hidden>
                     {tab.icon}
                   </span>
@@ -596,16 +563,16 @@ export function InputPanel({ intent, id }: InputPanelProps) {
         </div>
 
         <div
-          className={`mt-5 ${isResetShaking ? "clear-reset-shake" : ""}`}
+          className={`mt-6 ${isResetShaking ? "clear-reset-shake" : ""}`}
           role="tabpanel"
           id={`input-panel-${inputMode}`}
           aria-labelledby={`input-tab-${inputMode}`}
         >
           {inputMode === "text" ? (
             <>
-              <label htmlFor="klaritex-text-input" className="font-ui k-text-heading mb-2 block">
-                Text to analyze
-              </label>
+              <LabLabel className="mb-2 block">
+                <label htmlFor="klaritex-text-input">Text to analyze</label>
+              </LabLabel>
               <div
                 className={`overflow-hidden transition-[max-height] duration-300 ease-out md:max-h-none ${
                   isTextInputFocused ? "max-h-[200px] h-[200px]" : "max-h-[120px] h-[120px]"
@@ -638,19 +605,35 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                     placeholder="Paste a political statement, policy claim, corporate announcement, or any text you want analyzed..."
                     aria-invalid={textHasError}
                     aria-describedby={textHasError ? "klaritex-text-count klaritex-text-message" : "klaritex-text-count"}
-                    className={`font-ui k-radius-primary k-text-body h-full w-full border bg-[var(--bg-primary)] p-3 outline-none transition-[border-color,box-shadow,background-color] duration-200 disabled:cursor-not-allowed disabled:bg-[var(--bg-elevated)] md:h-auto ${
+                    className={`font-sans w-full bg-[var(--lab-surface)] p-4 outline-none transition-[box-shadow,background-color] duration-200 rounded-[8px] disabled:cursor-not-allowed disabled:opacity-50 ${
                       textHasError
-                        ? "border-[var(--missing-color)] focus-visible:border-[var(--missing-color)] focus-visible:ring-2 focus-visible:ring-[var(--missing-color)]/35 focus-visible:shadow-[0_0_0_4px_rgba(220,76,100,0.16)]"
-                        : "k-border-ui focus-visible:border-[var(--gold-primary)] focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/25 focus-visible:shadow-[0_0_0_4px_rgba(201,168,76,0.14)]"
+                        ? "shadow-[var(--shadow-pressed)] ring-2 ring-[var(--lab-red)]"
+                        : "shadow-[var(--shadow-pressed)] focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50"
                     }`}
+                    style={{ resize: "vertical", minHeight: "160px" }}
                   />
-                  <p
-                    id="klaritex-text-count"
-                    className={`font-mono-ui mt-2 shrink-0 text-sm leading-5 ${isNearLimit ? "text-[var(--tier2-color)]" : "text-[var(--text-secondary)]"}`}
-                  >
-                    {textInput.length.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()}
-                    {isNearLimit && " (approaching limit)"}
-                  </p>
+                  <div className="flex justify-between items-center mt-2">
+                    <p
+                      id="klaritex-text-count"
+                      className={`font-mono text-xs ${isNearLimit ? "text-[var(--lab-amber)]" : "text-[var(--lab-muted)]"}`}
+                    >
+                      {textInput.length.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()}
+                      {isNearLimit && " (approaching limit)"}
+                    </p>
+                    {textInput.length > 0 && !isAnalyzing && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTextInput("");
+                          setErrorMessage(null);
+                        }}
+                        className="font-sans text-xs font-semibold text-[var(--lab-muted)] hover:text-[var(--lab-red)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-red)]/50 rounded-sm"
+                        aria-label="Clear text input"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </>
@@ -681,74 +664,77 @@ export function InputPanel({ intent, id }: InputPanelProps) {
           ) : null}
         </div>
 
+        <div className="mt-8 mb-8">
+          <div className="h-px w-full bg-[var(--lab-shadow-dark)] opacity-20" />
+        </div>
+
         <div className="mt-6">
           <ModeToggle value={processingMode} onChange={setProcessingMode} disabled={isAnalyzing} />
         </div>
 
-        <div className="mt-6">
-          <button
-            type="button"
+        <div className="mt-8">
+          <LabButton
             onClick={handleAnalyze}
             disabled={!canAnalyze || analyzeButtonState === "complete"}
+            activeGlow={analyzeButtonState === "loading"}
             style={analyzeButtonAnimationStyle}
-            className={`k-entrance-scale-in analyze-button font-ui relative inline-flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-lg px-5 py-0 font-semibold transition-transform duration-100 ease-out sm:h-auto sm:py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 ${
-              isAnalyzePressed ? "scale-[0.97]" : "scale-100"
-            } ${
-              analyzeButtonState === "idle-active"
-                ? "analyze-button--idle-active"
-                : analyzeButtonState === "idle-disabled"
-                  ? "analyze-button--idle-disabled"
-                  : analyzeButtonState === "loading"
-                    ? "analyze-button--loading"
-                    : "analyze-button--complete"
-            }`}
+            className="w-full h-14"
           >
             {analyzeButtonState === "loading" ? (
-              <>
-                <span className="analyze-button__spinner" aria-hidden />
+              <div className="flex items-center justify-center gap-2">
+                <span className="analyze-button__spinner analyze-button__spinner--ink" />
                 <span>Analyzing...</span>
-              </>
+              </div>
             ) : analyzeButtonState === "complete" ? (
-              <>
+              <div className="flex items-center justify-center gap-2">
                 <span aria-hidden>✓</span>
                 <span>Done</span>
-              </>
+              </div>
             ) : (
               "Analyze"
             )}
-          </button>
+          </LabButton>
         </div>
 
         {analysisStateMessage && (
-          <p className="font-ui k-text-body mt-4 text-[var(--text-secondary)]" role="status" aria-live="polite">
+          <p className="font-sans mt-4 text-[var(--lab-muted)] text-center text-sm" role="status" aria-live="polite">
             {analysisStateMessage}
           </p>
         )}
+
         {lastResult && lastSource ? (
-          <div className="mt-4">
+          <div className="mt-6 flex justify-end">
             <button
               type="button"
               onClick={handleDownloadPdf}
               disabled={isGeneratingPdf}
-              className="font-ui k-radius-primary inline-flex items-center gap-2 border border-[var(--gold-primary)]/70 bg-[var(--bg-secondary)] px-4 py-2 text-sm font-medium text-[var(--text-primary)] transition hover:border-[var(--gold-primary)] hover:bg-[var(--bg-elevated)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="font-sans inline-flex items-center gap-2 text-sm text-[var(--lab-muted)] hover:text-[var(--lab-ink)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 rounded-sm"
             >
-              <span aria-hidden>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="k-icon-16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-              </span>
-              {isGeneratingPdf ? "Preparing PDF..." : "Download PDF Report"}
+              {isGeneratingPdf ? (
+                <>
+                  <span className="analyze-button__spinner analyze-button__spinner--muted" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Download Report
+                </>
+              )}
             </button>
           </div>
         ) : null}
@@ -757,14 +743,14 @@ export function InputPanel({ intent, id }: InputPanelProps) {
             id="klaritex-text-message"
             role={textHasError ? "alert" : "status"}
             aria-live={textHasError ? "assertive" : "polite"}
-            className={`font-ui mt-2 min-h-5 text-sm leading-5 ${textHasError ? "text-[var(--missing-color)]" : "text-transparent"}`}
+            className={`font-sans mt-2 min-h-5 text-sm ${textHasError ? "text-[var(--lab-red)]" : "text-transparent"}`}
           >
             {errorMessage ?? "Text looks good."}
           </p>
         ) : null}
-      </section>
+      </LabCard>
 
-      <ResultsPanel result={lastResult} isLoading={isAnalyzing} />
+      <ResultsPanel result={lastResult} isLoading={isAnalyzing} sourceText={lastSource?.text} />
 
       <style jsx>{`
         .analyze-button {
@@ -807,13 +793,25 @@ export function InputPanel({ intent, id }: InputPanelProps) {
         }
 
         .analyze-button__spinner {
+          /* Small transparent arc keeps spinner motion visible on light neumorphic surfaces. */
+          --spinner-gap: 18%;
+          --spinner-thickness: 2px;
           width: 16px;
           height: 16px;
           border-radius: 9999px;
-          border: 2px solid #c9a84c;
-          border-top-color: transparent;
+          background: conic-gradient(from 0deg, transparent 0 var(--spinner-gap), currentColor var(--spinner-gap) 100%);
+          -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--spinner-thickness)), #000 calc(100% - var(--spinner-thickness)));
+          mask: radial-gradient(farthest-side, transparent calc(100% - var(--spinner-thickness)), #000 calc(100% - var(--spinner-thickness)));
           animation: spin 600ms linear infinite;
           z-index: 1;
+        }
+
+        .analyze-button__spinner--ink {
+          color: var(--lab-ink);
+        }
+
+        .analyze-button__spinner--muted {
+          color: var(--lab-muted);
         }
 
         @keyframes goldPulse {

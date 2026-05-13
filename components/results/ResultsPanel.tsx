@@ -9,6 +9,7 @@ import { ScrollRevealCard } from "@/components/results/ScrollRevealCard";
 import { UnanchoredClaims } from "@/components/results/UnanchoredClaims";
 import { VagueLines } from "@/components/results/VagueLines";
 import { VerifiableRequirements } from "@/components/results/VerifiableRequirements";
+import { ForensicInspector } from "@/components/results/ForensicInspector";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 import { APP_CONFIG } from "@/lib/config";
 import type { AnalysisResult, AmbiguityTier } from "@/lib/types";
@@ -19,6 +20,7 @@ import type { ReactNode } from "react";
 interface ResultsPanelProps {
   result?: AnalysisResult | null;
   isLoading?: boolean;
+  sourceText?: string;
 }
 
 type AmbientPreset = "green" | "amber" | "red";
@@ -74,11 +76,6 @@ const DynamicExposureCheck = dynamic(
   },
 );
 
-const DynamicDecorativeThreeBackground = dynamic(
-  () => import("@/components/results/DecorativeThreeBackground").then((module) => module.DecorativeThreeBackground),
-  { loading: () => null },
-);
-
 function ModuleLayer({ index, setActiveModuleIndex, children }: { index: number; setActiveModuleIndex: (index: number) => void; children: ReactNode }) {
   return (
     <div onMouseEnter={() => setActiveModuleIndex(index)} onFocus={() => setActiveModuleIndex(index)}>
@@ -120,7 +117,7 @@ const MODULE_PHASES = [
   { label: "Evidence Details", moduleIndexes: [9, 10, 11] },
 ] as const;
 
-export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
+export function ResultsPanel({ result, isLoading = false, sourceText }: ResultsPanelProps) {
   const resultKey = useMemo(() => (result ? "active" : "empty"), [result]);
   const [showSkeleton, setShowSkeleton] = useState(isLoading);
   const [animationKey, setAnimationKey] = useState(0);
@@ -292,19 +289,17 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
       {result ? (
         <section
           key={`${resultKey}-${animationKey}`}
-          className="results-panel-shell k-radius-primary relative mx-auto mt-6 w-full max-w-3xl overflow-hidden"
+          className="results-panel-shell relative mx-auto mt-6 w-full max-w-[1200px]"
           data-ambient-preset={ambientPreset}
           style={{ opacity: isLoading ? 0 : 1, transition: "opacity 400ms ease" }}
         >
-          <DynamicDecorativeThreeBackground
-            tier={result.tier}
-            activeModuleIndex={activeModuleIndex}
-            isEnabled={APP_CONFIG.enableResultsThreeBackground}
-          />
+          {/* Phase 4: Removed DynamicDecorativeThreeBackground for Laboratory White. */}
 
-          <div className="relative z-10 space-y-3 sm:space-y-4 md:space-y-5">
+          <div className="relative z-10 flex flex-col lg:grid lg:grid-cols-3 gap-6">
+            <ForensicInspector sourceText={sourceText} />
+
             <div
-              className="space-y-3 px-1"
+              className="flex flex-col gap-6 px-1 col-span-3 lg:col-span-3"
               role="group"
               aria-label={`Results navigation. Phase ${activePhaseIndex + 1} of ${totalPhases}.`}
               onKeyDown={(event) => {
@@ -327,7 +322,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      className="rounded-md border border-white/20 px-2 py-1 text-xs font-medium text-white transition hover:border-white/40 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                      className="rounded-md shadow-[var(--shadow-pressed)] px-2 py-1 text-xs font-medium text-white transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                       onClick={() => setIsExpandAllEnabled((current) => !current)}
                       aria-pressed={isExpandAllEnabled}
                       aria-label={isExpandAllEnabled ? "Collapse back to phased view" : "Expand all sections in one scrollable view"}
@@ -342,7 +337,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
                 <div className="flex items-center justify-between gap-2">
                   <button
                     type="button"
-                    className="rounded-md border border-white/20 px-3 py-1.5 text-sm text-white transition hover:border-white/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    className="rounded-md shadow-[var(--shadow-pressed)] px-3 py-1.5 text-sm text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                     onClick={() => goToPhase(activePhaseIndex - 1)}
                     disabled={isExpandAllEnabled || activePhaseIndex === 0}
                     aria-label={`Go to previous phase. Current phase is ${MODULE_PHASES[activePhaseIndex].label}.`}
@@ -351,7 +346,7 @@ export function ResultsPanel({ result, isLoading = false }: ResultsPanelProps) {
                   </button>
                   <button
                     type="button"
-                    className="rounded-md border border-white/20 px-3 py-1.5 text-sm text-white transition hover:border-white/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    className="rounded-md shadow-[var(--shadow-pressed)] px-3 py-1.5 text-sm text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                     onClick={() => goToPhase(activePhaseIndex + 1)}
                     disabled={isExpandAllEnabled || activePhaseIndex === totalPhases - 1}
                     aria-label={`Go to next phase. Current phase is ${MODULE_PHASES[activePhaseIndex].label}.`}
