@@ -82,21 +82,59 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
     };
   }, []);
 
+  const optionRefs = useRef<Record<AnalysisMode, HTMLButtonElement | null>>({
+    quick: null,
+    deep: null,
+  });
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (disabled) return;
+
+    const currentIndex = MODE_OPTIONS.findIndex((opt) => opt.value === value);
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault();
+      const nextOption = MODE_OPTIONS[(currentIndex + 1) % MODE_OPTIONS.length];
+      onChange(nextOption.value);
+      setTimeout(() => {
+        optionRefs.current[nextOption.value]?.focus();
+      }, 0);
+    }
+
+    if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const nextOption = MODE_OPTIONS[(currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length];
+      onChange(nextOption.value);
+      setTimeout(() => {
+        optionRefs.current[nextOption.value]?.focus();
+      }, 0);
+    }
+  }
+
   return (
     <div className="space-y-3">
       <LabLabel id="processing-mode-label">
         Processing Mode
       </LabLabel>
-      <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label">
+      <div
+        className="grid grid-cols-2 gap-4"
+        role="radiogroup"
+        aria-labelledby="processing-mode-label"
+        onKeyDown={handleKeyDown}
+      >
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
 
           return (
             <button
               key={option.value}
+              ref={(el) => {
+                optionRefs.current[option.value] = el;
+              }}
               role="radio"
               aria-checked={isActive}
               type="button"
+              tabIndex={isActive ? 0 : -1}
               disabled={disabled}
               onClick={() => onChange(option.value)}
               className={`p-4 text-left transition-[box-shadow,background-color] duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 rounded-2xl ${
