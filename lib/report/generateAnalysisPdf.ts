@@ -15,6 +15,11 @@ interface GenerateAnalysisReportOptions {
   processingMode: AnalysisMode;
 }
 
+interface TocEntry {
+  title: string;
+  page: number;
+}
+
 const PAGE_MARGIN = 14;
 const PAGE_WIDTH = 210;
 const PAGE_HEIGHT = 297;
@@ -408,6 +413,53 @@ function writeElementsTable(
   return y + 2;
 }
 
+function writeTableOfContents(doc: jsPDF, y: number, entries: TocEntry[]): number {
+  const blockHeight = 38;
+
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(PAGE_MARGIN, y, CONTENT_WIDTH, blockHeight, 3.5, 3.5, "F");
+
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(PAGE_MARGIN, y, CONTENT_WIDTH, blockHeight, 3.5, 3.5);
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...INK);
+  doc.setFontSize(12);
+  doc.text("Table of Contents", PAGE_MARGIN + 4, y + 8);
+
+  const lineStartY = y + 16;
+  const lineGap = 7;
+  const titleX = PAGE_MARGIN + 4;
+  const pageX = PAGE_MARGIN + CONTENT_WIDTH - 4;
+
+  entries.forEach((entry, index) => {
+    const lineY = lineStartY + index * lineGap;
+    const pageText = String(entry.page);
+    const pageTextWidth = doc.getTextWidth(pageText);
+    const gap = 2;
+    const dotsMaxWidth = pageX - pageTextWidth - gap - titleX;
+    const titleWidth = doc.getTextWidth(entry.title);
+    const remainingWidth = Math.max(0, dotsMaxWidth - titleWidth - gap);
+    const dotWidth = doc.getTextWidth(".");
+    const dotCount = Math.max(3, Math.floor(remainingWidth / Math.max(dotWidth, 0.1)));
+
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...SUBTLE);
+    doc.setFontSize(10.5);
+    doc.text(entry.title, titleX, lineY);
+    doc.text(".".repeat(dotCount), titleX + titleWidth + gap, lineY);
+    doc.text(pageText, pageX, lineY, { align: "right" });
+
+    doc.link(titleX, lineY - 4.2, CONTENT_WIDTH - 8, 5.2, {
+      pageNumber: entry.page,
+      top: 22,
+    });
+  });
+
+  return y + blockHeight;
+}
+
 function getClarityTone(clarityLevel: number): { label: string; color: [number, number, number] } {
   if (clarityLevel >= 8) {
     return { label: "High", color: GOOD };
@@ -562,6 +614,11 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   const doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
   const pageCounter = { value: 1 };
   const now = new Date();
+  const sectionStartPages = {
+    executiveSummary: 1,
+    inputAndEvidence: 1,
+    analysisDetails: 1,
+  };
 
   doc.setFillColor(...INK);
   doc.rect(0, 0, PAGE_WIDTH, 70, "F");
@@ -600,8 +657,17 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
   doc.text(`Input Type: ${source.mode.toUpperCase()}`, PAGE_MARGIN + 4, 72);
   doc.text(`Analysis Mode: ${modeLabel(processingMode)}`, PAGE_MARGIN + 4, 78);
 
+  sectionStartPages.executiveSummary = pageCounter.value;
   addPageChrome(doc, "Executive Summary", pageCounter.value);
   let y = 91;
+
+  y = writeTableOfContents(doc, y, [
+    { title: "Executive Summary", page: sectionStartPages.executiveSummary },
+    { title: "Input & Evidence", page: sectionStartPages.inputAndEvidence },
+    { title: "Analysis Details", page: sectionStartPages.analysisDetails },
+  ]);
+  y += 8;
+
   y = writeKpiDashboard(doc, y, result);
   y += 8;
 
@@ -621,6 +687,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
 
   doc.addPage();
   pageCounter.value += 1;
+  sectionStartPages.inputAndEvidence = pageCounter.value;
   addPageChrome(doc, "Input & Evidence", pageCounter.value);
   y = 31;
 
@@ -648,6 +715,7 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
 
   doc.addPage();
   pageCounter.value += 1;
+  sectionStartPages.analysisDetails = pageCounter.value;
   addPageChrome(doc, "Analysis Details", pageCounter.value);
   y = 31;
 
@@ -704,6 +772,15 @@ export function generateAnalysisPdf({ result, source, processingMode }: Generate
       pageCounter
     );
   }
+
+  const currentPage = pageCounter.value;
+  doc.setPage(1);
+  writeTableOfContents(doc, 91, [
+    { title: "Executive Summary", page: sectionStartPages.executiveSummary },
+    { title: "Input & Evidence", page: sectionStartPages.inputAndEvidence },
+    { title: "Analysis Details", page: sectionStartPages.analysisDetails },
+  ]);
+  doc.setPage(currentPage);
 
   doc.save(buildAnalysisReportFileName(source, now));
 }
