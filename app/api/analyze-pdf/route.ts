@@ -68,6 +68,10 @@ export async function POST(request: Request) {
     return secureJsonResponse({ error: "Invalid file type. PDF required." }, { status: 415 });
   }
 
+  if (file.size === 0) {
+    return secureJsonResponse({ error: "Empty PDF files are not allowed." }, { status: 422 });
+  }
+
   if (!isValidMode(mode)) {
     return secureJsonResponse({ error: "Mode must be 'quick' or 'deep'." }, { status: 400 });
   }
@@ -75,10 +79,6 @@ export async function POST(request: Request) {
   // 10MB limit to prevent Memory Exhaustion DoS
   if (file.size > 10 * 1024 * 1024) {
     return secureJsonResponse({ error: "File too large. Maximum size is 10MB." }, { status: 413 });
-  }
-
-  if (file.size === 0) {
-    return secureJsonResponse({ error: "Empty PDF files are not allowed." }, { status: 422 });
   }
 
   try {
