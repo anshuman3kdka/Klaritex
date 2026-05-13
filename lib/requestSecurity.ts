@@ -96,7 +96,7 @@ export function secureJsonResponse(
 ): NextResponse {
   const response = NextResponse.json(payload, init);
 
-  response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  response.headers.set("Cache-Control", "no-store");
   response.headers.set("Pragma", "no-cache");
   response.headers.set("Expires", "0");
   response.headers.set("X-Content-Type-Options", "nosniff");

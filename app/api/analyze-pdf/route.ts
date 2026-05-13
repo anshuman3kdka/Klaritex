@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     return secureJsonResponse({ error: "PDF file is required." }, { status: 400 });
   }
 
-  if ((file.type && file.type !== "application/pdf") || !file.name.toLowerCase().endsWith(".pdf")) {
+  if (file.type && file.type !== "application/pdf") {
     return secureJsonResponse({ error: "Invalid file type. PDF required." }, { status: 415 });
   }
 

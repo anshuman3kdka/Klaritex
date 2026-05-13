@@ -46,10 +46,16 @@ function runInMemoryFallbackRateLimit(identifier: string): { allowed: boolean; r
       }
     }
 
-    while (fallbackStore.size > FALLBACK_MAX_IDENTIFIERS) {
-      const firstKey = fallbackStore.keys().next().value;
-      if (!firstKey) break;
-      fallbackStore.delete(firstKey);
+    const overflow = fallbackStore.size - FALLBACK_MAX_IDENTIFIERS;
+    if (overflow > 0) {
+      const keysToDelete = fallbackStore.keys();
+      for (let i = 0; i < overflow; i += 1) {
+        const next = keysToDelete.next();
+        if (next.done) {
+          break;
+        }
+        fallbackStore.delete(next.value);
+      }
     }
   }
 
