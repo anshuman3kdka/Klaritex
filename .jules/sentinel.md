@@ -26,3 +26,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2024-05-14 - SSRF Time-of-Check Time-of-Use (TOCTOU) via node-fetch
+**Vulnerability:** A TOCTOU vulnerability existed in `lib/extractUrl.ts` where DNS resolution and IP blocklist checking were performed *before* passing the URL to `node-fetch`. An attacker could exploit this via DNS rebinding, having a legitimate IP initially, then swapping it to an internal IP (like `127.0.0.1`) just before `fetch` connects.
+**Learning:** Checking a hostname's IP prior to passing the hostname to an HTTP client library does not prevent SSRF. The HTTP client will perform its own separate DNS resolution at the exact time of connection.
+**Prevention:** Always enforce IP blocking by overriding the `lookup` function at the network transport layer, passing a custom HTTP/HTTPS agent directly to `fetch` (e.g., using `http.Agent` and `https.Agent` with `dns.lookup` wrapped in validation logic).

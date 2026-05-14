@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio";
-import { lookup } from "node:dns/promises";
+import * as dns from "node:dns";
+import * as http from "node:http";
+import * as https from "node:https";
 import { isIP } from "node:net";
 import fetch from "node-fetch";
 
@@ -126,6 +128,37 @@ function isBlockedIpAddress(address: string): boolean {
   );
 }
 
+function secureLookup(
+  hostname: string,
+  options: dns.LookupOptions,
+  callback: (err: NodeJS.ErrnoException | null, address: any, family: number) => void
+) {
+  dns.lookup(hostname, options, (err, address, family) => {
+    if (err) {
+      return callback(err, address as any, family);
+    }
+
+    const addresses = Array.isArray(address)
+      ? address.map((a) => a.address)
+      : [address];
+
+    for (const ip of addresses) {
+      if (typeof ip === "string" && isBlockedIpAddress(ip)) {
+        return callback(
+          new Error("Could not fetch content from URL."),
+          address as any,
+          family
+        );
+      }
+    }
+
+    callback(null, address, family);
+  });
+}
+
+const httpAgent = new http.Agent({ lookup: secureLookup as any });
+const httpsAgent = new https.Agent({ lookup: secureLookup as any });
+
 function isSafeUrl(urlString: string): boolean {
   try {
     const url = new URL(urlString);
@@ -162,21 +195,6 @@ function isSafeUrl(urlString: string): boolean {
   }
 }
 
-async function assertPublicDnsResolution(urlString: string): Promise<void> {
-  const url = new URL(urlString);
-  const records = await lookup(url.hostname, { all: true });
-
-  if (!records.length) {
-    throw new UrlExtractionError("Could not fetch content from URL.");
-  }
-
-  for (const record of records) {
-    if (isBlockedIpAddress(record.address)) {
-      throw new UrlExtractionError("Could not fetch content from URL.");
-    }
-  }
-}
-
 async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
   let currentUrl = initialUrl;
 
@@ -184,13 +202,13 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
     if (!isSafeUrl(currentUrl)) {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
-    await assertPublicDnsResolution(currentUrl);
 
     const response = await fetch(currentUrl, {
       method: "GET",
       redirect: "manual",
       size: 5 * 1024 * 1024, // 5MB limit to prevent memory exhaustion DoS
       signal: AbortSignal.timeout(8000),
+      agent: (parsedUrl) => (parsedUrl.protocol === "http:" ? httpAgent : httpsAgent),
     });
 
     const status = response.status;
