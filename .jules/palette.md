@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-05-15 - Arrow Key Navigation & Roving Tabindex for Custom Primitives
+**Learning:** Custom generic components with roles `radiogroup` and `tablist` require manual Arrow key navigation (via `onKeyDown`) and a roving tabindex logic (`tabIndex={isActive ? 0 : -1}`). Without these, all items may enter the sequential tab order (which is wrong), and screen readers/keyboard users won't be able to switch active items. In addition, static relationships like `aria-controls` for tabs must map precisely to the target panel IDs rather than changing dynamically to the active element.
+**Action:** Always implement roving tabindex (`tabIndex={isActive ? 0 : -1}`) and attach `onKeyDown` listeners to handle arrow keys when building `tablist` or `radiogroup` with generic buttons. Use `setTimeout` for focusing element refs after state updates to ensure the DOM is flushed.
