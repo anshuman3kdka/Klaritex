@@ -2,6 +2,9 @@ import * as cheerio from "cheerio";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 import fetch from "node-fetch";
+import * as dns from "node:dns";
+import * as http from "node:http";
+import * as https from "node:https";
 
 const MAX_REDIRECT_HOPS = 2;
 
@@ -126,6 +129,37 @@ function isBlockedIpAddress(address: string): boolean {
   );
 }
 
+function safeLookup(
+  hostname: string,
+  options: dns.LookupOptions,
+  callback: (err: NodeJS.ErrnoException | null, address: any, family: number) => void
+) {
+  // Use all: true to fetch all IP addresses to prevent DNS rebinding where
+  // a safe IP is checked, but a blocked IP is connected to.
+  const lookupOptions = { ...options, all: true };
+  dns.lookup(hostname, lookupOptions, (err, address, family) => {
+    if (err) {
+      return callback(err, address as any, family);
+    }
+
+    const addresses = Array.isArray(address) ? address : [{ address }];
+    for (const { address: ip } of addresses) {
+      if (isBlockedIpAddress(ip)) {
+        return callback(new Error("Blocked IP address"), address as any, family);
+      }
+    }
+
+    if (options.all) {
+      callback(null, address as any, family);
+    } else {
+      callback(null, addresses[0].address as any, addresses[0].family);
+    }
+  });
+}
+
+const httpAgent = new http.Agent({ lookup: safeLookup });
+const httpsAgent = new https.Agent({ lookup: safeLookup });
+
 function isSafeUrl(urlString: string): boolean {
   try {
     const url = new URL(urlString);
@@ -184,13 +218,19 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
     if (!isSafeUrl(currentUrl)) {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
-    await assertPublicDnsResolution(currentUrl);
 
     const response = await fetch(currentUrl, {
       method: "GET",
       redirect: "manual",
       size: 5 * 1024 * 1024, // 5MB limit to prevent memory exhaustion DoS
       signal: AbortSignal.timeout(8000),
+      agent: function (_parsedUrl: URL) {
+        if (_parsedUrl.protocol === "http:") {
+          return httpAgent;
+        } else {
+          return httpsAgent;
+        }
+      },
     });
 
     const status = response.status;
