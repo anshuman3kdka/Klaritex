@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-05-16 - Roving Tabindex and Focus Timing in Custom ARIA Components
+**Learning:** When building custom ARIA components (like `tablist` or `radiogroup`), inactive items must be explicitly removed from the sequential tab order using `tabIndex={-1}` to implement correct roving tabindex behavior. Furthermore, when using React to update state and programmatically focus the newly active item via `ref.current.focus()`, the focus call often fails if not wrapped in a `setTimeout(..., 0)` because the DOM update from the state change hasn't fully flushed yet.
+**Action:** Always assign `tabIndex={isActive ? 0 : -1}` to custom ARIA items. When handling arrow key navigation that changes the active item and requires immediate programmatic focus, wrap the focus call in `setTimeout(() => { ref.current?.focus(); }, 0)`.
