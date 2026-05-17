@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Roving TabIndex and Timeout Focus
+**Learning:** Custom components with WAI-ARIA roles like `radiogroup` composed of generic `button` elements default to having all items in the tab order unless a roving `tabIndex` is manually managed. Furthermore, programmatically focusing a newly selected option immediately after a React state change (`onChange`) can fail because the DOM hasn't flushed.
+**Action:** Always implement a roving tabIndex (`tabIndex={isActive ? 0 : -1}`) so only the active element is focusable via Tab. Add keyboard event listeners on the parent for Arrow keys, and wrap programmatic `.focus()` calls in `setTimeout(..., 0)` to guarantee the element is ready in the DOM.
