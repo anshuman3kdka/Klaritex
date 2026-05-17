@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio";
-import { lookup } from "node:dns/promises";
+import * as http from "node:http";
+import * as https from "node:https";
+import dns from "node:dns";
 import { isIP } from "node:net";
 import fetch from "node-fetch";
 
@@ -162,20 +164,33 @@ function isSafeUrl(urlString: string): boolean {
   }
 }
 
-async function assertPublicDnsResolution(urlString: string): Promise<void> {
-  const url = new URL(urlString);
-  const records = await lookup(url.hostname, { all: true });
+const safeLookup = (
+  hostname: string,
+  options: dns.LookupOptions,
+  callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void
+) => {
+  dns.lookup(hostname, { ...options, all: true }, (err, addresses) => {
+    if (err) return callback(err, "", 0);
 
-  if (!records.length) {
-    throw new UrlExtractionError("Could not fetch content from URL.");
-  }
-
-  for (const record of records) {
-    if (isBlockedIpAddress(record.address)) {
-      throw new UrlExtractionError("Could not fetch content from URL.");
+    if (Array.isArray(addresses)) {
+      for (const record of addresses) {
+        if (isBlockedIpAddress(record.address)) {
+          return callback(new Error("Blocked IP address detected during resolution"), "", 0);
+        }
+      }
+      if (addresses.length > 0) {
+        callback(null, addresses[0].address, addresses[0].family || 4);
+      } else {
+        callback(new Error("No addresses resolved"), "", 0);
+      }
+    } else {
+      callback(new Error("Unexpected DNS resolution format"), "", 0);
     }
-  }
-}
+  });
+};
+
+const httpAgent = new http.Agent({ lookup: safeLookup as any });
+const httpsAgent = new https.Agent({ lookup: safeLookup as any });
 
 async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
   let currentUrl = initialUrl;
@@ -184,13 +199,14 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
     if (!isSafeUrl(currentUrl)) {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
-    await assertPublicDnsResolution(currentUrl);
 
+    const isHttps = currentUrl.startsWith("https:");
     const response = await fetch(currentUrl, {
       method: "GET",
       redirect: "manual",
       size: 5 * 1024 * 1024, // 5MB limit to prevent memory exhaustion DoS
       signal: AbortSignal.timeout(8000),
+      agent: isHttps ? httpsAgent : httpAgent,
     });
 
     const status = response.status;
