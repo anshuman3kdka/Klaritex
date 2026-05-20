@@ -3,6 +3,7 @@ import path from "path";
 import matter from "gray-matter";
 import { remark } from "remark";
 import html from "remark-html";
+import * as cheerio from "cheerio";
 
 const POSTS_DIR = path.join(process.cwd(), "content/posts");
 
@@ -44,6 +45,57 @@ function normalizeMeta(data: Record<string, unknown>, filename: string): PostMet
   return { title, date, slug, excerpt, published };
 }
 
+function sanitizeHtml(rawHtml: string): string {
+  const $ = cheerio.load(rawHtml, null, false);
+
+  // Sentinel: Mitigate XSS attacks by removing inherently dangerous tags from user-provided Markdown.
+  const dangerousTags = ['script', 'iframe', 'object', 'embed', 'form', 'base', 'math'];
+  dangerousTags.forEach(tag => $(tag).remove());
+
+  // Sentinel: Remove any attribute starting with 'on' to prevent inline event handler XSS payloads (e.g. onerror, onclick).
+  $('*').each((_, el) => {
+    if (el.type === 'tag') {
+      const attribs = el.attribs;
+      for (const attr in attribs) {
+        if (attr.toLowerCase().startsWith('on')) {
+          $(el).removeAttr(attr);
+        }
+      }
+    }
+  });
+
+  // Sentinel: Enforce an allow-list for URL protocols in 'href' and 'src' to prevent javascript: and data: XSS payloads.
+  const isSafeUrl = (url: string | undefined) => {
+    if (!url) return false;
+    // Allow relative paths, fragments, and queries directly.
+    if (url.startsWith('/') || url.startsWith('#') || url.startsWith('?')) return true;
+    try {
+      // By passing a dummy base URL, we ensure valid relative URLs (like "image.png") parse successfully
+      // but won't change the protocol check (as the protocol will be 'http:' from the dummy base).
+      const parsed = new URL(url, 'http://localhost');
+      return ['http:', 'https:', 'mailto:', 'tel:'].includes(parsed.protocol);
+    } catch {
+      return false;
+    }
+  };
+
+  $('[href]').each((_, el) => {
+    const href = $(el).attr('href');
+    if (!isSafeUrl(href)) {
+      $(el).removeAttr('href');
+    }
+  });
+
+  $('[src]').each((_, el) => {
+    const src = $(el).attr('src');
+    if (!isSafeUrl(src)) {
+      $(el).removeAttr('src');
+    }
+  });
+
+  return $.html();
+}
+
 export function getAllPostMeta(): PostMeta[] {
   if (!fs.existsSync(POSTS_DIR)) return [];
   const files = fs.readdirSync(POSTS_DIR).filter((f) => f.endsWith(".md"));
@@ -70,7 +122,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     const meta = normalizeMeta(data as Record<string, unknown>, `${slug}.md`);
     if (meta.published && meta.slug === slug) {
       const processed = await remark().use(html).process(content);
-      return { ...meta, contentHtml: processed.toString() };
+      return { ...meta, contentHtml: sanitizeHtml(processed.toString()) };
     }
   }
   // Fall back to a linear scan for posts whose slug differs from their filename
@@ -81,7 +133,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     const meta = normalizeMeta(data as Record<string, unknown>, filename);
     if (meta.slug === slug && meta.published) {
       const processed = await remark().use(html).process(content);
-      return { ...meta, contentHtml: processed.toString() };
+      return { ...meta, contentHtml: sanitizeHtml(processed.toString()) };
     }
   }
   return null;
