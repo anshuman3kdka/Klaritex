@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 
 import type { AnalysisMode } from "@/lib/types";
 import { LabCard, LabLabel } from "../lab";
@@ -61,6 +62,48 @@ const MODE_OPTIONS: Array<{
 export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProps) {
   const [touchFlashMode, setTouchFlashMode] = useState<AnalysisMode | null>(null);
   const touchFlashTimeoutRef = useRef<number | null>(null);
+  const radioRefs = useRef<Record<AnalysisMode, HTMLButtonElement | null>>({
+    quick: null,
+    deep: null,
+  });
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (disabled) return;
+
+    const currentIndex = MODE_OPTIONS.findIndex((opt) => opt.value === value);
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault();
+      const nextOption = MODE_OPTIONS[(currentIndex + 1) % MODE_OPTIONS.length];
+      onChange(nextOption.value);
+      setTimeout(() => radioRefs.current[nextOption.value]?.focus(), 0);
+      return;
+    }
+
+    if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const nextOption = MODE_OPTIONS[(currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length];
+      onChange(nextOption.value);
+      setTimeout(() => radioRefs.current[nextOption.value]?.focus(), 0);
+      return;
+    }
+
+    if (event.key === "Home") {
+      event.preventDefault();
+      const nextOption = MODE_OPTIONS[0];
+      onChange(nextOption.value);
+      setTimeout(() => radioRefs.current[nextOption.value]?.focus(), 0);
+      return;
+    }
+
+    if (event.key === "End") {
+      event.preventDefault();
+      const nextOption = MODE_OPTIONS[MODE_OPTIONS.length - 1];
+      onChange(nextOption.value);
+      setTimeout(() => radioRefs.current[nextOption.value]?.focus(), 0);
+      return;
+    }
+  };
 
   const triggerTouchFlash = (mode: AnalysisMode) => {
     if (touchFlashTimeoutRef.current !== null) {
@@ -87,15 +130,24 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
       <LabLabel id="processing-mode-label">
         Processing Mode
       </LabLabel>
-      <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label">
+      <div
+        className="grid grid-cols-2 gap-4"
+        role="radiogroup"
+        aria-labelledby="processing-mode-label"
+        onKeyDown={handleKeyDown}
+      >
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
 
           return (
             <button
               key={option.value}
+              ref={(el) => {
+                radioRefs.current[option.value] = el;
+              }}
               role="radio"
               aria-checked={isActive}
+              tabIndex={isActive ? 0 : -1}
               type="button"
               disabled={disabled}
               onClick={() => onChange(option.value)}
