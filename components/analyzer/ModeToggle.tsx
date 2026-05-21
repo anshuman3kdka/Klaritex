@@ -74,6 +74,8 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
     }, 130);
   };
 
+  const groupRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     return () => {
       if (touchFlashTimeoutRef.current !== null) {
@@ -82,12 +84,48 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
     };
   }, []);
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (disabled) return;
+
+    let newIndex = MODE_OPTIONS.findIndex((opt) => opt.value === value);
+    if (newIndex === -1) newIndex = 0;
+
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      newIndex = (newIndex + 1) % MODE_OPTIONS.length;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      newIndex = (newIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length;
+    } else {
+      return;
+    }
+
+    const nextMode = MODE_OPTIONS[newIndex].value;
+    onChange(nextMode);
+
+    // Focus the new element in the DOM
+    setTimeout(() => {
+      if (groupRef.current) {
+        const activeBtn = groupRef.current.querySelector(`[data-mode="${nextMode}"]`) as HTMLButtonElement;
+        if (activeBtn) {
+          activeBtn.focus();
+        }
+      }
+    }, 0);
+  };
+
   return (
     <div className="space-y-3">
       <LabLabel id="processing-mode-label">
         Processing Mode
       </LabLabel>
-      <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label">
+      <div
+        className="grid grid-cols-2 gap-4"
+        role="radiogroup"
+        aria-labelledby="processing-mode-label"
+        ref={groupRef}
+        onKeyDown={handleKeyDown}
+      >
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
 
@@ -97,6 +135,8 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
               role="radio"
               aria-checked={isActive}
               type="button"
+              tabIndex={isActive ? 0 : -1}
+              data-mode={option.value}
               disabled={disabled}
               onClick={() => onChange(option.value)}
               className={`p-4 text-left transition-[box-shadow,background-color] duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 rounded-2xl ${
