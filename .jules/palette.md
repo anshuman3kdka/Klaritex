@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-17 - ModeToggle Arrow Key Navigation
+**Learning:** Custom generic components acting as radiogroups don't get free keyboard navigation. If all items are in the tab order (tabIndex=0), it makes navigating the form tedious. If only one is in the WAI-ARIA tab sequence and explicit arrow keys are missing, users can't change the selection with keys.
+**Action:** Always implement explicit roving tabIndex and use an `onKeyDown` handler for Arrow navigation on the radiogroup container to ensure standard WAI-ARIA interaction behavior.
