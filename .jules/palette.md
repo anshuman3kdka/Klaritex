@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Custom Tablist ARIA and Focus
+**Learning:** Custom tablist implementations need static `aria-controls` bindings (to the tab's specific panel, not the active panel). When programmatically focusing a tab via keyboard navigation that triggers a React state change, focus can be lost.
+**Action:** Ensure `aria-controls` maps directly to the specific tab panel's ID, regardless of active state. Wrap programmatic `focus()` calls triggered by keyboard navigation in `setTimeout(..., 0)` to allow React to flush state updates before focusing.
