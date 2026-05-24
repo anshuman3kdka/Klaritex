@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio";
-import { lookup } from "node:dns/promises";
+import * as dns from "node:dns";
+import * as http from "node:http";
+import * as https from "node:https";
 import { isIP } from "node:net";
 import fetch from "node-fetch";
 
@@ -162,20 +164,32 @@ function isSafeUrl(urlString: string): boolean {
   }
 }
 
-async function assertPublicDnsResolution(urlString: string): Promise<void> {
-  const url = new URL(urlString);
-  const records = await lookup(url.hostname, { all: true });
 
-  if (!records.length) {
-    throw new UrlExtractionError("Could not fetch content from URL.");
-  }
-
-  for (const record of records) {
-    if (isBlockedIpAddress(record.address)) {
-      throw new UrlExtractionError("Could not fetch content from URL.");
+const safeLookup = (
+  hostname: string,
+  options: dns.LookupOneOptions,
+  callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void
+) => {
+  dns.lookup(hostname, { ...options, all: true }, (err, addresses) => {
+    if (err) {
+      return callback(err, "", 0);
     }
-  }
-}
+    if (!addresses || addresses.length === 0) {
+      return callback(new Error("Could not resolve hostname"), "", 0);
+    }
+    for (const record of addresses) {
+      if (isBlockedIpAddress(record.address)) {
+        return callback(new Error("Blocked IP address"), "", 0);
+      }
+    }
+    const first = addresses[0]!;
+    callback(null, first.address, first.family || 4);
+  });
+};
+
+const httpAgent = new http.Agent({ lookup: safeLookup as any });
+const httpsAgent = new https.Agent({ lookup: safeLookup as any });
+
 
 async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
   let currentUrl = initialUrl;
@@ -184,9 +198,8 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
     if (!isSafeUrl(currentUrl)) {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
-    await assertPublicDnsResolution(currentUrl);
-
     const response = await fetch(currentUrl, {
+      agent: (parsedURL: URL) => parsedURL.protocol === 'http:' ? httpAgent : httpsAgent,
       method: "GET",
       redirect: "manual",
       size: 5 * 1024 * 1024, // 5MB limit to prevent memory exhaustion DoS
