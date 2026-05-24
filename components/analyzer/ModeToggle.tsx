@@ -61,6 +61,7 @@ const MODE_OPTIONS: Array<{
 export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProps) {
   const [touchFlashMode, setTouchFlashMode] = useState<AnalysisMode | null>(null);
   const touchFlashTimeoutRef = useRef<number | null>(null);
+  const radiogroupRef = useRef<HTMLDivElement>(null);
 
   const triggerTouchFlash = (mode: AnalysisMode) => {
     if (touchFlashTimeoutRef.current !== null) {
@@ -82,21 +83,58 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
     };
   }, []);
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (disabled) return;
+
+    let nextIndex = -1;
+    const currentIndex = MODE_OPTIONS.findIndex((opt) => opt.value === value);
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault();
+      nextIndex = (currentIndex + 1) % MODE_OPTIONS.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault();
+      nextIndex = (currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length;
+    }
+
+    if (nextIndex !== -1) {
+      const nextValue = MODE_OPTIONS[nextIndex].value;
+      onChange(nextValue);
+
+      setTimeout(() => {
+        const nextButton = radiogroupRef.current?.querySelector(
+          `button[data-value="${nextValue}"]`
+        ) as HTMLButtonElement | null;
+        if (nextButton) {
+          nextButton.focus();
+        }
+      }, 0);
+    }
+  };
+
   return (
     <div className="space-y-3">
       <LabLabel id="processing-mode-label">
         Processing Mode
       </LabLabel>
-      <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label">
+      <div
+        ref={radiogroupRef}
+        className="grid grid-cols-2 gap-4"
+        role="radiogroup"
+        aria-labelledby="processing-mode-label"
+        onKeyDown={handleKeyDown}
+      >
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
 
           return (
             <button
               key={option.value}
+              data-value={option.value}
               role="radio"
               aria-checked={isActive}
               type="button"
+              tabIndex={isActive ? 0 : -1}
               disabled={disabled}
               onClick={() => onChange(option.value)}
               className={`p-4 text-left transition-[box-shadow,background-color] duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 rounded-2xl ${
