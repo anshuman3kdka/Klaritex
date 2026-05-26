@@ -1,7 +1,10 @@
 import * as cheerio from "cheerio";
 import { lookup } from "node:dns/promises";
+import { lookup as dnsLookup } from "node:dns";
 import { isIP } from "node:net";
 import fetch from "node-fetch";
+import http from "node:http";
+import https from "node:https";
 
 const MAX_REDIRECT_HOPS = 2;
 
@@ -162,6 +165,37 @@ function isSafeUrl(urlString: string): boolean {
   }
 }
 
+function _safeLookup(
+  hostname: string,
+  options: any,
+  callback: (err: NodeJS.ErrnoException | null, address: string | any[] | any, family: number) => void
+): void {
+  dnsLookup(hostname, { ...options, all: true }, (err, addresses) => {
+    if (err) {
+      return callback(err, "", 0);
+    }
+
+    // Check all resolved addresses for blocked IPs
+    for (const record of addresses) {
+      if (isBlockedIpAddress(record.address)) {
+        const error = new Error("Could not fetch content from URL.");
+        (error as any).code = "ENOTFOUND"; // Simulate DNS failure
+        return callback(error as NodeJS.ErrnoException, "", 0);
+      }
+    }
+
+    // If caller requested `all: true`, return the array
+    if (options.all) {
+      return callback(null, addresses as any, 0);
+    }
+    // Otherwise return single address
+    callback(null, addresses[0].address, addresses[0].family || 4);
+  });
+}
+
+const httpAgent = new http.Agent({ lookup: _safeLookup as any });
+const httpsAgent = new https.Agent({ lookup: _safeLookup as any });
+
 async function assertPublicDnsResolution(urlString: string): Promise<void> {
   const url = new URL(urlString);
   const records = await lookup(url.hostname, { all: true });
@@ -184,6 +218,7 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
     if (!isSafeUrl(currentUrl)) {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
+    // Still perform an initial sanity check, though safeLookup provides the real TOCTOU protection
     await assertPublicDnsResolution(currentUrl);
 
     const response = await fetch(currentUrl, {
@@ -191,6 +226,7 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
       redirect: "manual",
       size: 5 * 1024 * 1024, // 5MB limit to prevent memory exhaustion DoS
       signal: AbortSignal.timeout(8000),
+      agent: (parsedURL) => parsedURL.protocol === 'http:' ? httpAgent : httpsAgent,
     });
 
     const status = response.status;
