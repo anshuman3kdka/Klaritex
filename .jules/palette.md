@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Keyboard Navigation for Custom Tabs and Radios
+**Learning:** Custom UI components that manage sequential items (e.g. `role="tablist"` or `role="radiogroup"`) need explicit logic to ensure WAI-ARIA compliance. Simply using buttons and a `role` attribute is not enough: keyboard focus needs to travel properly using Arrow keys, and inactive items need to be removed from the sequential tab order (`tabIndex={-1}`) while active ones remain (`tabIndex={0}`). Furthermore, when programmatically setting focus, using `setTimeout(..., 0)` is necessary to ensure the DOM has painted before moving focus.
+**Action:** When implementing custom composite widgets (like tabs and radios), ensure a roving `tabIndex` is used, and explicitly handle `ArrowRight`, `ArrowLeft`, `ArrowDown`, and `ArrowUp` to change the active value and shift focus using `setTimeout`.
