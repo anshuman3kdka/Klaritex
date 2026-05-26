@@ -304,11 +304,11 @@ export function ResultsPanel({ result, isLoading = false, sourceText }: ResultsP
               aria-label={`Results navigation. Phase ${activePhaseIndex + 1} of ${totalPhases}.`}
               onKeyDown={(event) => {
                 if (isExpandAllEnabled) return;
-                if (event.key === "ArrowRight") {
+                if (event.key === "ArrowRight" || event.key === "ArrowDown") {
                   event.preventDefault();
                   goToPhase(activePhaseIndex + 1);
                 }
-                if (event.key === "ArrowLeft") {
+                if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
                   event.preventDefault();
                   goToPhase(activePhaseIndex - 1);
                 }
