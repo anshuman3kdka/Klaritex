@@ -31,6 +31,7 @@
     "recharts": "^3.8.1",
     "remark": "^15.0.1",
     "remark-html": "^16.0.1",
+    "sanitize-html": "^2.17.4",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
@@ -40,6 +41,7 @@
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sanitize-html": "^2.16.1",
     "@types/three": "^0.183.1",
     "autoprefixer": "^10.4.27",
     "eslint": "^9.39.4",

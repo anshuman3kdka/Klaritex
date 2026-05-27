@@ -3,6 +3,8 @@ import path from "path";
 import matter from "gray-matter";
 import { remark } from "remark";
 import html from "remark-html";
+import sanitizeHtml from "sanitize-html";
+
 
 const POSTS_DIR = path.join(process.cwd(), "content/posts");
 
@@ -70,7 +72,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     const meta = normalizeMeta(data as Record<string, unknown>, `${slug}.md`);
     if (meta.published && meta.slug === slug) {
       const processed = await remark().use(html).process(content);
-      return { ...meta, contentHtml: processed.toString() };
+      return { ...meta, contentHtml: sanitizeHtml(processed.toString(), { allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]) }) };
     }
   }
   // Fall back to a linear scan for posts whose slug differs from their filename
@@ -81,7 +83,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     const meta = normalizeMeta(data as Record<string, unknown>, filename);
     if (meta.slug === slug && meta.published) {
       const processed = await remark().use(html).process(content);
-      return { ...meta, contentHtml: processed.toString() };
+      return { ...meta, contentHtml: sanitizeHtml(processed.toString(), { allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]) }) };
     }
   }
   return null;

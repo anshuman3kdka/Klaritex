@@ -26,3 +26,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2026-05-27 - Cross-Site Scripting (XSS) via Markdown Post Rendering
+**Vulnerability:** Blog posts authored in Markdown and transformed via `remark` into HTML were directly injected into the DOM using React's `dangerouslySetInnerHTML` without any prior HTML sanitization. This allowed any script tag or inline event handler (e.g., `<img src=x onerror=alert(1)>` embedded within the Markdown) to execute arbitrary JavaScript in the user's browser.
+**Learning:** Markdown parsers typically pass through raw HTML elements embedded in the document verbatim. Converting Markdown to HTML does not make it safe to render in a React application using `dangerouslySetInnerHTML`.
+**Prevention:** Always sanitize the resulting HTML from a Markdown parser before injecting it into the DOM. Use a robust and established parsing library like `sanitize-html` to remove any script elements, strip out inline event handler attributes (like `onload`, `onerror`), and filter links/images to only allow safe protocols.
