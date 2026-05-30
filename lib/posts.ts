@@ -3,8 +3,64 @@ import path from "path";
 import matter from "gray-matter";
 import { remark } from "remark";
 import html from "remark-html";
+import * as cheerio from "cheerio";
 
 const POSTS_DIR = path.join(process.cwd(), "content/posts");
+
+function sanitizeHtml(htmlString: string): string {
+  const $ = cheerio.load(htmlString, null, false);
+  const allowedTags = new Set([
+    "h1", "h2", "h3", "h4", "h5", "h6", "p", "a", "ul", "ol", "li",
+    "blockquote", "code", "pre", "hr", "br", "strong", "em", "b", "i",
+    "span", "div", "img", "table", "thead", "tbody", "tr", "th", "td"
+  ]);
+
+  $("*").each((_, el) => {
+    if (!allowedTags.has(el.tagName.toLowerCase())) {
+      $(el).remove();
+      return;
+    }
+
+    const attrs = Object.keys(el.attribs || {});
+    for (const name of attrs) {
+      if (name.toLowerCase().startsWith("on")) {
+        $(el).removeAttr(name);
+      }
+    }
+
+    if (el.tagName.toLowerCase() === "a") {
+      const href = $(el).attr("href");
+      if (href) {
+        try {
+          const url = new URL(href, "http://localhost");
+          const protocol = url.protocol.toLowerCase();
+          if (!["http:", "https:", "mailto:", "tel:"].includes(protocol)) {
+            $(el).removeAttr("href");
+          }
+        } catch {
+          $(el).removeAttr("href");
+        }
+      }
+    }
+
+    if (el.tagName.toLowerCase() === "img") {
+      const src = $(el).attr("src");
+      if (src) {
+        try {
+          const url = new URL(src, "http://localhost");
+          const protocol = url.protocol.toLowerCase();
+          if (!["http:", "https:"].includes(protocol)) {
+            $(el).removeAttr("src");
+          }
+        } catch {
+          $(el).removeAttr("src");
+        }
+      }
+    }
+  });
+
+  return $.html();
+}
 
 export interface PostMeta {
   title: string;
@@ -69,8 +125,8 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     const { data, content } = matter(raw);
     const meta = normalizeMeta(data as Record<string, unknown>, `${slug}.md`);
     if (meta.published && meta.slug === slug) {
-      const processed = await remark().use(html).process(content);
-      return { ...meta, contentHtml: processed.toString() };
+      const processed = await remark().use(html, { sanitize: false }).process(content);
+      return { ...meta, contentHtml: sanitizeHtml(processed.toString()) };
     }
   }
   // Fall back to a linear scan for posts whose slug differs from their filename
@@ -80,8 +136,8 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     const { data, content } = matter(raw);
     const meta = normalizeMeta(data as Record<string, unknown>, filename);
     if (meta.slug === slug && meta.published) {
-      const processed = await remark().use(html).process(content);
-      return { ...meta, contentHtml: processed.toString() };
+      const processed = await remark().use(html, { sanitize: false }).process(content);
+      return { ...meta, contentHtml: sanitizeHtml(processed.toString()) };
     }
   }
   return null;
