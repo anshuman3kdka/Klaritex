@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio";
-import { lookup } from "node:dns/promises";
+import dns from "node:dns";
+import http from "node:http";
+import https from "node:https";
 import { isIP } from "node:net";
 import fetch from "node-fetch";
 
@@ -162,20 +164,33 @@ function isSafeUrl(urlString: string): boolean {
   }
 }
 
-async function assertPublicDnsResolution(urlString: string): Promise<void> {
-  const url = new URL(urlString);
-  const records = await lookup(url.hostname, { all: true });
-
-  if (!records.length) {
-    throw new UrlExtractionError("Could not fetch content from URL.");
-  }
-
-  for (const record of records) {
-    if (isBlockedIpAddress(record.address)) {
-      throw new UrlExtractionError("Could not fetch content from URL.");
+function safeLookup(
+  hostname: string,
+  options: dns.LookupOneOptions | dns.LookupAllOptions,
+  callback: (err: NodeJS.ErrnoException | null, address: any, family?: number) => void
+) {
+  const dnsOptions = typeof options === "object" ? options : {};
+  dns.lookup(hostname, { ...dnsOptions, all: true }, (err, addresses) => {
+    if (err) {
+      return callback(err, "");
     }
-  }
+
+    for (const record of addresses) {
+      if (isBlockedIpAddress(record.address)) {
+        return callback(new UrlExtractionError("Could not fetch content from URL.") as any, "");
+      }
+    }
+
+    if (dnsOptions.all) {
+      callback(null, addresses as any);
+    } else {
+      callback(null, addresses[0]!.address, addresses[0]!.family || 4);
+    }
+  });
 }
+
+const httpAgent = new http.Agent({ lookup: safeLookup as any });
+const httpsAgent = new https.Agent({ lookup: safeLookup as any });
 
 async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
   let currentUrl = initialUrl;
@@ -184,13 +199,13 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
     if (!isSafeUrl(currentUrl)) {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
-    await assertPublicDnsResolution(currentUrl);
 
     const response = await fetch(currentUrl, {
       method: "GET",
       redirect: "manual",
       size: 5 * 1024 * 1024, // 5MB limit to prevent memory exhaustion DoS
       signal: AbortSignal.timeout(8000),
+      agent: (parsedURL) => (parsedURL.protocol === "http:" ? httpAgent : httpsAgent),
     });
 
     const status = response.status;
