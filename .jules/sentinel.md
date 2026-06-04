@@ -26,3 +26,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2024-06-05 - TOCTOU DNS Rebinding Vulnerability in URL Extraction
+**Vulnerability:** The application was vulnerable to Time-of-Check Time-of-Use (TOCTOU) DNS Rebinding attacks. It used `lookup()` to check the resolved IP of a URL before passing the original hostname to `node-fetch`. Because `fetch` performs its own separate DNS resolution at connection time, an attacker could change the DNS records between the check and the actual fetch, bypassing the internal network restrictions.
+**Learning:** Checking DNS records before making a network request is insufficient because network clients perform their own DNS resolution later, creating a TOCTOU race condition.
+**Prevention:** Always pin the validated IP address by overriding the DNS `lookup` function at the socket connection level. For `node-fetch`, this means providing a custom `http.Agent`/`https.Agent` with a safe `lookup` implementation that strictly blocks prohibited IPs directly during the fetch connection phase.
