@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Dynamic ARIA Attributes in Tabs
+**Learning:** In custom tablist components, using dynamic state (like the currently active tab) for `aria-controls` breaks the static relationship required by WAI-ARIA. Each `role="tab"` must statically point to the unique ID of its associated `role="tabpanel"`, regardless of which tab is currently active.
+**Action:** Always ensure `aria-controls` is mapped to the static identifier of the target element (e.g., `tab.value`), rather than dynamic state variables.
