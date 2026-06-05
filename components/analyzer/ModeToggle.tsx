@@ -61,6 +61,7 @@ const MODE_OPTIONS: Array<{
 export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProps) {
   const [touchFlashMode, setTouchFlashMode] = useState<AnalysisMode | null>(null);
   const touchFlashTimeoutRef = useRef<number | null>(null);
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const triggerTouchFlash = (mode: AnalysisMode) => {
     if (touchFlashTimeoutRef.current !== null) {
@@ -82,23 +83,46 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
     };
   }, []);
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
+    if (disabled) return;
+
+    let nextIndex = currentIndex;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault();
+      nextIndex = (currentIndex + 1) % MODE_OPTIONS.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault();
+      nextIndex = (currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length;
+    }
+
+    if (nextIndex !== currentIndex) {
+      onChange(MODE_OPTIONS[nextIndex].value);
+      buttonRefs.current[nextIndex]?.focus();
+    }
+  };
+
   return (
     <div className="space-y-3">
       <LabLabel id="processing-mode-label">
         Processing Mode
       </LabLabel>
       <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label">
-        {MODE_OPTIONS.map((option) => {
+        {MODE_OPTIONS.map((option, index) => {
           const isActive = option.value === value;
 
           return (
             <button
               key={option.value}
+              ref={(el) => {
+                buttonRefs.current[index] = el;
+              }}
               role="radio"
               aria-checked={isActive}
               type="button"
               disabled={disabled}
+              tabIndex={isActive ? 0 : -1}
               onClick={() => onChange(option.value)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
               className={`p-4 text-left transition-[box-shadow,background-color] duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 rounded-2xl ${
                 isActive
                   ? "shadow-[var(--shadow-pressed)] bg-[var(--lab-surface)] text-[var(--lab-ink)]"
