@@ -26,3 +26,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2026-06-05 - Time-of-Check Time-of-Use (TOCTOU) SSRF via DNS Rebinding
+**Vulnerability:** The application was vulnerable to SSRF via DNS Rebinding attacks. The code validated that a domain resolved to a safe public IP (Time-of-Check) using `assertPublicDnsResolution`, but then passed the original URL/hostname to `fetch` (Time-of-Use). An attacker could serve a DNS record with a short TTL that initially points to a safe IP but changes to an internal/blocked IP before `fetch` resolves it again.
+**Learning:** Checking the IP of a hostname and then making a request to that hostname are two separate DNS resolution operations. If they are decoupled, there is an inherent race condition where the underlying IP can change, leading to DNS rebinding vulnerabilities.
+**Prevention:** Always validate the IP address *exactly* at the time of connection. In Node.js, this is achieved by overriding the DNS `lookup` function in custom `http.Agent`/`https.Agent` configurations and passing those to the networking library (e.g., `node-fetch`).
