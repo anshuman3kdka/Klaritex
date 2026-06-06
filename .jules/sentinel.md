@@ -26,3 +26,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2024-06-06 - XSS Vulnerability in Markdown Rendering
+**Vulnerability:** The blog post pages rendered HTML converted from Markdown via `remark-html` directly using `dangerouslySetInnerHTML` without any sanitization. This allowed any script or malicious HTML contained within the Markdown files (e.g. `<script>alert(1)</script>` or `<a href="javascript:alert(1)">`) to be executed in the user's browser, leading to Cross-Site Scripting (XSS).
+**Learning:** Tools like `remark-html` do not sanitize HTML by default. When rendering content with `dangerouslySetInnerHTML`, the application implicitly trusts the content. Even if content comes from internal files, missing sanitization creates a risk if content generation processes are ever compromised or automated.
+**Prevention:** Always implement strict HTML sanitization (e.g. using `cheerio` or `DOMPurify` to allow-list safe tags, remove `<script>`/`<style>` elements, strip inline event handlers, and restrict protocols in URLs) before rendering HTML using `dangerouslySetInnerHTML`.

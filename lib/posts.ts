@@ -3,8 +3,67 @@ import path from "path";
 import matter from "gray-matter";
 import { remark } from "remark";
 import html from "remark-html";
+import * as cheerio from "cheerio";
 
 const POSTS_DIR = path.join(process.cwd(), "content/posts");
+
+const ALLOWED_TAGS = new Set([
+  "h1", "h2", "h3", "h4", "h5", "h6", "p", "a", "ul", "ol", "li",
+  "strong", "em", "b", "i", "u", "s", "code", "pre", "blockquote",
+  "img", "hr", "br", "table", "thead", "tbody", "tr", "th", "td",
+  "span", "div"
+]);
+
+function sanitizeHtml(dirtyHtml: string): string {
+  const $ = cheerio.load(dirtyHtml, null, false);
+
+  $("*").each((_, el) => {
+    if (el.type === "script" || el.type === "style") {
+      $(el).remove();
+      return;
+    }
+
+    if (el.type !== "tag") return;
+
+    if (!ALLOWED_TAGS.has(el.name)) {
+      $(el).remove();
+      return;
+    }
+
+    const attribs = el.attribs || {};
+    for (const attr in attribs) {
+      if (attr.toLowerCase().startsWith("on")) {
+        $(el).removeAttr(attr);
+      }
+    }
+
+    if (el.name === "a" && attribs.href) {
+      try {
+        const url = new URL(attribs.href, "http://localhost");
+        const proto = url.protocol;
+        if (!["http:", "https:", "mailto:", "tel:"].includes(proto)) {
+          $(el).removeAttr("href");
+        }
+      } catch (e) {
+        $(el).removeAttr("href");
+      }
+    }
+
+    if (el.name === "img" && attribs.src) {
+      try {
+        const url = new URL(attribs.src, "http://localhost");
+        const proto = url.protocol;
+        if (!["http:", "https:"].includes(proto)) {
+          $(el).removeAttr("src");
+        }
+      } catch (e) {
+        $(el).removeAttr("src");
+      }
+    }
+  });
+
+  return $.html();
+}
 
 export interface PostMeta {
   title: string;
@@ -70,7 +129,8 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     const meta = normalizeMeta(data as Record<string, unknown>, `${slug}.md`);
     if (meta.published && meta.slug === slug) {
       const processed = await remark().use(html).process(content);
-      return { ...meta, contentHtml: processed.toString() };
+      const safeHtml = sanitizeHtml(processed.toString());
+      return { ...meta, contentHtml: safeHtml };
     }
   }
   // Fall back to a linear scan for posts whose slug differs from their filename
@@ -81,7 +141,8 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     const meta = normalizeMeta(data as Record<string, unknown>, filename);
     if (meta.slug === slug && meta.published) {
       const processed = await remark().use(html).process(content);
-      return { ...meta, contentHtml: processed.toString() };
+      const safeHtml = sanitizeHtml(processed.toString());
+      return { ...meta, contentHtml: safeHtml };
     }
   }
   return null;
