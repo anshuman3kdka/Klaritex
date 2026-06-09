@@ -273,7 +273,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
   function handleTabListKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const currentIndex = TABS.findIndex((tab) => tab.value === inputMode);
 
-    if (event.key === "ArrowRight") {
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
       event.preventDefault();
       const nextTab = TABS[(currentIndex + 1) % TABS.length];
       handleTabSwitch(nextTab.value);
@@ -281,7 +281,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
       return;
     }
 
-    if (event.key === "ArrowLeft") {
+    if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
       event.preventDefault();
       const nextTab = TABS[(currentIndex - 1 + TABS.length) % TABS.length];
       handleTabSwitch(nextTab.value);
@@ -540,8 +540,9 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                 }}
                 role="tab"
                 aria-selected={isActive}
-                aria-controls={`input-panel-${inputMode}`}
+                aria-controls={`input-panel-${tab.value}`}
                 id={`input-tab-${tab.value}`}
+                tabIndex={isActive ? 0 : -1}
                 type="button"
                 onClick={() => handleTabSwitch(tab.value)}
                 style={tabAnimationStyle(index)}
