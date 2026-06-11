@@ -539,8 +539,9 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                   tabRefs.current[tab.value] = element;
                 }}
                 role="tab"
+                tabIndex={isActive ? 0 : -1}
                 aria-selected={isActive}
-                aria-controls={`input-panel-${inputMode}`}
+                aria-controls={`input-panel-${tab.value}`}
                 id={`input-tab-${tab.value}`}
                 type="button"
                 onClick={() => handleTabSwitch(tab.value)}

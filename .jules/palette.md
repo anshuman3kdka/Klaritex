@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Custom UI Primitive Keyboard Navigation
+**Learning:** Adding `tabIndex={isActive ? 0 : -1}` to custom radio groups or tablists correctly hides inactive elements from sequential focus, but MUST be paired with `onKeyDown` ArrowKey navigation. Removing inactive elements from the sequential tab order without functional arrow-key navigation causes a major accessibility regression.
+**Action:** When applying the roving tabindex pattern to custom UI components like tablists or radio groups, verify that the corresponding `onKeyDown` arrow-key navigation handler is properly bound and correctly managing focus.
