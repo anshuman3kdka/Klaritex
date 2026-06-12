@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2026-06-12 - Radiogroup Roving Tabindex
+**Learning:** When building custom radio groups (`role="radiogroup"`) with generic elements, all items default to the sequential tab order. This forces keyboard users to tab through every single inactive radio option to move past the component, causing a frustrating experience.
+**Action:** Implement the roving tabindex pattern: set the active item to `tabIndex={0}` and all inactive items to `tabIndex={-1}`. Pair this with an explicit `onKeyDown` handler on the radiogroup container to support Arrow navigation (Up/Down/Left/Right) so users can easily select options without them clogging the main tab sequence.
