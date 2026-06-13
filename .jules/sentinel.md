@@ -26,3 +26,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2024-05-18 - TOCTOU vulnerability in fetch URL extraction
+**Vulnerability:** A Time-of-Check Time-of-Use (TOCTOU) vulnerability exists in `lib/extractUrl.ts` when making outbound HTTP requests to user-supplied URLs. The code performs DNS resolution and validation on the URL's hostname (checking against an IP blocklist) before calling `fetch`. An attacker could exploit this by using a DNS Rebinding attack: returning a safe IP address during the initial check, but returning a malicious/internal IP address when `fetch` actually connects to the server a few milliseconds later.
+**Learning:** Checking a hostname's IP prior to calling a network library that performs its own subsequent DNS lookup is fundamentally insecure.
+**Prevention:** Override the network library's underlying DNS lookup function to enforce the IP blocklist at the exact time the connection is made, rather than relying on a separate check before the connection. Pass a custom `http.Agent`/`https.Agent` to `fetch` to achieve this.
