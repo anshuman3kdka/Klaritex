@@ -82,13 +82,34 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
     };
   }, []);
 
+  const handleKeyDown = (event: React.KeyboardEvent, index: number) => {
+    let nextIndex = -1;
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault();
+      nextIndex = (index + 1) % MODE_OPTIONS.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault();
+      nextIndex = (index - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length;
+    }
+
+    if (nextIndex !== -1) {
+      onChange(MODE_OPTIONS[nextIndex].value);
+      const radiogroup = event.currentTarget.closest('[role="radiogroup"]');
+      if (radiogroup) {
+        const radios = radiogroup.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+        radios[nextIndex]?.focus();
+      }
+    }
+  };
+
   return (
     <div className="space-y-3">
       <LabLabel id="processing-mode-label">
         Processing Mode
       </LabLabel>
       <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label">
-        {MODE_OPTIONS.map((option) => {
+        {MODE_OPTIONS.map((option, index) => {
           const isActive = option.value === value;
 
           return (
@@ -96,9 +117,11 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
               key={option.value}
               role="radio"
               aria-checked={isActive}
+              tabIndex={isActive ? 0 : -1}
               type="button"
               disabled={disabled}
               onClick={() => onChange(option.value)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
               className={`p-4 text-left transition-[box-shadow,background-color] duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 rounded-2xl ${
                 isActive
                   ? "shadow-[var(--shadow-pressed)] bg-[var(--lab-surface)] text-[var(--lab-ink)]"

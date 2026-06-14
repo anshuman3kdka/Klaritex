@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2026-06-14 - Roving Tabindex for Radiogroups
+**Learning:** When building custom radio groups (`role="radiogroup"`), generic elements don't inherently support keyboard navigation. Using roving tabindex (`tabIndex={isActive ? 0 : -1}`) combined with Arrow key `onKeyDown` handlers is essential for WAI-ARIA compliance, ensuring users don't have to tab through every inactive option.
+**Action:** Always implement explicit roving tabindex and arrow-key handlers when creating custom `role="radio"` elements to maintain logical tab order and accessibility.
