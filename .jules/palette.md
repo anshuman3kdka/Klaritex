@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Interactive Roving Focus for Radio Groups and Tablists
+**Learning:** Custom grouped interactive UI primitives (like `role="radiogroup"` or `role="tablist"`) can become inaccessible if inactive elements enter the sequential tab order, forcing users to tab excessively. `aria-controls` also needs to correctly and statically map to target panels, not the dynamic state variables.
+**Action:** When building interactive groups like tablists or radio groups, implement roving `tabIndex={isActive ? 0 : -1}` and explicit arrow-key event handlers to navigate. Ensure that `aria-controls` bindings to associated panels rely on the target's static ID, rather than the dynamically selected value.
