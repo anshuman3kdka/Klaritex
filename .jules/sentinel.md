@@ -26,3 +26,8 @@
 **Vulnerability:** The API route for analyzing PDFs called `file.arrayBuffer()` to read file contents into memory without checking the file size. This could lead to a Denial of Service (DoS) due to out-of-memory errors if a very large file is uploaded.
 **Learning:** Default serverless platform limits might be too permissive. It is necessary to explicitly check file sizes before buffering them into memory to prevent resource exhaustion.
 **Prevention:** Always check `file.size` against an upper limit (e.g., 10MB) before calling `arrayBuffer()` or similar methods that load the entire payload into RAM.
+
+## 2026-04-13 - IP Spoofing via X-Forwarded-For
+**Vulnerability:** The application extracted the first value from the `X-Forwarded-For` header to determine the client IP address. An attacker could easily spoof their IP address by prefixing the header with an arbitrary IP (e.g., `X-Forwarded-For: 127.0.0.1, <attacker_ip>`).
+**Learning:** In proxy chains, the client can set the initial `X-Forwarded-For` header. Trusted proxies typically append the connecting IP to the end of this list. Therefore, the rightmost value is generally the most trustworthy IP provided by the last trusted proxy in the chain.
+**Prevention:** To prevent IP spoofing, always extract and validate the last (rightmost) IP address from the `X-Forwarded-For` header.
