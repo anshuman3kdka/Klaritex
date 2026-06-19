@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio";
-import { lookup } from "node:dns/promises";
+import dns from "node:dns";
+import http from "node:http";
+import https from "node:https";
 import { isIP } from "node:net";
 import fetch from "node-fetch";
 
@@ -162,20 +164,34 @@ function isSafeUrl(urlString: string): boolean {
   }
 }
 
-async function assertPublicDnsResolution(urlString: string): Promise<void> {
-  const url = new URL(urlString);
-  const records = await lookup(url.hostname, { all: true });
+const customLookup = (
+  hostname: string,
+  options: dns.LookupOneOptions | dns.LookupAllOptions,
+  callback: (err: NodeJS.ErrnoException | null, address: any, family?: number) => void
+) => {
+  dns.lookup(hostname, { ...options, all: true }, (err, addresses) => {
+    if (err) return callback(err, null as any);
 
-  if (!records.length) {
-    throw new UrlExtractionError("Could not fetch content from URL.");
-  }
-
-  for (const record of records) {
-    if (isBlockedIpAddress(record.address)) {
-      throw new UrlExtractionError("Could not fetch content from URL.");
+    if (!addresses || !addresses.length) {
+      return callback(new UrlExtractionError("Could not fetch content from URL.") as any, null as any);
     }
-  }
-}
+
+    for (const record of addresses) {
+      if (isBlockedIpAddress(record.address)) {
+        return callback(new UrlExtractionError("Could not fetch content from URL.") as any, null as any);
+      }
+    }
+
+    if ((options as dns.LookupAllOptions).all) {
+      callback(null, addresses);
+    } else {
+      callback(null, addresses[0].address, addresses[0].family || 4);
+    }
+  });
+};
+
+const httpAgent = new http.Agent({ lookup: customLookup as any });
+const httpsAgent = new https.Agent({ lookup: customLookup as any });
 
 async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
   let currentUrl = initialUrl;
@@ -184,13 +200,13 @@ async function fetchWithRedirectLimit(initialUrl: string): Promise<string> {
     if (!isSafeUrl(currentUrl)) {
       throw new UrlExtractionError("Could not fetch content from URL.");
     }
-    await assertPublicDnsResolution(currentUrl);
 
     const response = await fetch(currentUrl, {
       method: "GET",
       redirect: "manual",
       size: 5 * 1024 * 1024, // 5MB limit to prevent memory exhaustion DoS
       signal: AbortSignal.timeout(8000),
+      agent: (parsedUrl) => parsedUrl.protocol === "http:" ? httpAgent : httpsAgent,
     });
 
     const status = response.status;
