@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Radiogroup Focus Management
+**Learning:** When implementing roving tabindex (`tabIndex={isActive ? 0 : -1}`) on custom radiogroups, updating state alone is insufficient. When navigating via arrow keys, the previously focused element loses its `0` tabIndex, leaving the user's focus stuck on an inactive element. This breaks expectations for screen readers and keyboard users.
+**Action:** Always combine state updates with programmatic DOM focus shifts (e.g., using React `refs` and `focus()`) within the `onKeyDown` handler to ensure the newly active element actually receives browser focus after the re-render.
