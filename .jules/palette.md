@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Custom Tablist Attributes
+**Learning:** Custom tablists need explicit support for accessibility patterns. Setting `aria-controls` dynamically to the active panel instead of statically to the button's corresponding panel causes accessibility regressions. Furthermore, omitting roving tabindex (`tabIndex={isActive ? 0 : -1}`) when using generic elements or overrides breaks keyboard navigation patterns when implementing arrow-key control.
+**Action:** Always verify `aria-controls` statically maps to a tab's unique panel ID, and ensure that roving tabindex (`tabIndex={isActive ? 0 : -1}`) is correctly added to elements with `role="tab"` when implementing custom interactive elements.
