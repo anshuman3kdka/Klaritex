@@ -82,21 +82,44 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
     };
   }, []);
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const currentIndex = MODE_OPTIONS.findIndex((opt) => opt.value === value);
+
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      const nextOption = MODE_OPTIONS[(currentIndex + 1) % MODE_OPTIONS.length];
+      onChange(nextOption.value);
+      document.getElementById(`mode-toggle-${nextOption.value}`)?.focus();
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const prevOption = MODE_OPTIONS[(currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length];
+      onChange(prevOption.value);
+      document.getElementById(`mode-toggle-${prevOption.value}`)?.focus();
+    }
+  };
+
   return (
     <div className="space-y-3">
       <LabLabel id="processing-mode-label">
         Processing Mode
       </LabLabel>
-      <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label">
+      <div
+        className="grid grid-cols-2 gap-4"
+        role="radiogroup"
+        aria-labelledby="processing-mode-label"
+        onKeyDown={handleKeyDown}
+      >
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
 
           return (
             <button
               key={option.value}
+              id={`mode-toggle-${option.value}`}
               role="radio"
               aria-checked={isActive}
               type="button"
+              tabIndex={isActive ? 0 : -1}
               disabled={disabled}
               onClick={() => onChange(option.value)}
               className={`p-4 text-left transition-[box-shadow,background-color] duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 rounded-2xl ${
