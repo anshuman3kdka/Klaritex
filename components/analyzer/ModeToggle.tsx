@@ -82,20 +82,50 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
     };
   }, []);
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (disabled) return;
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault();
+      const currentIndex = MODE_OPTIONS.findIndex((opt) => opt.value === value);
+      const nextIndex = (currentIndex + 1) % MODE_OPTIONS.length;
+      onChange(MODE_OPTIONS[nextIndex].value);
+      // We rely on React rendering the new active tabIndex=0, then focus can be managed if needed.
+      // But typically for radio groups arrow keys change the value and keep focus on the active element.
+      // To ensure focus moves to the newly activated radio, we can grab it by id. We need ids for that.
+      const nextId = `mode-option-${MODE_OPTIONS[nextIndex].value}`;
+      document.getElementById(nextId)?.focus();
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const currentIndex = MODE_OPTIONS.findIndex((opt) => opt.value === value);
+      const prevIndex = (currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length;
+      onChange(MODE_OPTIONS[prevIndex].value);
+      const prevId = `mode-option-${MODE_OPTIONS[prevIndex].value}`;
+      document.getElementById(prevId)?.focus();
+    }
+  };
+
   return (
     <div className="space-y-3">
       <LabLabel id="processing-mode-label">
         Processing Mode
       </LabLabel>
-      <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label">
+      <div
+        className="grid grid-cols-2 gap-4"
+        role="radiogroup"
+        aria-labelledby="processing-mode-label"
+        onKeyDown={handleKeyDown}
+      >
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
 
           return (
             <button
               key={option.value}
+              id={`mode-option-${option.value}`}
               role="radio"
               aria-checked={isActive}
+              tabIndex={isActive ? 0 : -1}
               type="button"
               disabled={disabled}
               onClick={() => onChange(option.value)}
