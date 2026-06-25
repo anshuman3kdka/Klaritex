@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Custom UI Group Keyboard Accessibility & ARIA Semantics
+**Learning:** When building custom groups like `tablist` or `radiogroup`, adding roving `tabIndex={isActive ? 0 : -1}` removes inactive items from the sequential tab order but requires explicit arrow key navigation (`onKeyDown`) so users can still reach all options. Additionally, dynamic `aria-controls` bindings (e.g., pointing to whichever panel is currently active) breaks semantic mapping; it must statically point to each tab's uniquely associated panel ID.
+**Action:** Always pair a roving `tabIndex` with robust `onKeyDown` focus management in custom UI groups to ensure WAI-ARIA compliance. Ensure `aria-controls` references static, unique IDs corresponding to each tab.
