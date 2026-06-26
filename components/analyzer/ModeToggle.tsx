@@ -61,6 +61,10 @@ const MODE_OPTIONS: Array<{
 export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProps) {
   const [touchFlashMode, setTouchFlashMode] = useState<AnalysisMode | null>(null);
   const touchFlashTimeoutRef = useRef<number | null>(null);
+  const buttonRefs = useRef<Record<AnalysisMode, HTMLButtonElement | null>>({
+    quick: null,
+    deep: null,
+  });
 
   const triggerTouchFlash = (mode: AnalysisMode) => {
     if (touchFlashTimeoutRef.current !== null) {
@@ -88,17 +92,34 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
         Processing Mode
       </LabLabel>
       <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label">
-        {MODE_OPTIONS.map((option) => {
+        {MODE_OPTIONS.map((option, index) => {
           const isActive = option.value === value;
 
           return (
             <button
               key={option.value}
+              ref={(el) => {
+                buttonRefs.current[option.value] = el;
+              }}
               role="radio"
               aria-checked={isActive}
+              tabIndex={isActive ? 0 : -1}
               type="button"
               disabled={disabled}
               onClick={() => onChange(option.value)}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                  event.preventDefault();
+                  const nextOption = MODE_OPTIONS[(index + 1) % MODE_OPTIONS.length];
+                  onChange(nextOption.value);
+                  buttonRefs.current[nextOption.value]?.focus();
+                } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                  event.preventDefault();
+                  const prevOption = MODE_OPTIONS[(index - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length];
+                  onChange(prevOption.value);
+                  buttonRefs.current[prevOption.value]?.focus();
+                }
+              }}
               className={`p-4 text-left transition-[box-shadow,background-color] duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 rounded-2xl ${
                 isActive
                   ? "shadow-[var(--shadow-pressed)] bg-[var(--lab-surface)] text-[var(--lab-ink)]"
