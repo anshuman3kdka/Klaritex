@@ -7,3 +7,7 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+
+## 2025-02-14 - ModeToggle radio group missing keyboard navigation
+**Learning:** The custom `ModeToggle` radio group lacked arrow key navigation and roving tabindex, meaning users could not navigate between its radio options using arrow keys, violating WAI-ARIA standards.
+**Action:** Applied roving tabindex (active item `tabIndex={0}`, inactive `tabIndex={-1}`) and an `onKeyDown` handler to explicitly manage focus and selection using Arrow keys.
