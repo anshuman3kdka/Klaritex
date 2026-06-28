@@ -74,6 +74,8 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
     }, 130);
   };
 
+  const radioRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
   useEffect(() => {
     return () => {
       if (touchFlashTimeoutRef.current !== null) {
@@ -82,22 +84,45 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
     };
   }, []);
 
+  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    const currentIndex = MODE_OPTIONS.findIndex((option) => option.value === value);
+    if (currentIndex === -1) return;
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault();
+      const nextIndex = (currentIndex + 1) % MODE_OPTIONS.length;
+      const nextValue = MODE_OPTIONS[nextIndex].value;
+      onChange(nextValue);
+      radioRefs.current[nextValue]?.focus();
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const prevIndex = (currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length;
+      const prevValue = MODE_OPTIONS[prevIndex].value;
+      onChange(prevValue);
+      radioRefs.current[prevValue]?.focus();
+    }
+  }
+
   return (
     <div className="space-y-3">
       <LabLabel id="processing-mode-label">
         Processing Mode
       </LabLabel>
-      <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label">
+      <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label" onKeyDown={handleKeyDown}>
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
 
           return (
             <button
               key={option.value}
+              ref={(el) => {
+                radioRefs.current[option.value] = el;
+              }}
               role="radio"
               aria-checked={isActive}
               type="button"
               disabled={disabled}
+              tabIndex={isActive ? 0 : -1}
               onClick={() => onChange(option.value)}
               className={`p-4 text-left transition-[box-shadow,background-color] duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lab-gold)]/50 rounded-2xl ${
                 isActive
