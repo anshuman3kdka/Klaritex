@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2026-06-28 - Radiogroup and Tablist Focus Management
+**Learning:** When using custom generic HTML elements for UI components like `role="radiogroup"` or `role="tablist"`, keyboard support and semantic groupings are not inherently provided. Additionally, using a dynamic `aria-controls` ID for a tab based on the active state rather than the tab's specific panel statically breaks screen reader announcements for the tab relationships.
+**Action:** Apply a roving tabindex (`tabIndex={isActive ? 0 : -1}`) pattern combined with custom `onKeyDown` arrow-key navigation logic to keep inactive elements out of the tab order while ensuring full keyboard operability. Map `aria-controls` statically to the target panel's ID, not dynamically based on the current selection.
