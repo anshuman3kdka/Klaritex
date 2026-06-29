@@ -61,6 +61,10 @@ const MODE_OPTIONS: Array<{
 export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProps) {
   const [touchFlashMode, setTouchFlashMode] = useState<AnalysisMode | null>(null);
   const touchFlashTimeoutRef = useRef<number | null>(null);
+  const buttonRefs = useRef<Record<AnalysisMode, HTMLButtonElement | null>>({
+    quick: null,
+    deep: null,
+  });
 
   const triggerTouchFlash = (mode: AnalysisMode) => {
     if (touchFlashTimeoutRef.current !== null) {
@@ -72,6 +76,26 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
       setTouchFlashMode((current) => (current === mode ? null : current));
       touchFlashTimeoutRef.current = null;
     }, 130);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (disabled) return;
+
+    const currentIndex = MODE_OPTIONS.findIndex((opt) => opt.value === value);
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault();
+      const nextIndex = (currentIndex + 1) % MODE_OPTIONS.length;
+      const nextValue = MODE_OPTIONS[nextIndex].value;
+      onChange(nextValue);
+      buttonRefs.current[nextValue]?.focus();
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const prevIndex = (currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length;
+      const prevValue = MODE_OPTIONS[prevIndex].value;
+      onChange(prevValue);
+      buttonRefs.current[prevValue]?.focus();
+    }
   };
 
   useEffect(() => {
@@ -87,15 +111,24 @@ export function ModeToggle({ value, onChange, disabled = false }: ModeToggleProp
       <LabLabel id="processing-mode-label">
         Processing Mode
       </LabLabel>
-      <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="processing-mode-label">
+      <div
+        className="grid grid-cols-2 gap-4"
+        role="radiogroup"
+        aria-labelledby="processing-mode-label"
+        onKeyDown={handleKeyDown}
+      >
         {MODE_OPTIONS.map((option) => {
           const isActive = option.value === value;
 
           return (
             <button
               key={option.value}
+              ref={(el) => {
+                buttonRefs.current[option.value] = el;
+              }}
               role="radio"
               aria-checked={isActive}
+              tabIndex={isActive ? 0 : -1}
               type="button"
               disabled={disabled}
               onClick={() => onChange(option.value)}
