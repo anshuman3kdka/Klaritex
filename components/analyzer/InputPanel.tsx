@@ -540,7 +540,7 @@ export function InputPanel({ intent, id }: InputPanelProps) {
                 }}
                 role="tab"
                 aria-selected={isActive}
-                aria-controls={`input-panel-${inputMode}`}
+                aria-controls={`input-panel-${tab.value}`}
                 id={`input-tab-${tab.value}`}
                 type="button"
                 onClick={() => handleTabSwitch(tab.value)}
@@ -562,17 +562,13 @@ export function InputPanel({ intent, id }: InputPanelProps) {
           })}
         </div>
 
-        <div
-          className={`mt-6 ${isResetShaking ? "clear-reset-shake" : ""}`}
-          role="tabpanel"
-          id={`input-panel-${inputMode}`}
-          aria-labelledby={`input-tab-${inputMode}`}
-        >
-          {inputMode === "text" ? (
-            <>
-              <LabLabel className="mb-2 block">
-                <label htmlFor="klaritex-text-input">Text to analyze</label>
-              </LabLabel>
+        <div className={`mt-6 ${isResetShaking ? "clear-reset-shake" : ""}`}>
+          <div role="tabpanel" id="input-panel-text" aria-labelledby="input-tab-text" hidden={inputMode !== "text"}>
+            {inputMode === "text" ? (
+              <>
+                <LabLabel className="mb-2 block">
+                  <label htmlFor="klaritex-text-input">Text to analyze</label>
+                </LabLabel>
               <div
                 className={`overflow-hidden transition-[max-height] duration-300 ease-out md:max-h-none ${
                   isTextInputFocused ? "max-h-[200px] h-[200px]" : "max-h-[120px] h-[120px]"
@@ -638,30 +634,35 @@ export function InputPanel({ intent, id }: InputPanelProps) {
               </div>
             </>
           ) : null}
+          </div>
 
-          {inputMode === "pdf" ? (
-            <PdfUpload
-              value={pdfFile}
-              disabled={isAnalyzing}
-              errorMessage={errorMessage}
-              onFileChange={(file) => {
-                setPdfFile(file);
-                setErrorMessage(null);
-              }}
-            />
-          ) : null}
+          <div role="tabpanel" id="input-panel-pdf" aria-labelledby="input-tab-pdf" hidden={inputMode !== "pdf"}>
+            {inputMode === "pdf" ? (
+              <PdfUpload
+                value={pdfFile}
+                disabled={isAnalyzing}
+                errorMessage={errorMessage}
+                onFileChange={(file) => {
+                  setPdfFile(file);
+                  setErrorMessage(null);
+                }}
+              />
+            ) : null}
+          </div>
 
-          {inputMode === "url" ? (
-            <UrlInput
-              value={urlInput}
-              disabled={isAnalyzing}
-              errorMessage={errorMessage}
-              onChange={(value) => {
-                setUrlInput(value);
-                setErrorMessage(null);
-              }}
-            />
-          ) : null}
+          <div role="tabpanel" id="input-panel-url" aria-labelledby="input-tab-url" hidden={inputMode !== "url"}>
+            {inputMode === "url" ? (
+              <UrlInput
+                value={urlInput}
+                disabled={isAnalyzing}
+                errorMessage={errorMessage}
+                onChange={(value) => {
+                  setUrlInput(value);
+                  setErrorMessage(null);
+                }}
+              />
+            ) : null}
+          </div>
         </div>
 
         <div className="mt-8 mb-8">
