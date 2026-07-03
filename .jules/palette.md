@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Custom Tablists and Radiogroups Accessibility
+**Learning:** Custom tablists and radiogroups built with generic elements must implement the roving tabindex pattern to prevent inactive elements from entering the sequential tab order. For tablists, the `aria-controls` attribute on the tab must statically map to the ID of the corresponding tabpanel. Arrow key navigation must be explicitly implemented for radiogroups and tablists to be accessible.
+**Action:** Always implement roving `tabIndex` (`tabIndex={isActive ? 0 : -1}`) and explicit Arrow key navigation (`onKeyDown`) for custom interactive components like tablists and radiogroups. Ensure `aria-controls` maps statically to the associated panel ID.
