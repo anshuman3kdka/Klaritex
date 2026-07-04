@@ -7,3 +7,6 @@
 ## 2025-02-14 - Copyright link Focus States
 **Learning:** The copyright text in the footer lacked an accessible link, making it non-interactive and lacking proper focus states for keyboard users.
 **Action:** Wrapped the copyright name in an `<a>` tag with proper `href`, `target="_blank"`, `rel="noopener noreferrer"`, and explicit focus styles (`focus-visible:ring-2 focus-visible:ring-[var(--gold-primary)]/50 focus-visible:outline-none`) to maintain keyboard accessibility within the dark theme.
+## 2025-02-14 - Custom Radio Group Accessibility
+**Learning:** When building custom radio groups using generic elements or buttons with `role="radio"`, all items are naturally inserted into the sequential tab order. This creates a confusing and non-standard experience for screen readers and keyboard users who expect only one group element to receive focus initially.
+**Action:** Always implement the roving tabindex pattern (`tabIndex={isActive ? 0 : -1}`) combined with explicit Arrow key navigation via `onKeyDown` handlers on the parent `role="radiogroup"` container to manage focus explicitly and remove inactive items from the default tab sequence.
